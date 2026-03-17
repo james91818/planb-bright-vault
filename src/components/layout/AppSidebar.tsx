@@ -99,7 +99,7 @@ const AppSidebar = () => {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>{isAdmin ? "Administration" : "Menu"}</SidebarGroupLabel>
+          <SidebarGroupLabel>{isStaff ? "Administration" : "Menu"}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {mainNav.map((item) => (
