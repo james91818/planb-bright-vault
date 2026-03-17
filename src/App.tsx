@@ -10,6 +10,7 @@ import AccountTypes from "./pages/AccountTypes";
 import Investments from "./pages/Investments";
 import Impressum from "./pages/Impressum";
 import Signup from "./pages/Signup";
+import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import AppLayout from "./components/layout/AppLayout";
 import NotFound from "./pages/NotFound";
@@ -50,6 +51,7 @@ const App = () => (
           <Route path="/account-types" element={<AccountTypes />} />
           <Route path="/investments" element={<Investments />} />
           <Route path="/impressum" element={<Impressum />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             {/* Client routes */}
