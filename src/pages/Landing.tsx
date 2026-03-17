@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import heroImage from "@/assets/hero-trading.jpg";
+import oxBg from "@/assets/ox-bg.svg";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -168,24 +168,23 @@ const Landing = () => {
       </nav>
 
       {/* ===== HERO ===== */}
-      <section className="relative bg-hero overflow-hidden min-h-[520px] md:min-h-[600px]">
-        {/* Hero background image */}
-        <div className="absolute inset-0">
-          <img src={heroImage} alt="Trading charts background" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-r from-hero via-hero/90 to-hero/40" />
+      <section className="relative overflow-hidden min-h-[520px] md:min-h-[600px]" style={{ background: "linear-gradient(135deg, #f5efe6 0%, #ede4d3 40%, #e8dcc8 100%)" }}>
+        {/* Ox wireframe SVG */}
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[55%] md:w-[50%] h-full pointer-events-none">
+          <img src={oxBg} alt="" className="w-full h-full object-contain object-right opacity-80" />
         </div>
 
         <div className="container mx-auto px-4 py-20 md:py-28 relative z-10">
           <div className="max-w-xl space-y-6">
-            <h1 className="text-4xl md:text-5xl lg:text-[3.5rem] font-display font-bold text-hero-foreground leading-[1.15]">
+            <h1 className="text-4xl md:text-5xl lg:text-[3.5rem] font-display font-bold text-foreground leading-[1.15]">
               Integrity<br />
               Reliability<br />
               Transparency
             </h1>
-            <p className="text-hero-muted text-lg">
+            <p className="text-muted-foreground text-lg">
               Trade on global markets with PlanB Trading — your trusted partner for crypto, stocks, and forex investments.
             </p>
-            <Button size="lg" asChild className="rounded-full px-8 text-base">
+            <Button size="lg" asChild className="rounded-full px-8 text-base bg-primary hover:bg-primary/90">
               <Link to="/signup">
                 <TrendingUp className="mr-2 h-5 w-5" />
                 Start Trading Now
