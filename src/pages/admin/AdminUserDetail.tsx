@@ -408,6 +408,49 @@ const AdminUserDetail = () => {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Notes Tab */}
+        <TabsContent value="notes">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base font-display flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" /> Internal Notes
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Add note */}
+              <div className="flex gap-2">
+                <Textarea
+                  value={newNote}
+                  onChange={(e) => setNewNote(e.target.value)}
+                  placeholder="Add an internal note about this user..."
+                  rows={2}
+                  className="flex-1"
+                />
+                <Button onClick={submitNote} disabled={!newNote.trim()} className="self-end">
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Notes list */}
+              {adminNotes.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-6">No notes yet</p>
+              ) : (
+                <div className="space-y-3">
+                  {adminNotes.map((note) => (
+                    <div key={note.id} className="border rounded-lg p-3 space-y-1">
+                      <p className="text-sm whitespace-pre-wrap">{note.content}</p>
+                      <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-1">
+                        <span>{(note as any).profiles?.full_name || (note as any).profiles?.email || "Staff"}</span>
+                        <span>{new Date(note.created_at).toLocaleString()}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
     </div>
   );
