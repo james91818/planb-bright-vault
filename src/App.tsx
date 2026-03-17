@@ -7,6 +7,7 @@ import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import AdminLogin from "./pages/AdminLogin";
 import AccountTypes from "./pages/AccountTypes";
+import Investments from "./pages/Investments";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import AppLayout from "./components/layout/AppLayout";
@@ -46,6 +47,7 @@ const App = () => (
           <Route path="/backoffice" element={<AdminLogin />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/account-types" element={<AccountTypes />} />
+          <Route path="/investments" element={<Investments />} />
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             {/* Client routes */}
