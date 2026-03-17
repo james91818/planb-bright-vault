@@ -61,7 +61,7 @@ const AppSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut } = useAuth();
-  const { isAdmin } = useRole();
+  const { isStaff } = useRole();
 
   const mainNav = isAdmin ? adminNav : clientNav;
 

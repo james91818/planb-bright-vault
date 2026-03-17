@@ -15,7 +15,7 @@ const Dashboard = () => {
     );
   }
 
-  return isAdmin ? <AdminDashboard /> : <ClientDashboard />;
+  return isStaff ? <AdminDashboard /> : <ClientDashboard />;
 };
 
 export default Dashboard;
