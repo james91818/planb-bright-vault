@@ -4,13 +4,13 @@ import { useAuth } from "./useAuth";
 
 export function useRole() {
   const { user } = useAuth();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isStaff, setIsStaff] = useState(false);
   const [roleName, setRoleName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) {
-      setIsAdmin(false);
+      setIsStaff(false);
       setRoleName(null);
       setLoading(false);
       return;
@@ -27,7 +27,8 @@ export function useRole() {
       if (data) {
         const name = (data as any).roles?.name ?? null;
         setRoleName(name);
-        setIsAdmin(name === "Admin");
+        // Staff = Admin, Manager, or Agent
+        setIsStaff(["Admin", "Manager", "Agent"].includes(name));
       }
       setLoading(false);
     };
@@ -35,5 +36,5 @@ export function useRole() {
     fetchRole();
   }, [user]);
 
-  return { isAdmin, roleName, loading };
+  return { isStaff, roleName, loading };
 }

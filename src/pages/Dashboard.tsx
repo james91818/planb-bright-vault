@@ -5,7 +5,7 @@ import AdminDashboard from "./AdminDashboard";
 
 const Dashboard = () => {
   const { loading: authLoading } = useAuth();
-  const { isAdmin, loading: roleLoading } = useRole();
+  const { isStaff, loading: roleLoading } = useRole();
 
   if (authLoading || roleLoading) {
     return (
@@ -15,7 +15,7 @@ const Dashboard = () => {
     );
   }
 
-  return isAdmin ? <AdminDashboard /> : <ClientDashboard />;
+  return isStaff ? <AdminDashboard /> : <ClientDashboard />;
 };
 
 export default Dashboard;

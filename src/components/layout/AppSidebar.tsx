@@ -61,9 +61,9 @@ const AppSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut } = useAuth();
-  const { isAdmin } = useRole();
+  const { isStaff } = useRole();
 
-  const mainNav = isAdmin ? adminNav : clientNav;
+  const mainNav = isStaff ? adminNav : clientNav;
 
   const handleSignOut = async () => {
     await signOut();
@@ -78,7 +78,7 @@ const AppSidebar = () => {
           onClick={() => navigate("/dashboard")}
         >
           <div className="h-9 w-9 rounded-lg bg-sidebar-primary flex items-center justify-center">
-            {isAdmin ? (
+            {isStaff ? (
               <Shield className="h-5 w-5 text-sidebar-primary-foreground" />
             ) : (
               <TrendingUp className="h-5 w-5 text-sidebar-primary-foreground" />
@@ -88,8 +88,8 @@ const AppSidebar = () => {
             <span className="text-lg font-display font-bold text-sidebar-primary-foreground">
               PlanB Trading
             </span>
-            {isAdmin && (
-              <p className="text-[10px] font-semibold text-primary uppercase tracking-wider">Admin Panel</p>
+            {isStaff && (
+              <p className="text-[10px] font-semibold text-primary uppercase tracking-wider">Backoffice</p>
             )}
           </div>
         </div>
@@ -99,7 +99,7 @@ const AppSidebar = () => {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>{isAdmin ? "Administration" : "Menu"}</SidebarGroupLabel>
+          <SidebarGroupLabel>{isStaff ? "Administration" : "Menu"}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {mainNav.map((item) => (
