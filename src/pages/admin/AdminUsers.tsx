@@ -139,9 +139,9 @@ const AdminUsers = () => {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
-                ) : filtered.length === 0 ? (
-                  <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">No users found</td></tr>
+                <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
+                 ) : filtered.length === 0 ? (
+                   <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">No leads found</td></tr>
                 ) : (
                   filtered.map((u) => (
                     <tr key={u.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => navigate(`/admin/users/${u.id}`)}>
