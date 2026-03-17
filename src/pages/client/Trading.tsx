@@ -187,6 +187,29 @@ async function streamAI(
   onDone();
 }
 
+// ─── Fetch real prices helper ───
+const PRICES_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fetch-prices`;
+
+async function fetchLivePrices(symbols: string[]): Promise<Record<string, number>> {
+  try {
+    const resp = await fetch(PRICES_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      },
+      body: JSON.stringify({ symbols }),
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      return data.prices ?? {};
+    }
+  } catch (e) {
+    console.error("Price fetch error:", e);
+  }
+  return {};
+}
+
 // ─── Main component ───
 const Trading = () => {
   const { user } = useAuth();
@@ -210,6 +233,7 @@ const Trading = () => {
   const [placing, setPlacing] = useState(false);
   const [showAssetList, setShowAssetList] = useState(false);
   const [balance, setBalance] = useState(0);
+  const [livePrices, setLivePrices] = useState<Record<string, number>>({});
 
   // Trading mode: "manual" or "ai"
   const [tradingMode, setTradingMode] = useState<"manual" | "ai">("manual");
@@ -219,6 +243,16 @@ const Trading = () => {
   const [chatInput, setChatInput] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
 
+  // Fetch live prices periodically
+  const refreshPrices = useCallback(async (assetList: Asset[]) => {
+    if (!assetList.length) return;
+    const symbols = assetList.map(a => a.symbol);
+    const prices = await fetchLivePrices(symbols);
+    if (Object.keys(prices).length > 0) {
+      setLivePrices(prices);
+    }
+  }, []);
+
   const fetchData = useCallback(async () => {
     if (!user) return;
     const [{ data: a }, { data: openT }, { data: closedT }, { data: wallet }] = await Promise.all([
@@ -227,43 +261,76 @@ const Trading = () => {
       supabase.from("trades").select("*, assets(symbol, name)").eq("user_id", user.id).eq("status", "closed").order("closed_at", { ascending: false }).limit(20),
       supabase.from("wallets").select("balance").eq("user_id", user.id).eq("currency", "EUR").maybeSingle(),
     ]);
-    setAssets(a ?? []);
+    const assetList = (a ?? []) as Asset[];
+    setAssets(assetList);
     setOpenTrades((openT ?? []) as Trade[]);
     setClosedTrades((closedT ?? []) as Trade[]);
     setBalance(Number(wallet?.balance ?? 0));
     setLoading(false);
-    if (!selectedAsset && a && a.length > 0) selectAsset(a[0] as Asset);
+
+    // Fetch real prices
+    refreshPrices(assetList);
+
+    if (!selectedAsset && assetList.length > 0) {
+      selectAsset(assetList[0], {});
+    }
   }, [user, selectedAsset]);
 
   useEffect(() => { fetchData(); }, [user]);
 
+  // Refresh prices every 30 seconds
+  useEffect(() => {
+    if (!assets.length) return;
+    const interval = setInterval(() => refreshPrices(assets), 30000);
+    return () => clearInterval(interval);
+  }, [assets, refreshPrices]);
+
+  // Update live price when livePrices map changes and we have a selected asset
+  useEffect(() => {
+    if (selectedAsset && livePrices[selectedAsset.symbol]) {
+      const realPrice = livePrices[selectedAsset.symbol];
+      setLivePrice(realPrice);
+      // Regenerate chart from real price
+      const data = generateCandles(60, realPrice);
+      setCandles(data);
+      setPriceChange(+((data[data.length - 1].c - data[0].o) / data[0].o * 100).toFixed(2));
+    }
+  }, [livePrices, selectedAsset?.symbol]);
+
+  // Simulate small ticks between real updates
   useEffect(() => {
     if (!selectedAsset || !candles.length) return;
     const interval = setInterval(() => {
       setCandles(prev => {
         if (!prev.length) return prev;
         const last = { ...prev[prev.length - 1] };
-        const tick = (Math.random() - 0.48) * last.c * 0.001;
-        last.c = +(last.c + tick).toFixed(2);
+        const tick = (Math.random() - 0.48) * last.c * 0.0005;
+        last.c = +(last.c + tick).toFixed(last.c < 1 ? 6 : 2);
         last.h = Math.max(last.h, last.c);
         last.l = Math.min(last.l, last.c);
         setLivePrice(last.c);
         setPriceChange(+((last.c - prev[0].o) / prev[0].o * 100).toFixed(2));
         return [...prev.slice(0, -1), last];
       });
-    }, 2000);
+    }, 3000);
     return () => clearInterval(interval);
   }, [selectedAsset, candles.length]);
 
-  const selectAsset = (asset: Asset) => {
+  const selectAsset = (asset: Asset, pricesMap?: Record<string, number>) => {
     setSelectedAsset(asset);
     setShowAssetList(false);
-    const basePrices: Record<string, number> = {
+    const prices = pricesMap ?? livePrices;
+    // Use real price if available, otherwise fallback
+    const fallbackPrices: Record<string, number> = {
       BTC: 62500, ETH: 3400, SOL: 145, XRP: 0.52, BNB: 580,
       DOGE: 0.12, ADA: 0.45, DOT: 7.2, LINK: 14.5, AVAX: 35,
+      AAPL: 178.50, TSLA: 248.30, MSFT: 415.80, AMZN: 185.60,
+      GOOGL: 153.40, NVDA: 875.30, META: 505.20,
+      "EUR/USD": 1.0875, "GBP/USD": 1.2680, "USD/JPY": 149.35,
     };
-    const sym = asset.symbol.replace(/\/.*$/, "").replace("EUR", "").replace("USD", "").replace("USDT", "");
-    const base = basePrices[sym] || (100 + Math.random() * 900);
+    const realPrice = prices[asset.symbol];
+    const sym = asset.symbol.replace(/\/.*$/, "");
+    const base = realPrice || fallbackPrices[sym] || fallbackPrices[asset.symbol] || (100 + Math.random() * 200);
     const data = generateCandles(60, base);
     setCandles(data);
     const last = data[data.length - 1];
@@ -414,7 +481,13 @@ const Trading = () => {
                                   <p className="font-semibold text-sm">{a.symbol}</p>
                                   <p className="text-xs text-muted-foreground truncate">{a.name}</p>
                                 </div>
-                                <Badge variant="outline" className="text-[10px] capitalize shrink-0">{a.type}</Badge>
+                                <div className="text-right shrink-0">
+                                  {livePrices[a.symbol] ? (
+                                    <p className="text-sm font-semibold">€{livePrices[a.symbol].toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: livePrices[a.symbol] < 1 ? 4 : 2 })}</p>
+                                  ) : (
+                                    <Badge variant="outline" className="text-[10px] capitalize">{a.type}</Badge>
+                                  )}
+                                </div>
                               </button>
                             );
                           })}
@@ -427,7 +500,7 @@ const Trading = () => {
                 {/* Price display */}
                 <div>
                   <p className="text-2xl font-display font-bold leading-tight">
-                    €{livePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    €{livePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: livePrice < 1 ? 6 : livePrice < 100 ? 4 : 2 })}
                   </p>
                   <span className={`text-sm font-semibold flex items-center gap-0.5 ${priceChange >= 0 ? "text-success" : "text-destructive"}`}>
                     {priceChange >= 0 ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
