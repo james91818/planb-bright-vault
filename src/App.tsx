@@ -8,6 +8,7 @@ import Login from "./pages/Login";
 import AdminLogin from "./pages/AdminLogin";
 import AccountTypes from "./pages/AccountTypes";
 import Investments from "./pages/Investments";
+import Impressum from "./pages/Impressum";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import AppLayout from "./components/layout/AppLayout";
@@ -48,6 +49,7 @@ const App = () => (
           <Route path="/signup" element={<Signup />} />
           <Route path="/account-types" element={<AccountTypes />} />
           <Route path="/investments" element={<Investments />} />
+          <Route path="/impressum" element={<Impressum />} />
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             {/* Client routes */}

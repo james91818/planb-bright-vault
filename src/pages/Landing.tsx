@@ -681,6 +681,7 @@ const Landing = () => {
                 <li className="hover:text-hero-foreground cursor-pointer transition-colors">Privacy Policy</li>
                 <li className="hover:text-hero-foreground cursor-pointer transition-colors">Risk Warning</li>
                 <li className="hover:text-hero-foreground cursor-pointer transition-colors">Terms & Conditions</li>
+                <li><Link to="/impressum" className="hover:text-hero-foreground transition-colors">Impressum</Link></li>
               </ul>
             </div>
             <div>
