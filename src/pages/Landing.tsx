@@ -238,8 +238,8 @@ const Landing = () => {
                   <p className="text-hero-muted text-xs">Crypto · Stocks · Forex · Indices</p>
                 </div>
                 {/* Floating badges */}
-                <div className="absolute -top-3 -right-3 bg-success text-success-foreground text-xs font-bold px-3 py-1 rounded-full shadow">7%</div>
-                <div className="absolute -bottom-2 -left-2 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full shadow">5%</div>
+                <div className="absolute top-2 right-2 bg-success text-success-foreground text-xs font-bold px-3 py-1 rounded-full shadow">7%</div>
+                <div className="absolute bottom-2 left-2 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full shadow">5%</div>
               </div>
             </div>
           </div>
