@@ -103,7 +103,7 @@ const PriceCards = () => {
                   <span className="font-semibold text-sm">{coin.symbol}</span>
                 </div>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="text-sm text-foreground font-medium">${formatPrice(coin.price)}</span>
+                  <span className="text-sm text-foreground font-medium">€{formatPrice(coin.price)}</span>
                   <span className={`text-xs font-semibold ${positive ? "text-success" : "text-destructive"}`}>
                     {positive ? "+" : ""}{(coin.change24h ?? 0).toFixed(2)}%
                   </span>
