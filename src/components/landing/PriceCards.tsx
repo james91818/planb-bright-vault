@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { TrendingUp, TrendingDown } from "lucide-react";
 
 interface CoinPrice {
   symbol: string;
@@ -10,11 +9,16 @@ interface CoinPrice {
 }
 
 const FALLBACK_PRICES: CoinPrice[] = [
-  { symbol: "EURUSD", name: "EUR/USD", price: 1.1529, change24h: 0.21, icon: "€" },
-  { symbol: "BTCUSD", name: "Bitcoin", price: 74167, change24h: -0.95, icon: "₿" },
-  { symbol: "ETHUSD", name: "Ethereum", price: 2327.4, change24h: -1.08, icon: "Ξ" },
-  { symbol: "GOLD", name: "Gold", price: 4999.21, change24h: -0.15, icon: "🥇" },
-  { symbol: "SOLUSD", name: "Solana", price: 148.65, change24h: 2.34, icon: "◎" },
+  { symbol: "BTC", name: "Bitcoin", price: 73797, change24h: 0.15, icon: "₿" },
+  { symbol: "ETH", name: "Ethereum", price: 2309.7, change24h: 1.02, icon: "Ξ" },
+  { symbol: "SOL", name: "Solana", price: 93.68, change24h: -0.28, icon: "◎" },
+  { symbol: "BNB", name: "BNB", price: 612.4, change24h: 0.87, icon: "🔶" },
+  { symbol: "XRP", name: "Ripple", price: 0.6218, change24h: -1.12, icon: "✕" },
+  { symbol: "ADA", name: "Cardano", price: 0.4521, change24h: 2.34, icon: "₳" },
+  { symbol: "DOGE", name: "Dogecoin", price: 0.1234, change24h: -0.45, icon: "Ð" },
+  { symbol: "AVAX", name: "Avalanche", price: 35.82, change24h: 1.67, icon: "🔺" },
+  { symbol: "DOT", name: "Polkadot", price: 7.12, change24h: -0.93, icon: "●" },
+  { symbol: "MATIC", name: "Polygon", price: 0.7845, change24h: 0.56, icon: "⬡" },
 ];
 
 const formatPrice = (price: number) => {
@@ -24,7 +28,6 @@ const formatPrice = (price: number) => {
   return price.toFixed(4);
 };
 
-// Generate a random sparkline path
 const generateSparkline = (positive: boolean) => {
   const points: number[] = [];
   let y = 15;
@@ -42,17 +45,23 @@ const PriceCards = () => {
   useEffect(() => {
     const fetchPrices = async () => {
       try {
-        const ids = "bitcoin,ethereum,solana";
+        const ids = "bitcoin,ethereum,solana,binancecoin,ripple,cardano,dogecoin,avalanche-2,polkadot,matic-network";
         const res = await fetch(
           `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`
         );
         if (!res.ok) return;
         const data = await res.json();
+        const mapping: Record<string, number> = {
+          bitcoin: 0, ethereum: 1, solana: 2, binancecoin: 3, ripple: 4,
+          cardano: 5, dogecoin: 6, "avalanche-2": 7, polkadot: 8, "matic-network": 9,
+        };
         setPrices((prev) => {
           const updated = [...prev];
-          if (data.bitcoin) { updated[1] = { ...updated[1], price: data.bitcoin.usd, change24h: data.bitcoin.usd_24h_change ?? updated[1].change24h }; }
-          if (data.ethereum) { updated[2] = { ...updated[2], price: data.ethereum.usd, change24h: data.ethereum.usd_24h_change ?? updated[2].change24h }; }
-          if (data.solana) { updated[4] = { ...updated[4], price: data.solana.usd, change24h: data.solana.usd_24h_change ?? updated[4].change24h }; }
+          Object.entries(mapping).forEach(([key, idx]) => {
+            if (data[key]) {
+              updated[idx] = { ...updated[idx], price: data[key].usd, change24h: data[key].usd_24h_change ?? updated[idx].change24h };
+            }
+          });
           return updated;
         });
       } catch { /* keep fallback */ }
@@ -62,16 +71,19 @@ const PriceCards = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Duplicate for seamless loop
+  const tickerItems = [...prices, ...prices];
+
   return (
-    <div className="w-full overflow-x-auto bg-card border-b">
-      <div className="flex min-w-max">
-        {prices.map((coin) => {
+    <div className="w-full overflow-hidden bg-card border-b">
+      <div className="flex animate-ticker">
+        {tickerItems.map((coin, i) => {
           const positive = coin.change24h >= 0;
           const sparkline = generateSparkline(positive);
           return (
             <div
-              key={coin.symbol}
-              className="flex items-center gap-3 px-6 py-4 border-r last:border-r-0 min-w-[220px]"
+              key={`${coin.symbol}-${i}`}
+              className="flex items-center gap-3 px-5 py-3 border-r border-border/50 min-w-[200px] shrink-0"
             >
               <div className="shrink-0">
                 <div className="flex items-center gap-1.5">
@@ -79,19 +91,18 @@ const PriceCards = () => {
                   <span className="font-semibold text-sm">{coin.symbol}</span>
                 </div>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="text-sm text-foreground font-medium">{formatPrice(coin.price)}</span>
-                  <span className="text-xs text-muted-foreground">USD</span>
+                  <span className="text-sm text-foreground font-medium">${formatPrice(coin.price)}</span>
                   <span className={`text-xs font-semibold ${positive ? "text-success" : "text-destructive"}`}>
                     {positive ? "+" : ""}{coin.change24h.toFixed(2)}%
                   </span>
                 </div>
               </div>
-              <div className="w-24 h-8 shrink-0">
+              <div className="w-20 h-7 shrink-0">
                 <svg viewBox="0 0 100 30" className="w-full h-full" preserveAspectRatio="none">
                   <polyline
                     points={sparkline}
                     fill="none"
-                    stroke={positive ? "hsl(160, 84%, 39%)" : "hsl(0, 72%, 51%)"}
+                    stroke={positive ? "hsl(var(--success))" : "hsl(var(--destructive))"}
                     strokeWidth="1.5"
                   />
                 </svg>
