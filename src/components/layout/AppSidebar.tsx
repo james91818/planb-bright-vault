@@ -63,7 +63,7 @@ const AppSidebar = () => {
   const { signOut } = useAuth();
   const { isStaff } = useRole();
 
-  const mainNav = isAdmin ? adminNav : clientNav;
+  const mainNav = isStaff ? adminNav : clientNav;
 
   const handleSignOut = async () => {
     await signOut();
