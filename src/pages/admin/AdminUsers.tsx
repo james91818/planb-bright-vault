@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, UserPlus, MoreHorizontal } from "lucide-react";
+import { Search, UserPlus, MoreHorizontal, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
@@ -15,7 +15,8 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-
+import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/hooks/useAuth";
 const statusColors: Record<string, string> = {
   active: "bg-success/10 text-success",
   suspended: "bg-destructive/10 text-destructive",
@@ -23,6 +24,7 @@ const statusColors: Record<string, string> = {
 };
 
 const AdminUsers = () => {
+  const { user: authUser } = useAuth();
   const navigate = useNavigate();
   const [users, setUsers] = useState<any[]>([]);
   const [staffUserIds, setStaffUserIds] = useState<Set<string>>(new Set());
@@ -31,6 +33,8 @@ const AdminUsers = () => {
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [newUser, setNewUser] = useState({ email: "", password: "", full_name: "", phone: "", country: "" });
+  const [depositOpen, setDepositOpen] = useState(false);
+  const [depositForm, setDepositForm] = useState({ user_id: "", amount: "", currency: "EUR", method: "manual", notes: "" });
 
   const fetchData = async () => {
     const [{ data: profiles }, { data: urData }] = await Promise.all([
@@ -75,6 +79,44 @@ const AdminUsers = () => {
     setTimeout(fetchData, 1000);
   };
 
+  const submitManualDeposit = async () => {
+    if (!depositForm.user_id || !depositForm.amount || Number(depositForm.amount) <= 0) {
+      toast.error("Select a user and enter a valid amount");
+      return;
+    }
+    const amount = Number(depositForm.amount);
+
+    await supabase.from("deposits").insert({
+      user_id: depositForm.user_id,
+      amount,
+      currency: depositForm.currency,
+      method: depositForm.method,
+      status: "approved",
+      admin_notes: depositForm.notes || "Manual deposit by admin",
+      processed_by: authUser?.id,
+    });
+
+    const { data: wallet } = await supabase
+      .from("wallets")
+      .select("id, balance")
+      .eq("user_id", depositForm.user_id)
+      .eq("currency", depositForm.currency)
+      .maybeSingle();
+
+    if (wallet) {
+      await supabase.from("wallets").update({ balance: Number(wallet.balance) + amount }).eq("id", wallet.id);
+    }
+
+    if (amount >= 1) {
+      await supabase.from("profiles").update({ is_lead: false }).eq("id", depositForm.user_id);
+    }
+
+    toast.success("Manual deposit created and credited");
+    setDepositOpen(false);
+    setDepositForm({ user_id: "", amount: "", currency: "EUR", method: "manual", notes: "" });
+    fetchData();
+  };
+
   const filtered = users.filter((u) => {
     const matchesSearch =
       (u.full_name ?? "").toLowerCase().includes(search.toLowerCase()) ||
@@ -90,9 +132,14 @@ const AdminUsers = () => {
           <h1 className="text-2xl font-display font-bold">Leads</h1>
           <p className="text-muted-foreground text-sm">{users.length} total users</p>
         </div>
-        <Button onClick={() => setCreateOpen(true)}>
-          <UserPlus className="h-4 w-4 mr-2" /> Create User
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setDepositOpen(true)}>
+            <Plus className="h-4 w-4 mr-1" /> Manual Deposit
+          </Button>
+          <Button onClick={() => setCreateOpen(true)}>
+            <UserPlus className="h-4 w-4 mr-2" /> Create User
+          </Button>
+        </div>
       </div>
 
       <div className="flex gap-3">
@@ -208,6 +255,64 @@ const AdminUsers = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
             <Button onClick={handleCreateUser}>Create User</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Manual Deposit Dialog */}
+      <Dialog open={depositOpen} onOpenChange={setDepositOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Manual Deposit</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label>User</Label>
+              <Select value={depositForm.user_id} onValueChange={(v) => setDepositForm({ ...depositForm, user_id: v })}>
+                <SelectTrigger><SelectValue placeholder="Select user..." /></SelectTrigger>
+                <SelectContent>
+                  {users.map(u => (
+                    <SelectItem key={u.id} value={u.id}>
+                      {u.full_name || u.email} {u.full_name ? `(${u.email})` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label>Amount</Label>
+                <Input type="number" value={depositForm.amount} onChange={(e) => setDepositForm({ ...depositForm, amount: e.target.value })} placeholder="1000" />
+              </div>
+              <div className="space-y-1">
+                <Label>Currency</Label>
+                <Select value={depositForm.currency} onValueChange={(v) => setDepositForm({ ...depositForm, currency: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {["EUR", "USD", "GBP", "CHF", "AUD", "CAD"].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label>Method</Label>
+              <Select value={depositForm.method} onValueChange={(v) => setDepositForm({ ...depositForm, method: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="manual">Manual</SelectItem>
+                  <SelectItem value="crypto">Crypto</SelectItem>
+                  <SelectItem value="bank_wire">Bank Wire</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label>Notes (optional)</Label>
+              <Textarea value={depositForm.notes} onChange={(e) => setDepositForm({ ...depositForm, notes: e.target.value })} placeholder="Reason for manual deposit..." />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDepositOpen(false)}>Cancel</Button>
+            <Button onClick={submitManualDeposit}>Create & Credit</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
