@@ -101,7 +101,7 @@ const Staking = () => {
       {stakes.length > 0 && (
         <Card>
           <CardContent className="p-0">
-            <div className="p-4 border-b"><h3 className="font-display font-semibold">Your Active Stakes</h3></div>
+            <div className="p-4 border-b"><h3 className="font-display font-semibold">Your Stakes</h3></div>
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b bg-muted/50">
@@ -116,18 +116,21 @@ const Staking = () => {
               <tbody>
                 {stakes.map((s) => {
                   const unlocked = new Date(s.unlocks_at) <= new Date();
+                  const reward = Number(s.rewards_earned ?? 0);
                   return (
                     <tr key={s.id} className="border-b last:border-0">
                       <td className="p-3 font-medium">{(s as any).staking_plans?.name}</td>
                       <td className="p-3">€{Number(s.amount).toLocaleString()}</td>
                       <td className="p-3 text-success font-semibold">{(s as any).staking_plans?.apy}%</td>
-                      <td className="p-3 text-success">+€{Number(s.rewards_earned ?? 0).toFixed(2)}</td>
+                      <td className={`p-3 font-semibold ${reward >= 0 ? "text-success" : "text-destructive"}`}>
+                        {reward >= 0 ? "+" : ""}€{reward.toFixed(2)}
+                      </td>
                       <td className="p-3 text-xs text-muted-foreground">{new Date(s.unlocks_at).toLocaleDateString()}</td>
                       <td className="p-3">
                         {s.claimed ? (
                           <Badge variant="outline">Claimed</Badge>
                         ) : unlocked ? (
-                          <Badge className="bg-success/10 text-success">Ready</Badge>
+                          <Badge className="bg-success/10 text-success border-success/30">Ready to claim</Badge>
                         ) : (
                           <Badge variant="outline" className="gap-1"><Clock className="h-3 w-3" /> Locked</Badge>
                         )}
