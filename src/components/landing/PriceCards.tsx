@@ -1,5 +1,16 @@
 import { useEffect, useState } from "react";
 
+import btcIcon from "@/assets/crypto/btc.png";
+import ethIcon from "@/assets/crypto/eth.png";
+import solIcon from "@/assets/crypto/sol.png";
+import bnbIcon from "@/assets/crypto/bnb.png";
+import xrpIcon from "@/assets/crypto/xrp.png";
+import adaIcon from "@/assets/crypto/ada.png";
+import dogeIcon from "@/assets/crypto/doge.png";
+import avaxIcon from "@/assets/crypto/avax.png";
+import dotIcon from "@/assets/crypto/dot.png";
+import linkIcon from "@/assets/crypto/link.png";
+
 interface CoinPrice {
   symbol: string;
   name: string;
@@ -9,16 +20,16 @@ interface CoinPrice {
 }
 
 const FALLBACK_PRICES: CoinPrice[] = [
-  { symbol: "BTC", name: "Bitcoin", price: 73797, change24h: 0.15, icon: "₿" },
-  { symbol: "ETH", name: "Ethereum", price: 2309.7, change24h: 1.02, icon: "Ξ" },
-  { symbol: "SOL", name: "Solana", price: 93.68, change24h: -0.28, icon: "◎" },
-  { symbol: "BNB", name: "BNB", price: 612.4, change24h: 0.87, icon: "🔶" },
-  { symbol: "XRP", name: "Ripple", price: 0.6218, change24h: -1.12, icon: "✕" },
-  { symbol: "ADA", name: "Cardano", price: 0.4521, change24h: 2.34, icon: "₳" },
-  { symbol: "DOGE", name: "Dogecoin", price: 0.1234, change24h: -0.45, icon: "Ð" },
-  { symbol: "AVAX", name: "Avalanche", price: 35.82, change24h: 1.67, icon: "🔺" },
-  { symbol: "DOT", name: "Polkadot", price: 7.12, change24h: -0.93, icon: "●" },
-  { symbol: "LINK", name: "Chainlink", price: 14.52, change24h: 0.74, icon: "⬡" },
+  { symbol: "BTC", name: "Bitcoin", price: 73797, change24h: 0.15, icon: btcIcon },
+  { symbol: "ETH", name: "Ethereum", price: 2309.7, change24h: 1.02, icon: ethIcon },
+  { symbol: "SOL", name: "Solana", price: 93.68, change24h: -0.28, icon: solIcon },
+  { symbol: "BNB", name: "BNB", price: 612.4, change24h: 0.87, icon: bnbIcon },
+  { symbol: "XRP", name: "Ripple", price: 0.6218, change24h: -1.12, icon: xrpIcon },
+  { symbol: "ADA", name: "Cardano", price: 0.4521, change24h: 2.34, icon: adaIcon },
+  { symbol: "DOGE", name: "Dogecoin", price: 0.1234, change24h: -0.45, icon: dogeIcon },
+  { symbol: "AVAX", name: "Avalanche", price: 35.82, change24h: 1.67, icon: avaxIcon },
+  { symbol: "DOT", name: "Polkadot", price: 7.12, change24h: -0.93, icon: dotIcon },
+  { symbol: "LINK", name: "Chainlink", price: 14.52, change24h: 0.74, icon: linkIcon },
 ];
 
 const formatPrice = (price: number | undefined) => {
