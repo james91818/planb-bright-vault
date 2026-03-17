@@ -171,7 +171,7 @@ const Landing = () => {
       {/* ===== HERO ===== */}
       <section className="relative overflow-hidden min-h-[520px] md:min-h-[600px]" style={{ background: "#f5efe6" }}>
         {/* Ox wireframe SVG */}
-        <div className="absolute right-[-15%] top-1/2 -translate-y-1/2 w-[187%] md:w-[153%] h-[306%] pointer-events-none">
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[90%] md:w-[70%] h-[130%] pointer-events-none">
           <img src={oxBg} alt="" className="w-full h-full object-contain object-right opacity-80" />
         </div>
 
