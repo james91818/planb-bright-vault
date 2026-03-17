@@ -13,7 +13,8 @@ interface ThemePickerDialogProps {
 
 const ThemePickerDialog = ({ open, onClose }: ThemePickerDialogProps) => {
   const { setTheme } = useTheme();
-  const [selected, setSelected] = useState<"light" | "dark">("light");
+  const { theme, setTheme } = useTheme();
+  const [selected, setSelected] = useState<"light" | "dark">(theme);
 
   const handleConfirm = () => {
     setTheme(selected);
