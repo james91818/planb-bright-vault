@@ -19,6 +19,7 @@ import {
   ArrowDownRight,
   Shield,
   Newspaper,
+  Globe,
 } from "lucide-react";
 import {
   Sidebar,
@@ -168,6 +169,12 @@ const AppSidebar = () => {
             <SidebarMenuButton onClick={toggleTheme} tooltip={theme === "light" ? "Dark Mode" : "Light Mode"}>
               {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
               <span>{theme === "light" ? "Dark Mode" : "Light Mode"}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={() => navigate("/")} tooltip="Back to Website">
+              <Globe className="h-4 w-4" />
+              <span>Back to Website</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
