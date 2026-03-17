@@ -116,9 +116,14 @@ const AdminDeposits = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-display font-bold">Deposits</h1>
-        <p className="text-muted-foreground text-sm">Review and manage client deposits</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-display font-bold">Deposits</h1>
+          <p className="text-muted-foreground text-sm">Review and manage client deposits</p>
+        </div>
+        <Button onClick={() => setManualOpen(true)}>
+          <Plus className="h-4 w-4 mr-1" /> Manual Deposit
+        </Button>
       </div>
 
       <Card>
