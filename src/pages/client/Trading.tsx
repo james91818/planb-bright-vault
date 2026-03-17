@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,11 +9,32 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
-  TrendingUp, TrendingDown, Search, CandlestickChart, LineChart,
-  ArrowUpRight, ArrowDownRight, Clock, X, ChevronDown,
+  TrendingUp, TrendingDown, Search, CandlestickChart, LineChart as LineChartIcon,
+  ArrowUpRight, ArrowDownRight, Clock, X, ChevronDown, Bot, Send, Loader2,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
+
+// ─── Local crypto icon map ───
+import btcIcon from "@/assets/crypto/btc.png";
+import ethIcon from "@/assets/crypto/eth.png";
+import solIcon from "@/assets/crypto/sol.png";
+import xrpIcon from "@/assets/crypto/xrp.png";
+import bnbIcon from "@/assets/crypto/bnb.png";
+import dogeIcon from "@/assets/crypto/doge.png";
+import adaIcon from "@/assets/crypto/ada.png";
+import dotIcon from "@/assets/crypto/dot.png";
+import linkIcon from "@/assets/crypto/link.png";
+import avaxIcon from "@/assets/crypto/avax.png";
+
+const cryptoIcons: Record<string, string> = {
+  BTC: btcIcon, ETH: ethIcon, SOL: solIcon, XRP: xrpIcon, BNB: bnbIcon,
+  DOGE: dogeIcon, ADA: adaIcon, DOT: dotIcon, LINK: linkIcon, AVAX: avaxIcon,
+};
+
+function getAssetIcon(symbol: string, iconUrl: string | null): string | null {
+  const sym = symbol.replace(/\/.*$/, "").replace("EUR", "").replace("USD", "").replace("USDT", "");
+  return cryptoIcons[sym] || iconUrl || null;
+}
 
 // ─── Types ───
 interface Asset {
@@ -30,10 +51,11 @@ interface Trade {
   opened_at: string; closed_at: string | null;
   assets?: { symbol: string; name: string };
 }
+type ChatMsg = { role: "user" | "assistant"; content: string };
 
-// ─── Generate fake candle data ───
+// ─── Candle generation ───
 function generateCandles(count: number, basePrice: number) {
-  const candles: { time: string; o: number; h: number; l: number; c: number; v: number }[] = [];
+  const candles: { time: string; o: number; h: number; l: number; c: number }[] = [];
   let price = basePrice;
   const now = Date.now();
   for (let i = count; i >= 0; i--) {
@@ -42,37 +64,30 @@ function generateCandles(count: number, basePrice: number) {
     const close = open + change;
     const high = Math.max(open, close) + Math.random() * price * 0.008;
     const low = Math.min(open, close) - Math.random() * price * 0.008;
-    const vol = Math.floor(Math.random() * 1000 + 200);
     candles.push({
       time: new Date(now - i * 3600000).toISOString(),
-      o: +open.toFixed(2), h: +high.toFixed(2), l: +low.toFixed(2),
-      c: +close.toFixed(2), v: vol,
+      o: +open.toFixed(2), h: +high.toFixed(2), l: +low.toFixed(2), c: +close.toFixed(2),
     });
     price = close;
   }
   return candles;
 }
 
-// ─── Candlestick / Line chart component ───
+// ─── Chart ───
 function PriceChart({ candles, chartType }: { candles: ReturnType<typeof generateCandles>; chartType: "candle" | "line" }) {
   if (!candles.length) return null;
   const allHigh = Math.max(...candles.map(c => c.h));
   const allLow = Math.min(...candles.map(c => c.l));
   const range = allHigh - allLow || 1;
-  const W = 900;
-  const H = 340;
-  const padY = 20;
-
+  const W = 900, H = 340, padY = 20;
   const yScale = (v: number) => padY + ((allHigh - v) / range) * (H - padY * 2);
   const candleW = Math.max(2, (W - 40) / candles.length - 1);
 
   if (chartType === "line") {
     const pts = candles.map((c, i) => {
       const x = 20 + i * ((W - 40) / candles.length);
-      const y = yScale(c.c);
-      return `${x},${y}`;
+      return `${x},${yScale(c.c)}`;
     }).join(" ");
-    const lastC = candles[candles.length - 1];
     const fillPts = `${20},${H - padY} ${pts} ${20 + (candles.length - 1) * ((W - 40) / candles.length)},${H - padY}`;
     return (
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full" preserveAspectRatio="none">
@@ -88,7 +103,7 @@ function PriceChart({ candles, chartType }: { candles: ReturnType<typeof generat
         })}
         <polygon points={fillPts} fill="hsl(var(--primary) / 0.08)" />
         <polyline points={pts} fill="none" stroke="hsl(var(--primary))" strokeWidth="2" />
-        <circle cx={20 + (candles.length - 1) * ((W - 40) / candles.length)} cy={yScale(lastC.c)} r="4" fill="hsl(var(--primary))" />
+        <circle cx={20 + (candles.length - 1) * ((W - 40) / candles.length)} cy={yScale(candles[candles.length - 1].c)} r="4" fill="hsl(var(--primary))" />
       </svg>
     );
   }
@@ -111,17 +126,65 @@ function PriceChart({ candles, chartType }: { candles: ReturnType<typeof generat
         const color = bullish ? "hsl(var(--success))" : "hsl(var(--destructive))";
         const bodyTop = yScale(Math.max(c.o, c.c));
         const bodyBot = yScale(Math.min(c.o, c.c));
-        const bodyH = Math.max(1, bodyBot - bodyTop);
         return (
           <g key={i}>
             <line x1={x} y1={yScale(c.h)} x2={x} y2={yScale(c.l)} stroke={color} strokeWidth="1" />
-            <rect x={x - candleW / 2} y={bodyTop} width={candleW} height={bodyH}
-              fill={bullish ? color : color} stroke={color} strokeWidth="0.5" rx="0.5" />
+            <rect x={x - candleW / 2} y={bodyTop} width={candleW} height={Math.max(1, bodyBot - bodyTop)}
+              fill={color} stroke={color} strokeWidth="0.5" rx="0.5" />
           </g>
         );
       })}
     </svg>
   );
+}
+
+// ─── AI Chat stream helper ───
+const AI_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-trading`;
+
+async function streamAI(
+  messages: ChatMsg[],
+  onDelta: (text: string) => void,
+  onDone: () => void,
+) {
+  const resp = await fetch(AI_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+    },
+    body: JSON.stringify({ messages }),
+  });
+
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({ error: "AI service error" }));
+    throw new Error(err.error || "AI service error");
+  }
+
+  if (!resp.body) throw new Error("No stream body");
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    let nl: number;
+    while ((nl = buf.indexOf("\n")) !== -1) {
+      let line = buf.slice(0, nl);
+      buf = buf.slice(nl + 1);
+      if (line.endsWith("\r")) line = line.slice(0, -1);
+      if (!line.startsWith("data: ")) continue;
+      const json = line.slice(6).trim();
+      if (json === "[DONE]") { onDone(); return; }
+      try {
+        const parsed = JSON.parse(json);
+        const content = parsed.choices?.[0]?.delta?.content;
+        if (content) onDelta(content);
+      } catch { /* partial */ }
+    }
+  }
+  onDone();
 }
 
 // ─── Main component ───
@@ -133,15 +196,11 @@ const Trading = () => {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [loading, setLoading] = useState(true);
-
-  // Selected asset for chart
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [chartType, setChartType] = useState<"candle" | "line">("candle");
   const [candles, setCandles] = useState<ReturnType<typeof generateCandles>>([]);
   const [livePrice, setLivePrice] = useState(0);
   const [priceChange, setPriceChange] = useState(0);
-
-  // Order form
   const [direction, setDirection] = useState<"buy" | "sell">("buy");
   const [orderSize, setOrderSize] = useState("");
   const [leverage, setLeverage] = useState(1);
@@ -149,12 +208,16 @@ const Trading = () => {
   const [stopLoss, setStopLoss] = useState("");
   const [takeProfit, setTakeProfit] = useState("");
   const [placing, setPlacing] = useState(false);
-
-  // Asset selector panel
   const [showAssetList, setShowAssetList] = useState(false);
-
-  // Wallet balance
   const [balance, setBalance] = useState(0);
+
+  // Trading mode: "manual" or "ai"
+  const [tradingMode, setTradingMode] = useState<"manual" | "ai">("manual");
+
+  // AI chat state
+  const [chatMessages, setChatMessages] = useState<ChatMsg[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!user) return;
@@ -169,16 +232,11 @@ const Trading = () => {
     setClosedTrades((closedT ?? []) as Trade[]);
     setBalance(Number(wallet?.balance ?? 0));
     setLoading(false);
-
-    // Auto-select first asset if none selected
-    if (!selectedAsset && a && a.length > 0) {
-      selectAsset(a[0] as Asset);
-    }
+    if (!selectedAsset && a && a.length > 0) selectAsset(a[0] as Asset);
   }, [user, selectedAsset]);
 
   useEffect(() => { fetchData(); }, [user]);
 
-  // Simulate live price updates
   useEffect(() => {
     if (!selectedAsset || !candles.length) return;
     const interval = setInterval(() => {
@@ -200,23 +258,18 @@ const Trading = () => {
   const selectAsset = (asset: Asset) => {
     setSelectedAsset(asset);
     setShowAssetList(false);
-    // Generate chart data based on asset type
     const basePrices: Record<string, number> = {
       BTC: 62500, ETH: 3400, SOL: 145, XRP: 0.52, BNB: 580,
       DOGE: 0.12, ADA: 0.45, DOT: 7.2, LINK: 14.5, AVAX: 35,
     };
-    const sym = asset.symbol.replace(/\/.*$/, "").replace("EUR", "");
+    const sym = asset.symbol.replace(/\/.*$/, "").replace("EUR", "").replace("USD", "").replace("USDT", "");
     const base = basePrices[sym] || (100 + Math.random() * 900);
     const data = generateCandles(60, base);
     setCandles(data);
     const last = data[data.length - 1];
     setLivePrice(last.c);
     setPriceChange(+((last.c - data[0].o) / data[0].o * 100).toFixed(2));
-    // Reset order form
-    setOrderSize("");
-    setLeverage(1);
-    setStopLoss("");
-    setTakeProfit("");
+    setOrderSize(""); setLeverage(1); setStopLoss(""); setTakeProfit("");
   };
 
   const placeTrade = async () => {
@@ -224,38 +277,22 @@ const Trading = () => {
     const sizeNum = Number(orderSize);
     if (isNaN(sizeNum) || sizeNum <= 0) { toast.error("Enter a valid amount"); return; }
     if (sizeNum > balance) { toast.error("Insufficient balance"); return; }
-
     setPlacing(true);
-    // Debit wallet
     const { data: wallet } = await supabase
       .from("wallets").select("id, balance").eq("user_id", user.id).eq("currency", "EUR").maybeSingle();
     if (!wallet || Number(wallet.balance) < sizeNum) {
-      toast.error("Insufficient balance");
-      setPlacing(false);
-      return;
+      toast.error("Insufficient balance"); setPlacing(false); return;
     }
     await supabase.from("wallets").update({ balance: Number(wallet.balance) - sizeNum }).eq("id", wallet.id);
-
     const { error } = await supabase.from("trades").insert({
-      user_id: user.id,
-      asset_id: selectedAsset.id,
-      direction,
-      size: sizeNum,
-      entry_price: livePrice,
-      leverage,
-      order_type: orderType,
-      stop_loss: stopLoss ? Number(stopLoss) : null,
-      take_profit: takeProfit ? Number(takeProfit) : null,
+      user_id: user.id, asset_id: selectedAsset.id, direction, size: sizeNum,
+      entry_price: livePrice, leverage, order_type: orderType,
+      stop_loss: stopLoss ? Number(stopLoss) : null, take_profit: takeProfit ? Number(takeProfit) : null,
     });
-
-    if (error) {
-      toast.error("Failed to place order");
-    } else {
+    if (error) toast.error("Failed to place order");
+    else {
       toast.success(`${direction.toUpperCase()} ${selectedAsset.symbol} — €${sizeNum.toLocaleString()} at ${leverage}×`);
-      setOrderSize("");
-      setStopLoss("");
-      setTakeProfit("");
-      fetchData();
+      setOrderSize(""); setStopLoss(""); setTakeProfit(""); fetchData();
     }
     setPlacing(false);
   };
@@ -263,13 +300,37 @@ const Trading = () => {
   const closeTrade = async (trade: Trade) => {
     const pnl = Number(trade.pnl ?? 0);
     await supabase.from("trades").update({ status: "closed", closed_at: new Date().toISOString() }).eq("id", trade.id);
-    const { data: wallet } = await supabase
-      .from("wallets").select("id, balance").eq("user_id", user!.id).eq("currency", "EUR").maybeSingle();
-    if (wallet) {
-      await supabase.from("wallets").update({ balance: Number(wallet.balance) + Number(trade.size) + pnl }).eq("id", wallet.id);
+    const { data: wallet } = await supabase.from("wallets").select("id, balance").eq("user_id", user!.id).eq("currency", "EUR").maybeSingle();
+    if (wallet) await supabase.from("wallets").update({ balance: Number(wallet.balance) + Number(trade.size) + pnl }).eq("id", wallet.id);
+    toast.success("Trade closed"); fetchData();
+  };
+
+  const sendAIMessage = async () => {
+    if (!chatInput.trim() || aiLoading) return;
+    const userMsg: ChatMsg = { role: "user", content: chatInput.trim() };
+    const updatedMessages = [...chatMessages, userMsg];
+    setChatMessages(updatedMessages);
+    setChatInput("");
+    setAiLoading(true);
+
+    let assistantContent = "";
+    const upsert = (chunk: string) => {
+      assistantContent += chunk;
+      setChatMessages(prev => {
+        const last = prev[prev.length - 1];
+        if (last?.role === "assistant") {
+          return prev.map((m, i) => i === prev.length - 1 ? { ...m, content: assistantContent } : m);
+        }
+        return [...prev, { role: "assistant", content: assistantContent }];
+      });
+    };
+
+    try {
+      await streamAI(updatedMessages, upsert, () => setAiLoading(false));
+    } catch (e: any) {
+      toast.error(e.message || "AI error");
+      setAiLoading(false);
     }
-    toast.success("Trade closed");
-    fetchData();
   };
 
   const filteredAssets = assets.filter(a => {
@@ -290,35 +351,84 @@ const Trading = () => {
     );
   }
 
+  const selectedIcon = selectedAsset ? getAssetIcon(selectedAsset.symbol, selectedAsset.icon_url) : null;
+
   return (
     <div className="space-y-4">
-      {/* ─── TOP BAR: asset selector + price ─── */}
+      {/* ─── TOP: chart + order panel ─── */}
       <div className="flex flex-col lg:flex-row gap-4">
-        {/* Chart + asset info */}
+        {/* Chart area */}
         <div className="flex-1 space-y-3">
-          {/* Asset header bar */}
-          <Card className="p-0">
-            <CardContent className="p-3 flex items-center justify-between flex-wrap gap-3">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setShowAssetList(!showAssetList)}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted hover:bg-muted/80 transition-colors"
-                >
-                  {selectedAsset?.icon_url ? (
-                    <img src={selectedAsset.icon_url} alt="" className="h-6 w-6 rounded-full" />
-                  ) : (
-                    <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-[10px]">
-                      {selectedAsset?.symbol.slice(0, 2)}
+          {/* Asset header */}
+          <Card>
+            <CardContent className="p-4 flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-4">
+                {/* Asset selector */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowAssetList(!showAssetList)}
+                    className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-muted hover:bg-muted/70 transition-colors"
+                  >
+                    {selectedIcon ? (
+                      <img src={selectedIcon} alt={selectedAsset?.symbol} className="h-8 w-8 rounded-full object-contain" />
+                    ) : (
+                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                        {selectedAsset?.symbol.slice(0, 2)}
+                      </div>
+                    )}
+                    <div className="text-left">
+                      <p className="font-display font-bold text-base leading-tight">{selectedAsset?.symbol}</p>
+                      <p className="text-[11px] text-muted-foreground leading-tight">{selectedAsset?.name}</p>
                     </div>
-                  )}
-                  <span className="font-display font-bold text-sm">{selectedAsset?.symbol}</span>
-                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-                </button>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground ml-1" />
+                  </button>
 
-                <div className="flex items-baseline gap-2">
-                  <span className="text-xl font-display font-bold">
+                  {/* Dropdown */}
+                  {showAssetList && (
+                    <Card className="absolute top-full left-0 mt-2 z-50 w-80 max-h-[420px] overflow-hidden shadow-2xl border">
+                      <CardContent className="p-3 space-y-2">
+                        <div className="relative">
+                          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input placeholder="Search assets..." value={search} onChange={e => setSearch(e.target.value)} className="pl-8 h-10" />
+                        </div>
+                        <div className="flex gap-1.5 flex-wrap">
+                          {["all", "crypto", "stock", "forex"].map(t => (
+                            <button key={t} onClick={() => setTypeFilter(t)}
+                              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${typeFilter === t ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"}`}
+                            >{t === "all" ? "All" : t.charAt(0).toUpperCase() + t.slice(1)}</button>
+                          ))}
+                        </div>
+                        <div className="space-y-0.5 max-h-72 overflow-y-auto">
+                          {filteredAssets.map(a => {
+                            const icon = getAssetIcon(a.symbol, a.icon_url);
+                            return (
+                              <button key={a.id} onClick={() => selectAsset(a)}
+                                className={`w-full flex items-center gap-3 p-2.5 rounded-lg text-left hover:bg-muted transition-colors ${selectedAsset?.id === a.id ? "bg-primary/5 border border-primary/20" : ""}`}
+                              >
+                                {icon ? (
+                                  <img src={icon} alt={a.symbol} className="h-8 w-8 rounded-full object-contain" />
+                                ) : (
+                                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">{a.symbol.slice(0, 3)}</div>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-semibold text-sm">{a.symbol}</p>
+                                  <p className="text-xs text-muted-foreground truncate">{a.name}</p>
+                                </div>
+                                <Badge variant="outline" className="text-[10px] capitalize shrink-0">{a.type}</Badge>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+
+                {/* Price display */}
+                <div>
+                  <p className="text-2xl font-display font-bold leading-tight">
                     €{livePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </span>
+                  </p>
                   <span className={`text-sm font-semibold flex items-center gap-0.5 ${priceChange >= 0 ? "text-success" : "text-destructive"}`}>
                     {priceChange >= 0 ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
                     {priceChange >= 0 ? "+" : ""}{priceChange}%
@@ -326,237 +436,287 @@ const Trading = () => {
                 </div>
               </div>
 
-              <div className="flex items-center gap-1">
-                <Button
-                  size="sm" variant={chartType === "candle" ? "default" : "ghost"}
-                  onClick={() => setChartType("candle")} className="h-8 w-8 p-0"
-                >
+              {/* Chart type toggle */}
+              <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+                <Button size="sm" variant={chartType === "candle" ? "default" : "ghost"}
+                  onClick={() => setChartType("candle")} className="h-8 w-8 p-0">
                   <CandlestickChart className="h-4 w-4" />
                 </Button>
-                <Button
-                  size="sm" variant={chartType === "line" ? "default" : "ghost"}
-                  onClick={() => setChartType("line")} className="h-8 w-8 p-0"
-                >
-                  <LineChart className="h-4 w-4" />
+                <Button size="sm" variant={chartType === "line" ? "default" : "ghost"}
+                  onClick={() => setChartType("line")} className="h-8 w-8 p-0">
+                  <LineChartIcon className="h-4 w-4" />
                 </Button>
               </div>
             </CardContent>
           </Card>
 
-          {/* Asset selector dropdown */}
-          {showAssetList && (
-            <Card className="absolute z-40 w-80 max-h-96 overflow-y-auto shadow-xl">
-              <CardContent className="p-3 space-y-2">
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)} className="pl-8 h-9 text-sm" />
-                </div>
-                <div className="flex gap-1 flex-wrap">
-                  {["all", "crypto", "stock", "forex", "index"].map(t => (
-                    <button key={t} onClick={() => setTypeFilter(t)}
-                      className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${typeFilter === t ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"}`}
-                    >{t === "all" ? "All" : t.charAt(0).toUpperCase() + t.slice(1)}</button>
-                  ))}
-                </div>
-                <div className="space-y-0.5 max-h-60 overflow-y-auto">
-                  {filteredAssets.map(a => (
-                    <button key={a.id} onClick={() => selectAsset(a)}
-                      className={`w-full flex items-center gap-3 p-2 rounded-lg text-left hover:bg-muted transition-colors ${selectedAsset?.id === a.id ? "bg-muted" : ""}`}
-                    >
-                      {a.icon_url ? (
-                        <img src={a.icon_url} alt="" className="h-7 w-7 rounded-full" />
-                      ) : (
-                        <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-[10px]">{a.symbol.slice(0, 2)}</div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm truncate">{a.symbol}</p>
-                        <p className="text-xs text-muted-foreground truncate">{a.name}</p>
-                      </div>
-                      <Badge variant="outline" className="text-[10px] capitalize shrink-0">{a.type}</Badge>
-                    </button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
           {/* Chart */}
           <Card>
-            <CardContent className="p-2 md:p-4">
-              <div className="h-[300px] md:h-[380px]">
+            <CardContent className="p-3 md:p-4">
+              <div className="h-[280px] md:h-[380px]">
                 <PriceChart candles={candles} chartType={chartType} />
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* ─── ORDER PANEL ─── */}
-        <div className="w-full lg:w-80 shrink-0">
-          <Card className="h-full">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base font-display">Place Order</CardTitle>
-              <p className="text-xs text-muted-foreground">Balance: €{balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Direction */}
-              <div className="grid grid-cols-2 gap-2">
+        {/* ─── RIGHT PANEL: Manual / AI toggle ─── */}
+        <div className="w-full lg:w-[340px] shrink-0 space-y-3">
+          {/* Mode switcher */}
+          <div className="grid grid-cols-2 gap-0 bg-muted rounded-xl p-1">
+            <button
+              onClick={() => setTradingMode("manual")}
+              className={`flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                tradingMode === "manual"
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <TrendingUp className="h-4 w-4" /> Manual Trade
+            </button>
+            <button
+              onClick={() => setTradingMode("ai")}
+              className={`flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                tradingMode === "ai"
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Bot className="h-4 w-4" /> AI Assistant
+            </button>
+          </div>
+
+          {tradingMode === "manual" ? (
+            /* ─── MANUAL ORDER FORM ─── */
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base font-display">Place Order</CardTitle>
+                <p className="text-xs text-muted-foreground">
+                  Available: <span className="font-semibold text-foreground">€{balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Direction */}
+                <div className="grid grid-cols-2 gap-2">
+                  <Button variant={direction === "buy" ? "default" : "outline"} onClick={() => setDirection("buy")}
+                    className={`h-11 text-base font-bold ${direction === "buy" ? "bg-success hover:bg-success/90 text-success-foreground" : ""}`}>
+                    <ArrowUpRight className="h-5 w-5 mr-1.5" /> Buy
+                  </Button>
+                  <Button variant={direction === "sell" ? "destructive" : "outline"} onClick={() => setDirection("sell")}
+                    className="h-11 text-base font-bold">
+                    <ArrowDownRight className="h-5 w-5 mr-1.5" /> Sell
+                  </Button>
+                </div>
+
+                {/* Order type */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium">Order Type</Label>
+                  <Select value={orderType} onValueChange={setOrderType}>
+                    <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="market">Market Order</SelectItem>
+                      <SelectItem value="limit">Limit Order</SelectItem>
+                      <SelectItem value="stop">Stop Order</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Amount */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium">Amount (€)</Label>
+                  <Input type="number" value={orderSize} onChange={e => setOrderSize(e.target.value)}
+                    placeholder="Enter amount" className="h-10 text-base" />
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {[25, 50, 75, 100].map(pct => (
+                      <button key={pct} onClick={() => setOrderSize(String(Math.floor(balance * pct / 100)))}
+                        className="text-xs font-semibold py-1.5 rounded-lg bg-muted hover:bg-muted/70 text-muted-foreground transition-colors"
+                      >{pct}%</button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Leverage */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-medium">Leverage</Label>
+                    <Badge variant="outline" className="text-xs font-bold">{leverage}×</Badge>
+                  </div>
+                  <div className="flex gap-1.5 flex-wrap">
+                    {leverageSteps.map(l => (
+                      <button key={l} onClick={() => setLeverage(l)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${leverage === l ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"}`}
+                      >{l}×</button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* SL / TP */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <Label className="text-xs text-destructive font-medium">Stop Loss</Label>
+                    <Input type="number" value={stopLoss} onChange={e => setStopLoss(e.target.value)} placeholder="Optional" className="h-10" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-success font-medium">Take Profit</Label>
+                    <Input type="number" value={takeProfit} onChange={e => setTakeProfit(e.target.value)} placeholder="Optional" className="h-10" />
+                  </div>
+                </div>
+
+                {/* Summary */}
+                {exposure > 0 && (
+                  <div className="bg-muted/60 rounded-xl p-3.5 space-y-1.5">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Margin</span>
+                      <span className="font-semibold">€{Number(orderSize).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Exposure</span>
+                      <span className="font-semibold">€{exposure.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Entry Price</span>
+                      <span className="font-semibold">€{livePrice.toFixed(2)}</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Submit */}
                 <Button
-                  variant={direction === "buy" ? "default" : "outline"}
-                  onClick={() => setDirection("buy")}
-                  className={direction === "buy" ? "bg-success hover:bg-success/90 text-success-foreground" : ""}
+                  className={`w-full h-12 text-base font-bold rounded-xl ${direction === "buy" ? "bg-success hover:bg-success/90 text-success-foreground" : "bg-destructive hover:bg-destructive/90 text-destructive-foreground"}`}
+                  onClick={placeTrade} disabled={placing || !orderSize}
                 >
-                  <TrendingUp className="h-4 w-4 mr-1.5" /> Buy
+                  {placing ? "Placing Order..." : `${direction === "buy" ? "Buy" : "Sell"} ${selectedAsset?.symbol ?? ""}`}
                 </Button>
-                <Button
-                  variant={direction === "sell" ? "destructive" : "outline"}
-                  onClick={() => setDirection("sell")}
-                >
-                  <TrendingDown className="h-4 w-4 mr-1.5" /> Sell
-                </Button>
-              </div>
-
-              {/* Order type */}
-              <div className="space-y-1.5">
-                <Label className="text-xs">Order Type</Label>
-                <Select value={orderType} onValueChange={setOrderType}>
-                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="market">Market</SelectItem>
-                    <SelectItem value="limit">Limit</SelectItem>
-                    <SelectItem value="stop">Stop</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Amount */}
-              <div className="space-y-1.5">
-                <Label className="text-xs">Amount (€)</Label>
-                <Input
-                  type="number" value={orderSize} onChange={e => setOrderSize(e.target.value)}
-                  placeholder="0.00" className="h-9"
-                />
-                <div className="flex gap-1.5">
-                  {[25, 50, 75, 100].map(pct => (
-                    <button key={pct} onClick={() => setOrderSize(String(Math.floor(balance * pct / 100)))}
-                      className="flex-1 text-[10px] font-medium py-1 rounded bg-muted hover:bg-muted/70 text-muted-foreground transition-colors"
-                    >{pct}%</button>
+              </CardContent>
+            </Card>
+          ) : (
+            /* ─── AI ASSISTANT PANEL ─── */
+            <Card className="flex flex-col" style={{ height: "calc(100%  - 52px)" }}>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base font-display flex items-center gap-2">
+                  <Bot className="h-5 w-5 text-primary" /> PlanB AI Assistant
+                </CardTitle>
+                <p className="text-xs text-muted-foreground">Ask for trade signals, analysis, or market insights</p>
+              </CardHeader>
+              <CardContent className="flex-1 flex flex-col p-3 pt-0 min-h-0">
+                {/* Messages */}
+                <div className="flex-1 overflow-y-auto space-y-3 mb-3 min-h-[280px] max-h-[420px]">
+                  {chatMessages.length === 0 && (
+                    <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground py-8">
+                      <Bot className="h-10 w-10 mb-3 opacity-30" />
+                      <p className="text-sm font-medium">AI Trading Assistant</p>
+                      <p className="text-xs mt-1 max-w-[220px]">Ask me to analyze any asset, suggest trades, or explain market trends</p>
+                      <div className="flex flex-wrap gap-1.5 mt-4 justify-center">
+                        {["Analyze BTC", "Best crypto to buy?", "Market outlook"].map(q => (
+                          <button key={q} onClick={() => { setChatInput(q); }}
+                            className="px-3 py-1.5 rounded-full bg-muted text-xs font-medium hover:bg-muted/70 transition-colors"
+                          >{q}</button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {chatMessages.map((msg, i) => (
+                    <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                      <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+                        msg.role === "user"
+                          ? "bg-primary text-primary-foreground rounded-br-md"
+                          : "bg-muted text-foreground rounded-bl-md"
+                      }`}>
+                        <div className="whitespace-pre-wrap">{msg.content}</div>
+                      </div>
+                    </div>
                   ))}
+                  {aiLoading && chatMessages[chatMessages.length - 1]?.role !== "assistant" && (
+                    <div className="flex justify-start">
+                      <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-3">
+                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
 
-              {/* Leverage */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs">Leverage</Label>
-                  <span className="text-xs font-bold text-primary">{leverage}×</span>
+                {/* Input */}
+                <div className="flex gap-2">
+                  <Input
+                    value={chatInput}
+                    onChange={e => setChatInput(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && sendAIMessage()}
+                    placeholder="Ask AI for trading advice..."
+                    className="h-10 flex-1"
+                    disabled={aiLoading}
+                  />
+                  <Button size="icon" onClick={sendAIMessage} disabled={aiLoading || !chatInput.trim()} className="h-10 w-10 shrink-0">
+                    {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  </Button>
                 </div>
-                <div className="flex gap-1.5 flex-wrap">
-                  {leverageSteps.map(l => (
-                    <button key={l} onClick={() => setLeverage(l)}
-                      className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${leverage === l ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"}`}
-                    >{l}×</button>
-                  ))}
-                </div>
-              </div>
-
-              {/* SL / TP */}
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <Label className="text-xs text-destructive">Stop Loss</Label>
-                  <Input type="number" value={stopLoss} onChange={e => setStopLoss(e.target.value)} placeholder="—" className="h-9 text-sm" />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs text-success">Take Profit</Label>
-                  <Input type="number" value={takeProfit} onChange={e => setTakeProfit(e.target.value)} placeholder="—" className="h-9 text-sm" />
-                </div>
-              </div>
-
-              {/* Exposure summary */}
-              {exposure > 0 && (
-                <div className="bg-muted rounded-lg p-3 space-y-1">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Margin</span>
-                    <span className="font-medium">€{Number(orderSize).toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Exposure</span>
-                    <span className="font-medium">€{exposure.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Entry Price</span>
-                    <span className="font-medium">€{livePrice.toFixed(2)}</span>
-                  </div>
-                </div>
-              )}
-
-              {/* Submit */}
-              <Button
-                className={`w-full font-bold ${direction === "buy" ? "bg-success hover:bg-success/90 text-success-foreground" : "bg-destructive hover:bg-destructive/90 text-destructive-foreground"}`}
-                onClick={placeTrade}
-                disabled={placing || !orderSize}
-              >
-                {placing ? "Placing..." : `${direction === "buy" ? "Buy" : "Sell"} ${selectedAsset?.symbol ?? ""}`}
-              </Button>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
 
       {/* ─── POSITIONS & HISTORY ─── */}
       <Tabs defaultValue="positions">
-        <TabsList>
-          <TabsTrigger value="positions" className="text-sm">
+        <TabsList className="h-11">
+          <TabsTrigger value="positions" className="text-sm px-4">
             Open Positions {openTrades.length > 0 && <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5">{openTrades.length}</Badge>}
           </TabsTrigger>
-          <TabsTrigger value="history" className="text-sm">Trade History</TabsTrigger>
+          <TabsTrigger value="history" className="text-sm px-4">Trade History</TabsTrigger>
         </TabsList>
 
         <TabsContent value="positions">
           <Card>
             <CardContent className="p-0">
               {openTrades.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                  <Clock className="h-8 w-8 mb-2 opacity-40" />
-                  <p className="text-sm">No open positions</p>
-                  <p className="text-xs">Select an asset above to start trading</p>
+                <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                  <Clock className="h-10 w-10 mb-3 opacity-30" />
+                  <p className="text-base font-medium">No open positions</p>
+                  <p className="text-sm mt-1">Select an asset and place your first trade</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b bg-muted/50">
+                      <tr className="border-b bg-muted/40">
                         {["Asset", "Direction", "Size", "Entry", "Current", "Leverage", "P&L", ""].map(h => (
-                          <th key={h} className={`p-3 font-medium text-muted-foreground text-xs ${h === "" ? "text-right" : "text-left"}`}>{h}</th>
+                          <th key={h} className={`p-3.5 font-medium text-muted-foreground text-xs uppercase tracking-wider ${h === "" ? "text-right" : "text-left"}`}>{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {openTrades.map(t => {
                         const pnl = Number(t.pnl ?? 0);
+                        const tradeIcon = t.assets ? getAssetIcon(t.assets.symbol, null) : null;
                         return (
-                          <tr key={t.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
-                            <td className="p-3">
-                              <span className="font-semibold">{t.assets?.symbol}</span>
+                          <tr key={t.id} className="border-b last:border-0 hover:bg-muted/20 transition-colors">
+                            <td className="p-3.5">
+                              <div className="flex items-center gap-2.5">
+                                {tradeIcon ? (
+                                  <img src={tradeIcon} alt="" className="h-6 w-6 rounded-full object-contain" />
+                                ) : (
+                                  <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[9px] font-bold">
+                                    {t.assets?.symbol?.slice(0, 2)}
+                                  </div>
+                                )}
+                                <span className="font-semibold">{t.assets?.symbol}</span>
+                              </div>
                             </td>
-                            <td className="p-3">
-                              <Badge variant={t.direction === "buy" ? "default" : "destructive"}
-                                className={`capitalize text-[10px] ${t.direction === "buy" ? "bg-success/10 text-success border-success/20" : ""}`}
-                              >
+                            <td className="p-3.5">
+                              <Badge className={`capitalize text-xs ${t.direction === "buy" ? "bg-success/10 text-success border-success/20" : "bg-destructive/10 text-destructive border-destructive/20"}`}>
                                 {t.direction === "buy" ? <ArrowUpRight className="h-3 w-3 mr-0.5" /> : <ArrowDownRight className="h-3 w-3 mr-0.5" />}
                                 {t.direction}
                               </Badge>
                             </td>
-                            <td className="p-3">€{Number(t.size).toLocaleString()}</td>
-                            <td className="p-3 text-muted-foreground">€{Number(t.entry_price).toFixed(2)}</td>
-                            <td className="p-3">€{Number(t.current_price ?? t.entry_price).toFixed(2)}</td>
-                            <td className="p-3">{t.leverage}×</td>
-                            <td className={`p-3 font-semibold ${pnl >= 0 ? "text-success" : "text-destructive"}`}>
+                            <td className="p-3.5 font-medium">€{Number(t.size).toLocaleString()}</td>
+                            <td className="p-3.5 text-muted-foreground">€{Number(t.entry_price).toFixed(2)}</td>
+                            <td className="p-3.5">€{Number(t.current_price ?? t.entry_price).toFixed(2)}</td>
+                            <td className="p-3.5">{t.leverage}×</td>
+                            <td className={`p-3.5 font-bold ${pnl >= 0 ? "text-success" : "text-destructive"}`}>
                               {pnl >= 0 ? "+" : ""}€{pnl.toFixed(2)}
                             </td>
-                            <td className="p-3 text-right">
-                              <Button size="sm" variant="ghost" className="text-destructive hover:bg-destructive/10 text-xs h-7 px-2"
-                                onClick={() => closeTrade(t)}
-                              >
+                            <td className="p-3.5 text-right">
+                              <Button size="sm" variant="outline" className="text-destructive border-destructive/30 hover:bg-destructive/10 text-xs h-8 px-3"
+                                onClick={() => closeTrade(t)}>
                                 <X className="h-3.5 w-3.5 mr-1" /> Close
                               </Button>
                             </td>
@@ -575,38 +735,50 @@ const Trading = () => {
           <Card>
             <CardContent className="p-0">
               {closedTrades.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                  <Clock className="h-8 w-8 mb-2 opacity-40" />
-                  <p className="text-sm">No trade history yet</p>
+                <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                  <Clock className="h-10 w-10 mb-3 opacity-30" />
+                  <p className="text-base font-medium">No trade history yet</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b bg-muted/50">
+                      <tr className="border-b bg-muted/40">
                         {["Asset", "Direction", "Size", "Entry", "Leverage", "P&L", "Closed"].map(h => (
-                          <th key={h} className="p-3 font-medium text-muted-foreground text-xs text-left">{h}</th>
+                          <th key={h} className="p-3.5 font-medium text-muted-foreground text-xs uppercase tracking-wider text-left">{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {closedTrades.map(t => {
                         const pnl = Number(t.pnl ?? 0);
+                        const tradeIcon = t.assets ? getAssetIcon(t.assets.symbol, null) : null;
                         return (
-                          <tr key={t.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
-                            <td className="p-3 font-semibold">{t.assets?.symbol}</td>
-                            <td className="p-3">
-                              <Badge variant={t.direction === "buy" ? "default" : "destructive"}
-                                className={`capitalize text-[10px] ${t.direction === "buy" ? "bg-success/10 text-success border-success/20" : ""}`}
-                              >{t.direction}</Badge>
+                          <tr key={t.id} className="border-b last:border-0 hover:bg-muted/20 transition-colors">
+                            <td className="p-3.5">
+                              <div className="flex items-center gap-2.5">
+                                {tradeIcon ? (
+                                  <img src={tradeIcon} alt="" className="h-6 w-6 rounded-full object-contain" />
+                                ) : (
+                                  <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[9px] font-bold">
+                                    {t.assets?.symbol?.slice(0, 2)}
+                                  </div>
+                                )}
+                                <span className="font-semibold">{t.assets?.symbol}</span>
+                              </div>
                             </td>
-                            <td className="p-3">€{Number(t.size).toLocaleString()}</td>
-                            <td className="p-3 text-muted-foreground">€{Number(t.entry_price).toFixed(2)}</td>
-                            <td className="p-3">{t.leverage}×</td>
-                            <td className={`p-3 font-semibold ${pnl >= 0 ? "text-success" : "text-destructive"}`}>
+                            <td className="p-3.5">
+                              <Badge className={`capitalize text-xs ${t.direction === "buy" ? "bg-success/10 text-success border-success/20" : "bg-destructive/10 text-destructive border-destructive/20"}`}>
+                                {t.direction}
+                              </Badge>
+                            </td>
+                            <td className="p-3.5 font-medium">€{Number(t.size).toLocaleString()}</td>
+                            <td className="p-3.5 text-muted-foreground">€{Number(t.entry_price).toFixed(2)}</td>
+                            <td className="p-3.5">{t.leverage}×</td>
+                            <td className={`p-3.5 font-bold ${pnl >= 0 ? "text-success" : "text-destructive"}`}>
                               {pnl >= 0 ? "+" : ""}€{pnl.toFixed(2)}
                             </td>
-                            <td className="p-3 text-muted-foreground text-xs">
+                            <td className="p-3.5 text-muted-foreground text-xs">
                               {t.closed_at ? new Date(t.closed_at).toLocaleDateString("de-DE", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "—"}
                             </td>
                           </tr>
