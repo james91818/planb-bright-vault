@@ -39,7 +39,53 @@ const AdminDeposits = () => {
     setLoading(false);
   };
 
-  useEffect(() => { fetchDeposits(); }, []);
+  const fetchUsers = async () => {
+    const { data } = await supabase.from("profiles").select("id, full_name, email").order("full_name");
+    setUsers(data ?? []);
+  };
+
+  useEffect(() => { fetchDeposits(); fetchUsers(); }, []);
+
+  const submitManualDeposit = async () => {
+    if (!manualForm.user_id || !manualForm.amount || Number(manualForm.amount) <= 0) {
+      toast.error("Select a user and enter a valid amount");
+      return;
+    }
+    const amount = Number(manualForm.amount);
+
+    // Insert deposit as approved
+    await supabase.from("deposits").insert({
+      user_id: manualForm.user_id,
+      amount,
+      currency: manualForm.currency,
+      method: manualForm.method,
+      status: "approved",
+      admin_notes: manualForm.notes || "Manual deposit by admin",
+      processed_by: user?.id,
+    });
+
+    // Credit the user's wallet
+    const { data: wallet } = await supabase
+      .from("wallets")
+      .select("id, balance")
+      .eq("user_id", manualForm.user_id)
+      .eq("currency", manualForm.currency)
+      .maybeSingle();
+
+    if (wallet) {
+      await supabase.from("wallets").update({ balance: Number(wallet.balance) + amount }).eq("id", wallet.id);
+    }
+
+    // Auto-convert to depositor if amount >= 1
+    if (amount >= 1) {
+      await supabase.from("profiles").update({ is_lead: false }).eq("id", manualForm.user_id);
+    }
+
+    toast.success("Manual deposit created and credited");
+    setManualOpen(false);
+    setManualForm({ user_id: "", amount: "", currency: "EUR", method: "manual", notes: "" });
+    fetchDeposits();
+  };
 
   const updateDeposit = async (id: string, status: string) => {
     const updates: any = { status, admin_notes: adminNotes, processed_by: user?.id };
