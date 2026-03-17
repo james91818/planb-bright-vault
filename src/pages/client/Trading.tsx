@@ -459,6 +459,7 @@ const Trading = () => {
     return matchesSearch && matchesType;
   });
 
+  const selectedMarketOpen = selectedAsset ? isMarketOpen(selectedAsset) : true;
   const maxLeverage = selectedAsset?.leverage_max ?? 100;
   const leverageSteps = [1, 2, 5, 10, 25, 50, 100].filter(l => l <= maxLeverage);
   const exposure = orderSize ? Number(orderSize) * leverage : 0;
