@@ -8,8 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Save, Ban, CheckCircle, DollarSign, TrendingUp, Wallet, Shield } from "lucide-react";
+import { ArrowLeft, Save, Ban, CheckCircle, DollarSign, TrendingUp, Wallet, Shield, MessageSquare, Send } from "lucide-react";
 import { toast } from "sonner";
+import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/hooks/useAuth";
 
 const statusColors: Record<string, string> = {
   active: "bg-success/10 text-success",
@@ -18,6 +20,7 @@ const statusColors: Record<string, string> = {
 };
 
 const AdminUserDetail = () => {
+  const { user: currentUser } = useAuth();
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
@@ -30,6 +33,8 @@ const AdminUserDetail = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editProfile, setEditProfile] = useState({ full_name: "", phone: "", country: "", kyc_status: "" });
+  const [adminNotes, setAdminNotes] = useState<any[]>([]);
+  const [newNote, setNewNote] = useState("");
 
   const fetchAll = async () => {
     if (!userId) return;
@@ -51,6 +56,9 @@ const AdminUserDetail = () => {
       supabase.from("wallets").select("*").eq("user_id", userId),
     ]);
 
+    // Fetch admin notes separately (table may not be in generated types)
+    const { data: notes } = await (supabase as any).from("admin_notes").select("*").eq("user_id", userId).order("created_at", { ascending: false });
+
     setProfile(prof);
     setRoles(rolesData ?? []);
     setUserRoleId((urData && urData.length > 0) ? urData[0].role_id : "none");
@@ -58,6 +66,7 @@ const AdminUserDetail = () => {
     setWithdrawals(wds ?? []);
     setTrades(trs ?? []);
     setWallets(wals ?? []);
+    setAdminNotes(notes ?? []);
 
     if (prof) {
       setEditProfile({
@@ -98,6 +107,18 @@ const AdminUserDetail = () => {
   const updateWalletBalance = async (walletId: string, newBalance: number) => {
     await supabase.from("wallets").update({ balance: newBalance }).eq("id", walletId);
     toast.success("Wallet balance updated");
+    fetchAll();
+  };
+
+  const submitNote = async () => {
+    if (!currentUser || !userId || !newNote.trim()) return;
+    await (supabase as any).from("admin_notes").insert({
+      user_id: userId,
+      author_id: currentUser.id,
+      content: newNote.trim(),
+    });
+    setNewNote("");
+    toast.success("Note added");
     fetchAll();
   };
 
@@ -190,6 +211,7 @@ const AdminUserDetail = () => {
           <TabsTrigger value="deposits">Deposits ({deposits.length})</TabsTrigger>
           <TabsTrigger value="withdrawals">Withdrawals ({withdrawals.length})</TabsTrigger>
           <TabsTrigger value="trades">Trades ({trades.length})</TabsTrigger>
+          <TabsTrigger value="notes">Notes ({adminNotes.length})</TabsTrigger>
         </TabsList>
 
         {/* Profile Tab */}
@@ -384,6 +406,49 @@ const AdminUserDetail = () => {
                   </tbody>
                 </table>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Notes Tab */}
+        <TabsContent value="notes">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base font-display flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" /> Internal Notes
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Add note */}
+              <div className="flex gap-2">
+                <Textarea
+                  value={newNote}
+                  onChange={(e) => setNewNote(e.target.value)}
+                  placeholder="Add an internal note about this user..."
+                  rows={2}
+                  className="flex-1"
+                />
+                <Button onClick={submitNote} disabled={!newNote.trim()} className="self-end">
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Notes list */}
+              {adminNotes.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-6">No notes yet</p>
+              ) : (
+                <div className="space-y-3">
+                  {adminNotes.map((note) => (
+                    <div key={note.id} className="border rounded-lg p-3 space-y-1">
+                      <p className="text-sm whitespace-pre-wrap">{note.content}</p>
+                      <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-1">
+                        <span>Staff</span>
+                        <span>{new Date(note.created_at).toLocaleString()}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
