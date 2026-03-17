@@ -591,6 +591,48 @@ const AdminUserDetail = () => {
           </Card>
         </TabsContent>
       </Tabs>
+      {/* Manual Withdraw Dialog */}
+      <Dialog open={manualWithdrawOpen} onOpenChange={setManualWithdrawOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Manual Withdrawal</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label>Amount</Label>
+              <Input type="number" value={wdForm.amount} onChange={e => setWdForm({ ...wdForm, amount: e.target.value })} placeholder="500" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label>Currency</Label>
+                <Select value={wdForm.currency} onValueChange={v => setWdForm({ ...wdForm, currency: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {["EUR", "USD", "GBP", "CHF", "AUD", "CAD"].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label>Method</Label>
+                <Select value={wdForm.method} onValueChange={v => setWdForm({ ...wdForm, method: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="manual">Manual</SelectItem>
+                    <SelectItem value="crypto">Crypto</SelectItem>
+                    <SelectItem value="bank_wire">Bank Wire</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label>Admin Notes</Label>
+              <Textarea value={wdForm.notes} onChange={e => setWdForm({ ...wdForm, notes: e.target.value })} placeholder="Reason for manual withdrawal..." rows={2} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setManualWithdrawOpen(false)}>Cancel</Button>
+            <Button onClick={submitManualWithdraw}>Submit Withdrawal</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
