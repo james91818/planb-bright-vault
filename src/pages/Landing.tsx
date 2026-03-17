@@ -320,7 +320,7 @@ const Landing = () => {
 
           {/* Right: Visual */}
           <div className="hidden lg:flex justify-center">
-            <div className="relative w-80 h-[420px] rounded-2xl bg-gradient-to-br from-hero to-hero/90 shadow-2xl border border-white/10 overflow-hidden">
+            <div className="relative w-80 rounded-2xl bg-gradient-to-br from-hero to-hero/90 shadow-2xl border border-white/10 overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-t from-primary/5 to-transparent" />
               <div className="relative z-10 p-6 space-y-4">
                 <div className="flex items-center gap-3 mb-2">
