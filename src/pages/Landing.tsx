@@ -68,7 +68,7 @@ const steps = [
     num: "3",
     title: "Trade",
     description: "Start trading on your live account and access global markets from any device.",
-    icon: CandlestickChart,
+    icon: LineChart,
   },
 ];
 
