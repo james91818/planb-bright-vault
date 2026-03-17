@@ -11,6 +11,8 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus } from "lucide-react";
 
 const statusColors: Record<string, string> = {
   approved: "bg-success/10 text-success",
