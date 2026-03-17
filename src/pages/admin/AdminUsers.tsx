@@ -53,16 +53,6 @@ const AdminUsers = () => {
     fetchData();
   };
 
-  const assignRole = async (userId: string, roleId: string) => {
-    // Remove existing role
-    await supabase.from("user_roles").delete().eq("user_id", userId);
-    if (roleId !== "none") {
-      await supabase.from("user_roles").insert({ user_id: userId, role_id: roleId });
-    }
-    toast.success("Role updated");
-    fetchData();
-  };
-
   const handleCreateUser = async () => {
     const { data, error } = await supabase.auth.signUp({
       email: newUser.email,
