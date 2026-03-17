@@ -1,11 +1,20 @@
+import { useState, useEffect } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import AppSidebar from "./AppSidebar";
 import MobileBottomNav from "./MobileBottomNav";
 import { useAuth } from "@/hooks/useAuth";
+import ThemePickerDialog from "@/components/ThemePickerDialog";
 
 const AppLayout = () => {
   const { user, loading } = useAuth();
+  const [showThemePicker, setShowThemePicker] = useState(false);
+
+  useEffect(() => {
+    if (user && !localStorage.getItem("planb-theme-chosen")) {
+      setShowThemePicker(true);
+    }
+  }, [user]);
 
   if (loading) {
     return (
@@ -32,6 +41,7 @@ const AppLayout = () => {
         </main>
         <MobileBottomNav />
       </SidebarInset>
+      <ThemePickerDialog open={showThemePicker} onClose={() => setShowThemePicker(false)} />
     </SidebarProvider>
   );
 };

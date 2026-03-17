@@ -1,6 +1,8 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   ChevronsLeft,
+  Sun,
+  Moon,
   LayoutDashboard,
   TrendingUp,
   Wallet,
@@ -34,6 +36,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { useRole } from "@/hooks/useRole";
+import { useTheme } from "@/hooks/useTheme";
 
 const clientNav = [
   { title: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
@@ -69,6 +72,7 @@ const AppSidebar = () => {
   const { isStaff } = useRole();
   const { toggleSidebar, state } = useSidebar();
   const collapsed = state === "collapsed";
+  const { theme, toggleTheme } = useTheme();
   const mainNav = isStaff ? adminNav : clientNav;
 
   const handleSignOut = async () => {
@@ -159,6 +163,12 @@ const AppSidebar = () => {
 
       <SidebarFooter className="p-2">
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={toggleTheme} tooltip={theme === "light" ? "Dark Mode" : "Light Mode"}>
+              {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+              <span>{theme === "light" ? "Dark Mode" : "Light Mode"}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton onClick={handleSignOut} tooltip="Sign Out">
               <LogOut className="h-4 w-4" />
