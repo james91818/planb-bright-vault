@@ -35,6 +35,8 @@ const AdminUserDetail = () => {
   const [editProfile, setEditProfile] = useState({ full_name: "", phone: "", country: "", kyc_status: "" });
   const [adminNotes, setAdminNotes] = useState<any[]>([]);
   const [newNote, setNewNote] = useState("");
+  const [manualDepositOpen, setManualDepositOpen] = useState(false);
+  const [depForm, setDepForm] = useState({ amount: "", currency: "EUR", method: "manual", notes: "" });
 
   const fetchAll = async () => {
     if (!userId) return;
