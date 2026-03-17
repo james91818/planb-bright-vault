@@ -88,8 +88,8 @@ const AppSidebar = () => {
             <span className="text-lg font-display font-bold text-sidebar-primary-foreground">
               PlanB Trading
             </span>
-            {isAdmin && (
-              <p className="text-[10px] font-semibold text-primary uppercase tracking-wider">Admin Panel</p>
+            {isStaff && (
+              <p className="text-[10px] font-semibold text-primary uppercase tracking-wider">Backoffice</p>
             )}
           </div>
         </div>
