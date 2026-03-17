@@ -118,7 +118,7 @@ const indices = [
 
 const Landing = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Top utility bar */}
       <div className="bg-hero text-hero-muted text-xs py-2 border-b border-white/5">
         <div className="container mx-auto px-4 flex items-center justify-between">
