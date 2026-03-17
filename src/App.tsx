@@ -36,6 +36,7 @@ import AdminNews from "./pages/admin/AdminNews";
 import AdminRoles from "./pages/admin/AdminRoles";
 import AdminDepositors from "./pages/admin/AdminDepositors";
 import AdminAgents from "./pages/admin/AdminAgents";
+import AdminStaking from "./pages/admin/AdminStaking";
 
 // Client pages
 import Trading from "./pages/client/Trading";
