@@ -10,6 +10,7 @@ import {
   HelpCircle,
   LogOut,
   Users,
+  UserCheck,
   FileText,
   ArrowUpRight,
   ArrowDownRight,
@@ -43,6 +44,7 @@ const clientNav = [
 const adminNav = [
   { title: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
   { title: "Users", icon: Users, path: "/admin/users" },
+  { title: "Depositors", icon: UserCheck, path: "/admin/depositors" },
   { title: "Deposits", icon: ArrowUpRight, path: "/admin/deposits" },
   { title: "Withdrawals", icon: ArrowDownRight, path: "/admin/withdrawals" },
   { title: "Trades", icon: TrendingUp, path: "/admin/trades" },

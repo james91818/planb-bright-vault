@@ -23,6 +23,7 @@ import AdminTrades from "./pages/admin/AdminTrades";
 import AdminAssets from "./pages/admin/AdminAssets";
 import AdminNews from "./pages/admin/AdminNews";
 import AdminRoles from "./pages/admin/AdminRoles";
+import AdminDepositors from "./pages/admin/AdminDepositors";
 
 // Client pages
 import Trading from "./pages/client/Trading";
@@ -61,6 +62,7 @@ const App = () => (
             <Route path="/watchlist" element={<Watchlist />} />
             {/* Admin routes */}
             <Route path="/admin/users" element={<AdminUsers />} />
+            <Route path="/admin/depositors" element={<AdminDepositors />} />
             <Route path="/admin/deposits" element={<AdminDeposits />} />
             <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
             <Route path="/admin/trades" element={<AdminTrades />} />
