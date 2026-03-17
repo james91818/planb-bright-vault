@@ -88,7 +88,13 @@ const steps = [
   },
 ];
 
-const partners = ["BNP Paribas", "J.P. Morgan", "Deutsche Bank", "Commerzbank", "Barclays"];
+const partners = [
+  { name: "BNP Paribas", logo: bnpLogo },
+  { name: "J.P. Morgan", logo: jpmorganLogo },
+  { name: "Deutsche Bank", logo: deutschebankLogo },
+  { name: "Commerzbank", logo: commerzbankLogo },
+  { name: "Barclays", logo: barclaysLogo },
+];
 
 const paymentMethods = [
   { name: "Visa", logo: visaLogo },
