@@ -156,34 +156,11 @@ const Landing = () => {
       </nav>
 
       {/* ===== HERO ===== */}
-      <section className="relative bg-hero overflow-hidden">
-        {/* Geometric wire-mesh abstract */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <svg className="absolute right-0 top-0 w-[65%] h-full" viewBox="0 0 700 500" fill="none" opacity="0.12">
-            {/* Bull shape abstraction - wire mesh network */}
-            <polygon points="350,60 580,140 550,300 400,380 280,320 250,180" stroke="hsl(28,95%,52%)" strokeWidth="0.6" fill="none" />
-            <polygon points="380,40 620,130 590,310 420,400 300,340 260,170" stroke="white" strokeWidth="0.3" fill="none" />
-            <polygon points="320,80 540,160 510,320 380,390 260,310 240,190" stroke="white" strokeWidth="0.25" fill="none" />
-            {/* Internal network lines */}
-            <line x1="350" y1="60" x2="400" y2="380" stroke="white" strokeWidth="0.2" />
-            <line x1="580" y1="140" x2="280" y2="320" stroke="white" strokeWidth="0.2" />
-            <line x1="550" y1="300" x2="250" y2="180" stroke="hsl(28,95%,52%)" strokeWidth="0.2" />
-            <line x1="350" y1="60" x2="550" y2="300" stroke="white" strokeWidth="0.15" />
-            <line x1="580" y1="140" x2="400" y2="380" stroke="white" strokeWidth="0.15" />
-            <line x1="280" y1="320" x2="580" y2="140" stroke="hsl(28,95%,52%)" strokeWidth="0.15" />
-            <line x1="250" y1="180" x2="400" y2="380" stroke="white" strokeWidth="0.15" />
-            <line x1="320" y1="80" x2="510" y2="320" stroke="white" strokeWidth="0.12" />
-            <line x1="540" y1="160" x2="260" y2="310" stroke="white" strokeWidth="0.12" />
-            <line x1="380" y1="40" x2="300" y2="340" stroke="hsl(28,95%,52%)" strokeWidth="0.12" />
-            {/* Vertices/dots */}
-            {[[350,60],[580,140],[550,300],[400,380],[280,320],[250,180],[380,40],[620,130],[420,400],[320,80],[540,160],[510,320]].map(([cx,cy], i) => (
-              <circle key={i} cx={cx} cy={cy} r={i % 3 === 0 ? 3 : 2} fill={i % 2 === 0 ? "hsl(28,95%,52%)" : "white"} opacity={i % 2 === 0 ? 0.7 : 0.4} />
-            ))}
-            {/* Extra scatter dots */}
-            {[[450,120],[500,250],[330,250],[420,200],[360,300],[480,350],[550,200],[300,150],[600,250],[270,250]].map(([cx,cy], i) => (
-              <circle key={`d${i}`} cx={cx} cy={cy} r={1.5} fill="white" opacity={0.2 + (i % 3) * 0.1} />
-            ))}
-          </svg>
+      <section className="relative bg-hero overflow-hidden min-h-[520px] md:min-h-[600px]">
+        {/* Hero background image */}
+        <div className="absolute inset-0">
+          <img src={heroImage} alt="Trading charts background" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-r from-hero via-hero/90 to-hero/40" />
         </div>
 
         <div className="container mx-auto px-4 py-20 md:py-28 relative z-10">
