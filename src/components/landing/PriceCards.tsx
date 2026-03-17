@@ -54,7 +54,7 @@ const PriceCards = () => {
         const data = await res.json();
         const mapping: Record<string, number> = {
           bitcoin: 0, ethereum: 1, solana: 2, binancecoin: 3, ripple: 4,
-          cardano: 5, dogecoin: 6, "avalanche-2": 7, polkadot: 8, "matic-network": 9,
+          cardano: 5, dogecoin: 6, "avalanche-2": 7, polkadot: 8, chainlink: 9,
         };
         setPrices((prev) => {
           const updated = [...prev];
