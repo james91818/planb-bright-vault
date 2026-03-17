@@ -9,6 +9,15 @@ import {
 import PriceCards from "@/components/landing/PriceCards";
 import StatsBar from "@/components/landing/StatsBar";
 
+import visaLogo from "@/assets/payments/visa.png";
+import mastercardLogo from "@/assets/payments/mastercard.png";
+import cryptoLogo from "@/assets/payments/crypto.png";
+import bankLogo from "@/assets/payments/bank.png";
+import applepayLogo from "@/assets/payments/applepay.png";
+import paypalLogo from "@/assets/payments/paypal.png";
+import skrillLogo from "@/assets/payments/skrill.png";
+import netellerLogo from "@/assets/payments/neteller.png";
+
 const whyFeatures = [
   {
     icon: Shield,
