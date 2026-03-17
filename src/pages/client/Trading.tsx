@@ -232,6 +232,7 @@ const Trading = () => {
   const [loading, setLoading] = useState(true);
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [chartType, setChartType] = useState<"candle" | "line">("candle");
+  const [timeframe, setTimeframe] = useState<Timeframe>("1D");
   const [candles, setCandles] = useState<ReturnType<typeof generateCandles>>([]);
   const [livePrice, setLivePrice] = useState(0);
   const [priceChange, setPriceChange] = useState(0);
