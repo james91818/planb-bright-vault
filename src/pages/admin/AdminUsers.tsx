@@ -79,6 +79,44 @@ const AdminUsers = () => {
     setTimeout(fetchData, 1000);
   };
 
+  const submitManualDeposit = async () => {
+    if (!depositForm.user_id || !depositForm.amount || Number(depositForm.amount) <= 0) {
+      toast.error("Select a user and enter a valid amount");
+      return;
+    }
+    const amount = Number(depositForm.amount);
+
+    await supabase.from("deposits").insert({
+      user_id: depositForm.user_id,
+      amount,
+      currency: depositForm.currency,
+      method: depositForm.method,
+      status: "approved",
+      admin_notes: depositForm.notes || "Manual deposit by admin",
+      processed_by: authUser?.id,
+    });
+
+    const { data: wallet } = await supabase
+      .from("wallets")
+      .select("id, balance")
+      .eq("user_id", depositForm.user_id)
+      .eq("currency", depositForm.currency)
+      .maybeSingle();
+
+    if (wallet) {
+      await supabase.from("wallets").update({ balance: Number(wallet.balance) + amount }).eq("id", wallet.id);
+    }
+
+    if (amount >= 1) {
+      await supabase.from("profiles").update({ is_lead: false }).eq("id", depositForm.user_id);
+    }
+
+    toast.success("Manual deposit created and credited");
+    setDepositOpen(false);
+    setDepositForm({ user_id: "", amount: "", currency: "EUR", method: "manual", notes: "" });
+    fetchData();
+  };
+
   const filtered = users.filter((u) => {
     const matchesSearch =
       (u.full_name ?? "").toLowerCase().includes(search.toLowerCase()) ||
