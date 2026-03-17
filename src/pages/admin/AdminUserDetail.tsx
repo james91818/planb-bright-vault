@@ -471,6 +471,12 @@ const AdminUserDetail = () => {
         {/* Withdrawals Tab */}
         <TabsContent value="withdrawals">
           <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <CardTitle className="text-base font-display">Withdrawals</CardTitle>
+              <Button size="sm" onClick={() => { setWdForm({ amount: "", currency: "EUR", method: "manual", notes: "" }); setManualWithdrawOpen(true); }}>
+                <Plus className="h-4 w-4 mr-1" /> Manual Withdraw
+              </Button>
+            </CardHeader>
             <CardContent className="p-0">
               <table className="w-full text-sm">
                 <thead>
