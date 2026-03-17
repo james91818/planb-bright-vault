@@ -165,6 +165,45 @@ const AdminUserDetail = () => {
     fetchAll();
   };
 
+  const submitManualWithdraw = async () => {
+    if (!wdForm.amount || Number(wdForm.amount) <= 0) {
+      toast.error("Enter a valid amount");
+      return;
+    }
+    const amount = Number(wdForm.amount);
+
+    const { data: wallet } = await supabase
+      .from("wallets")
+      .select("id, balance")
+      .eq("user_id", userId!)
+      .eq("currency", wdForm.currency)
+      .maybeSingle();
+
+    if (wallet && Number(wallet.balance) < amount) {
+      toast.error("Insufficient wallet balance");
+      return;
+    }
+
+    await supabase.from("withdrawals").insert({
+      user_id: userId!,
+      amount,
+      currency: wdForm.currency,
+      method: wdForm.method,
+      status: "approved",
+      admin_notes: wdForm.notes || "Manual withdrawal by admin",
+      processed_by: currentUser?.id,
+    });
+
+    if (wallet) {
+      await supabase.from("wallets").update({ balance: Number(wallet.balance) - amount }).eq("id", wallet.id);
+    }
+
+    toast.success("Manual withdrawal created and deducted");
+    setManualWithdrawOpen(false);
+    setWdForm({ amount: "", currency: "EUR", method: "manual", notes: "" });
+    fetchAll();
+  };
+
   const totalDeposited = deposits.filter(d => d.status === "approved").reduce((s, d) => s + Number(d.amount), 0);
   const totalWithdrawn = withdrawals.filter(w => w.status === "approved").reduce((s, w) => s + Number(w.amount), 0);
   const totalPnl = trades.filter(t => t.status === "closed").reduce((s, t) => s + Number(t.pnl ?? 0), 0);
