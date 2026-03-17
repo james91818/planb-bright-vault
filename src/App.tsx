@@ -12,6 +12,15 @@ import Investments from "./pages/Investments";
 import Impressum from "./pages/Impressum";
 import Signup from "./pages/Signup";
 import ResetPassword from "./pages/ResetPassword";
+import GeneralTerms from "./pages/legal/GeneralTerms";
+import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
+import RiskWarning from "./pages/legal/RiskWarning";
+import TermsConditions from "./pages/legal/TermsConditions";
+import AboutUs from "./pages/AboutUs";
+import ContactUs from "./pages/ContactUs";
+import SupportCenter from "./pages/SupportCenter";
+import TradingHours from "./pages/TradingHours";
+import InstrumentsPage from "./pages/Instruments";
 import Dashboard from "./pages/Dashboard";
 import AppLayout from "./components/layout/AppLayout";
 import NotFound from "./pages/NotFound";
@@ -57,6 +66,15 @@ const App = () => (
           <Route path="/investments" element={<Investments />} />
           <Route path="/impressum" element={<Impressum />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/general-terms" element={<GeneralTerms />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/risk-warning" element={<RiskWarning />} />
+          <Route path="/terms-conditions" element={<TermsConditions />} />
+          <Route path="/about" element={<AboutUs />} />
+          <Route path="/contact" element={<ContactUs />} />
+          <Route path="/support-center" element={<SupportCenter />} />
+          <Route path="/trading-hours" element={<TradingHours />} />
+          <Route path="/instruments" element={<InstrumentsPage />} />
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             {/* Client routes */}

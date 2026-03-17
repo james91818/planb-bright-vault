@@ -668,28 +668,28 @@ const Landing = () => {
             <div>
               <h4 className="font-semibold text-sm mb-3 text-hero-foreground">Trading</h4>
               <ul className="space-y-2 text-sm text-hero-muted">
-                <li className="hover:text-hero-foreground cursor-pointer transition-colors">Trading</li>
-                <li className="hover:text-hero-foreground cursor-pointer transition-colors">Trading Hours</li>
-                <li className="hover:text-hero-foreground cursor-pointer transition-colors">Instruments</li>
-                <li className="hover:text-hero-foreground cursor-pointer transition-colors">Accounts</li>
+                <li><Link to="/login" className="hover:text-hero-foreground transition-colors">Trading</Link></li>
+                <li><Link to="/trading-hours" className="hover:text-hero-foreground transition-colors">Trading Hours</Link></li>
+                <li><Link to="/instruments" className="hover:text-hero-foreground transition-colors">Instruments</Link></li>
+                <li><Link to="/account-types" className="hover:text-hero-foreground transition-colors">Accounts</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold text-sm mb-3 text-hero-foreground">Legal</h4>
               <ul className="space-y-2 text-sm text-hero-muted">
-                <li className="hover:text-hero-foreground cursor-pointer transition-colors">General Terms</li>
-                <li className="hover:text-hero-foreground cursor-pointer transition-colors">Privacy Policy</li>
-                <li className="hover:text-hero-foreground cursor-pointer transition-colors">Risk Warning</li>
-                <li className="hover:text-hero-foreground cursor-pointer transition-colors">Terms & Conditions</li>
+                <li><Link to="/general-terms" className="hover:text-hero-foreground transition-colors">General Terms</Link></li>
+                <li><Link to="/privacy-policy" className="hover:text-hero-foreground transition-colors">Privacy Policy</Link></li>
+                <li><Link to="/risk-warning" className="hover:text-hero-foreground transition-colors">Risk Warning</Link></li>
+                <li><Link to="/terms-conditions" className="hover:text-hero-foreground transition-colors">Terms & Conditions</Link></li>
                 <li><Link to="/impressum" className="hover:text-hero-foreground transition-colors">Impressum</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold text-sm mb-3 text-hero-foreground">Contact Us</h4>
               <ul className="space-y-2 text-sm text-hero-muted">
-                <li className="hover:text-hero-foreground cursor-pointer transition-colors">About Us</li>
-                <li className="hover:text-hero-foreground cursor-pointer transition-colors">Contact Us</li>
-                <li className="hover:text-hero-foreground cursor-pointer transition-colors">Support Center</li>
+                <li><Link to="/about" className="hover:text-hero-foreground transition-colors">About Us</Link></li>
+                <li><Link to="/contact" className="hover:text-hero-foreground transition-colors">Contact Us</Link></li>
+                <li><Link to="/support-center" className="hover:text-hero-foreground transition-colors">Support Center</Link></li>
               </ul>
             </div>
           </div>
