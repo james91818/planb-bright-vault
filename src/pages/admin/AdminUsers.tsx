@@ -153,22 +153,6 @@ const AdminUsers = () => {
                       </td>
                       <td className="p-3 text-muted-foreground">{u.country || "—"}</td>
                       <td className="p-3">
-                        <Select
-                          value={roles.find((r) => r.name === userRoles[u.id])?.id ?? "none"}
-                          onValueChange={(val) => assignRole(u.id, val)}
-                        >
-                          <SelectTrigger className="h-8 w-28 text-xs">
-                            <SelectValue placeholder="No role" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">No role</SelectItem>
-                            {roles.map((r) => (
-                              <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </td>
-                      <td className="p-3">
                         <Badge variant="outline" className="text-xs capitalize">{u.kyc_status ?? "not_submitted"}</Badge>
                       </td>
                       <td className="p-3">

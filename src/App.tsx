@@ -70,6 +70,7 @@ const App = () => (
             <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
             <Route path="/admin/trades" element={<AdminTrades />} />
             <Route path="/admin/assets" element={<AdminAssets />} />
+            <Route path="/admin/agents" element={<AdminAgents />} />
             <Route path="/admin/news" element={<AdminNews />} />
             <Route path="/admin/roles" element={<AdminRoles />} />
             {/* Shared routes */}

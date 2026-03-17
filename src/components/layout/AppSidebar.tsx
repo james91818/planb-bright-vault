@@ -43,14 +43,15 @@ const clientNav = [
 
 const adminNav = [
   { title: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
-  { title: "Users", icon: Users, path: "/admin/users" },
+  { title: "Leads", icon: Users, path: "/admin/users" },
   { title: "Depositors", icon: UserCheck, path: "/admin/depositors" },
+  { title: "Agents", icon: Shield, path: "/admin/agents" },
   { title: "Deposits", icon: ArrowUpRight, path: "/admin/deposits" },
   { title: "Withdrawals", icon: ArrowDownRight, path: "/admin/withdrawals" },
   { title: "Trades", icon: TrendingUp, path: "/admin/trades" },
   { title: "Assets", icon: LineChart, path: "/admin/assets" },
   { title: "News", icon: Newspaper, path: "/admin/news" },
-  { title: "Roles", icon: Shield, path: "/admin/roles" },
+  { title: "Roles", icon: FileText, path: "/admin/roles" },
 ];
 
 const bottomNav = [
