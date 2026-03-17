@@ -8,6 +8,7 @@ import Login from "./pages/Login";
 import AdminLogin from "./pages/AdminLogin";
 import AccountTypes from "./pages/AccountTypes";
 import Investments from "./pages/Investments";
+import Impressum from "./pages/Impressum";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import AppLayout from "./components/layout/AppLayout";
