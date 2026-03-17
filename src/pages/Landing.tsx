@@ -231,9 +231,16 @@ const Landing = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent" />
                 <div className="relative z-10 text-center space-y-4 px-6">
                   <div className="grid grid-cols-3 gap-3">
-                    {["🍎", "📈", "₿", "⚡", "🔍", "💱"].map((icon, i) => (
-                      <div key={i} className="h-12 w-12 mx-auto rounded-xl bg-white/10 flex items-center justify-center text-xl backdrop-blur-sm">
-                        {icon}
+                    {[
+                      { Icon: TrendingUp, label: "Stocks" },
+                      { Icon: BarChart3, label: "Indices" },
+                      { Icon: Landmark, label: "Forex" },
+                      { Icon: Zap, label: "Crypto" },
+                      { Icon: LineChart, label: "Futures" },
+                      { Icon: Shield, label: "Bonds" },
+                    ].map(({ Icon, label }, i) => (
+                      <div key={i} className="h-12 w-12 mx-auto rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-sm" title={label}>
+                        <Icon className="h-5 w-5 text-primary" />
                       </div>
                     ))}
                   </div>
