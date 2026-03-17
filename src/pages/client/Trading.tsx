@@ -553,9 +553,16 @@ const Trading = () => {
 
                 {/* Price display */}
                 <div>
-                  <p className="text-2xl font-display font-bold leading-tight">
-                    €{livePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: livePrice < 1 ? 6 : livePrice < 100 ? 4 : 2 })}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-2xl font-display font-bold leading-tight">
+                      €{livePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: livePrice < 1 ? 6 : livePrice < 100 ? 4 : 2 })}
+                    </p>
+                    {!selectedMarketOpen && (
+                      <Badge variant="outline" className="text-[10px] border-destructive/40 text-destructive">
+                        <Clock className="h-3 w-3 mr-0.5" /> Closed
+                      </Badge>
+                    )}
+                  </div>
                   <span className={`text-sm font-semibold flex items-center gap-0.5 ${priceChange >= 0 ? "text-success" : "text-destructive"}`}>
                     {priceChange >= 0 ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
                     {priceChange >= 0 ? "+" : ""}{priceChange}%
