@@ -277,7 +277,112 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* ===== THE PLANB DIFFERENCE ===== */}
+      {/* ===== AI TRADING ROBOT ===== */}
+      <section className="container mx-auto px-4 py-16 md:py-24">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          {/* Left: Info */}
+          <div className="space-y-6 max-w-lg">
+            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary text-sm font-semibold px-4 py-1.5 rounded-full">
+              <Bot className="h-4 w-4" />
+              AI-Powered Trading
+            </div>
+            <h2 className="text-3xl md:text-4xl font-display font-bold">
+              Let Our AI Trading Robot Work for You
+            </h2>
+            <p className="text-muted-foreground leading-relaxed">
+              Our proprietary AI trading robot uses advanced machine learning algorithms to analyze
+              market patterns, identify high-probability setups, and execute trades automatically —
+              24 hours a day, 7 days a week. No emotions, no hesitation, just data-driven decisions.
+            </p>
+            <div className="grid grid-cols-2 gap-4">
+              {[
+                { icon: Brain, title: "Smart Analysis", desc: "Deep learning models trained on millions of data points to detect trends before they happen." },
+                { icon: Clock, title: "24/7 Trading", desc: "The robot never sleeps — it monitors and trades round the clock across all markets." },
+                { icon: Target, title: "Precision Entries", desc: "AI-optimized entry and exit points for maximum profit potential and minimal risk." },
+                { icon: ChartCandlestick, title: "Risk Management", desc: "Built-in stop-loss and take-profit logic to protect your capital automatically." },
+              ].map((f) => (
+                <div key={f.title} className="space-y-1.5">
+                  <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <f.icon className="h-4.5 w-4.5 text-primary" />
+                  </div>
+                  <h4 className="font-display font-semibold text-sm">{f.title}</h4>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{f.desc}</p>
+                </div>
+              ))}
+            </div>
+            <Button size="lg" asChild className="rounded-full px-8">
+              <Link to="/signup">
+                <Cpu className="mr-2 h-5 w-5" />
+                Activate AI Trading
+              </Link>
+            </Button>
+          </div>
+
+          {/* Right: Visual */}
+          <div className="hidden lg:flex justify-center">
+            <div className="relative w-80 h-[420px] rounded-2xl bg-gradient-to-br from-hero to-hero/90 shadow-2xl border border-white/10 overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-t from-primary/5 to-transparent" />
+              <div className="relative z-10 p-6 space-y-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center">
+                    <Bot className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-display font-bold text-hero-foreground text-sm">PlanB AI Bot</p>
+                    <div className="flex items-center gap-1.5">
+                      <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
+                      <span className="text-xs text-success font-medium">Active — Trading</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Stats */}
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { label: "Win Rate", value: "87.3%", color: "text-success" },
+                    { label: "Avg Return", value: "+12.4%", color: "text-success" },
+                    { label: "Trades Today", value: "34", color: "text-hero-foreground" },
+                    { label: "Active Pairs", value: "18", color: "text-hero-foreground" },
+                  ].map((s) => (
+                    <div key={s.label} className="bg-white/[0.06] rounded-lg p-3 border border-white/5">
+                      <p className="text-[10px] text-hero-muted uppercase tracking-wider">{s.label}</p>
+                      <p className={`font-display font-bold text-lg ${s.color}`}>{s.value}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Recent AI trades */}
+                <div className="space-y-2">
+                  <p className="text-xs text-hero-muted font-semibold uppercase tracking-wider">Recent AI Trades</p>
+                  {[
+                    { pair: "BTC/EUR", action: "BUY", pnl: "+€342.50", time: "2m ago" },
+                    { pair: "ETH/EUR", action: "SELL", pnl: "+€128.90", time: "8m ago" },
+                    { pair: "SOL/EUR", action: "BUY", pnl: "+€67.20", time: "15m ago" },
+                  ].map((t) => (
+                    <div key={t.pair} className="flex items-center justify-between bg-white/[0.04] rounded-lg px-3 py-2 border border-white/5">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${t.action === "BUY" ? "bg-success/20 text-success" : "bg-destructive/20 text-destructive"}`}>
+                          {t.action}
+                        </span>
+                        <span className="text-sm font-medium text-hero-foreground">{t.pair}</span>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs font-semibold text-success">{t.pnl}</p>
+                        <p className="text-[10px] text-hero-muted">{t.time}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Glow effect */}
+              <div className="absolute -bottom-10 -right-10 w-40 h-40 rounded-full bg-primary/20 blur-3xl" />
+              <div className="absolute -top-5 -left-5 w-24 h-24 rounded-full bg-primary/10 blur-2xl" />
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="container mx-auto px-4 py-16 md:py-24">
         <Card className="max-w-5xl mx-auto overflow-hidden">
           <div className="grid md:grid-cols-2">
