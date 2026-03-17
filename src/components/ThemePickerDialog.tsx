@@ -12,12 +12,15 @@ interface ThemePickerDialogProps {
 }
 
 const ThemePickerDialog = ({ open, onClose }: ThemePickerDialogProps) => {
-  const { setTheme } = useTheme();
   const { theme, setTheme } = useTheme();
   const [selected, setSelected] = useState<"light" | "dark">(theme);
 
+  const handleSelect = (t: "light" | "dark") => {
+    setSelected(t);
+    setTheme(t);
+  };
+
   const handleConfirm = () => {
-    setTheme(selected);
     localStorage.setItem("planb-theme-chosen", "true");
     onClose();
   };
