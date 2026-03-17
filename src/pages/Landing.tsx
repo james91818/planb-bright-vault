@@ -483,17 +483,55 @@ const Landing = () => {
           <Card className="overflow-hidden">
             {/* Chart area */}
             <CardContent className="p-0">
-              <div className="h-48 md:h-56 bg-card p-6">
-                <svg viewBox="0 0 800 140" className="w-full h-full" preserveAspectRatio="none">
-                  {[35,70,105].map((y) => (
+              <div className="h-56 md:h-64 bg-card p-6">
+                <svg viewBox="0 0 800 160" className="w-full h-full" preserveAspectRatio="none">
+                  {/* Grid lines */}
+                  {[30, 60, 90, 120].map((y) => (
                     <line key={y} x1="0" y1={y} x2="800" y2={y} stroke="hsl(215, 20%, 92%)" strokeWidth="0.5" />
                   ))}
-                  <path
-                    d="M0,120 Q40,115 80,118 T160,105 T240,95 T320,80 T400,85 T480,60 T560,55 T640,40 T720,35 T800,30"
-                    fill="none"
-                    stroke="hsl(28, 95%, 52%)"
-                    strokeWidth="1.5"
-                  />
+                  {/* Candlesticks */}
+                  {[
+                    { x: 30, o: 130, c: 120, h: 115, l: 135 },
+                    { x: 60, o: 120, c: 125, h: 115, l: 130 },
+                    { x: 90, o: 125, c: 110, h: 105, l: 130 },
+                    { x: 120, o: 110, c: 115, h: 105, l: 120 },
+                    { x: 150, o: 115, c: 100, h: 95, l: 120 },
+                    { x: 180, o: 100, c: 105, h: 95, l: 110 },
+                    { x: 210, o: 105, c: 90, h: 85, l: 110 },
+                    { x: 240, o: 90, c: 95, h: 85, l: 100 },
+                    { x: 270, o: 95, c: 80, h: 75, l: 100 },
+                    { x: 300, o: 80, c: 85, h: 75, l: 90 },
+                    { x: 330, o: 85, c: 70, h: 65, l: 90 },
+                    { x: 360, o: 70, c: 75, h: 65, l: 80 },
+                    { x: 390, o: 75, c: 65, h: 60, l: 80 },
+                    { x: 420, o: 65, c: 55, h: 50, l: 70 },
+                    { x: 450, o: 55, c: 60, h: 50, l: 65 },
+                    { x: 480, o: 60, c: 48, h: 42, l: 65 },
+                    { x: 510, o: 48, c: 52, h: 42, l: 55 },
+                    { x: 540, o: 52, c: 40, h: 35, l: 56 },
+                    { x: 570, o: 40, c: 45, h: 35, l: 48 },
+                    { x: 600, o: 45, c: 35, h: 30, l: 50 },
+                    { x: 630, o: 35, c: 38, h: 30, l: 42 },
+                    { x: 660, o: 38, c: 28, h: 22, l: 42 },
+                    { x: 690, o: 28, c: 32, h: 22, l: 35 },
+                    { x: 720, o: 32, c: 22, h: 18, l: 36 },
+                    { x: 750, o: 22, c: 18, h: 12, l: 26 },
+                  ].map((candle) => {
+                    const bullish = candle.c < candle.o;
+                    const color = bullish ? "#10B981" : "#EF4444";
+                    const top = Math.min(candle.o, candle.c);
+                    const bottom = Math.max(candle.o, candle.c);
+                    return (
+                      <g key={candle.x}>
+                        {/* Wick */}
+                        <line x1={candle.x} y1={candle.h} x2={candle.x} y2={candle.l} stroke={color} strokeWidth="1.5" />
+                        {/* Body */}
+                        <rect x={candle.x - 8} y={top} width="16" height={Math.max(bottom - top, 2)} fill={color} rx="1" />
+                      </g>
+                    );
+                  })}
+                  {/* Uptrend arrow overlay */}
+                  <path d="M20,135 Q200,110 400,75 T780,15" fill="none" stroke="hsl(28, 95%, 52%)" strokeWidth="2" strokeDasharray="6 3" opacity="0.5" />
                 </svg>
                 {/* Time labels */}
                 <div className="flex gap-3 mt-2">
