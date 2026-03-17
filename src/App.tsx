@@ -66,6 +66,15 @@ const App = () => (
           <Route path="/investments" element={<Investments />} />
           <Route path="/impressum" element={<Impressum />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/general-terms" element={<GeneralTerms />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/risk-warning" element={<RiskWarning />} />
+          <Route path="/terms-conditions" element={<TermsConditions />} />
+          <Route path="/about" element={<AboutUs />} />
+          <Route path="/contact" element={<ContactUs />} />
+          <Route path="/support-center" element={<SupportCenter />} />
+          <Route path="/trading-hours" element={<TradingHours />} />
+          <Route path="/instruments" element={<InstrumentsPage />} />
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             {/* Client routes */}
