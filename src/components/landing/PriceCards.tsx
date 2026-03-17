@@ -21,7 +21,8 @@ const FALLBACK_PRICES: CoinPrice[] = [
   { symbol: "LINK", name: "Chainlink", price: 14.52, change24h: 0.74, icon: "⬡" },
 ];
 
-const formatPrice = (price: number) => {
+const formatPrice = (price: number | undefined) => {
+  if (price == null) return "—";
   if (price >= 10000) return price.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
   if (price >= 100) return price.toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   if (price >= 1) return price.toFixed(2);
