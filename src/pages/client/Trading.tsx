@@ -655,6 +655,13 @@ const Trading = () => {
                 </p>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Market closed warning */}
+                {!selectedMarketOpen && (
+                  <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 text-destructive text-xs font-medium">
+                    <Clock className="h-4 w-4 shrink-0" />
+                    <span>{selectedAsset?.symbol} market is closed. Switch to a crypto asset to trade now.</span>
+                  </div>
+                )}
                 {/* Direction */}
                 <div className="grid grid-cols-2 gap-2">
                   <Button variant={direction === "buy" ? "default" : "outline"} onClick={() => setDirection("buy")}
