@@ -10,6 +10,7 @@ import {
   HelpCircle,
   LogOut,
   Users,
+  UserCheck,
   FileText,
   ArrowUpRight,
   ArrowDownRight,
