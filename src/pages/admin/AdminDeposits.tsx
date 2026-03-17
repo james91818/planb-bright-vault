@@ -26,6 +26,9 @@ const AdminDeposits = () => {
   const [loading, setLoading] = useState(true);
   const [reviewDeposit, setReviewDeposit] = useState<any>(null);
   const [adminNotes, setAdminNotes] = useState("");
+  const [manualOpen, setManualOpen] = useState(false);
+  const [users, setUsers] = useState<any[]>([]);
+  const [manualForm, setManualForm] = useState({ user_id: "", amount: "", currency: "EUR", method: "manual", notes: "" });
 
   const fetchDeposits = async () => {
     const { data } = await supabase
