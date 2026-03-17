@@ -46,7 +46,7 @@ const PriceCards = () => {
   useEffect(() => {
     const fetchPrices = async () => {
       try {
-        const ids = "bitcoin,ethereum,solana,binancecoin,ripple,cardano,dogecoin,avalanche-2,polkadot,matic-network";
+        const ids = "bitcoin,ethereum,solana,binancecoin,ripple,cardano,dogecoin,avalanche-2,polkadot,chainlink";
         const res = await fetch(
           `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`
         );
