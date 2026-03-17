@@ -112,7 +112,7 @@ const AdminUserDetail = () => {
 
   const submitNote = async () => {
     if (!currentUser || !userId || !newNote.trim()) return;
-    await supabase.from("admin_notes").insert({
+    await (supabase as any).from("admin_notes").insert({
       user_id: userId,
       author_id: currentUser.id,
       content: newNote.trim(),
