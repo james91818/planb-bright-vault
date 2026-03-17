@@ -455,7 +455,7 @@ const Landing = () => {
         <div className="flex flex-wrap items-center justify-center gap-10 md:gap-16">
           {partners.map((p) => (
             <div key={p.name} className="grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300">
-              <img src={p.logo} alt={p.name} className="h-12 md:h-14 w-auto object-contain" />
+              <img src={p.logo} alt={p.name} className="h-16 md:h-20 w-auto object-contain" />
             </div>
           ))}
         </div>
