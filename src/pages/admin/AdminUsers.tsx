@@ -132,9 +132,14 @@ const AdminUsers = () => {
           <h1 className="text-2xl font-display font-bold">Leads</h1>
           <p className="text-muted-foreground text-sm">{users.length} total users</p>
         </div>
-        <Button onClick={() => setCreateOpen(true)}>
-          <UserPlus className="h-4 w-4 mr-2" /> Create User
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setDepositOpen(true)}>
+            <Plus className="h-4 w-4 mr-1" /> Manual Deposit
+          </Button>
+          <Button onClick={() => setCreateOpen(true)}>
+            <UserPlus className="h-4 w-4 mr-2" /> Create User
+          </Button>
+        </div>
       </div>
 
       <div className="flex gap-3">
