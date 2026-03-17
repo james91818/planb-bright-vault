@@ -62,6 +62,7 @@ const App = () => (
             <Route path="/watchlist" element={<Watchlist />} />
             {/* Admin routes */}
             <Route path="/admin/users" element={<AdminUsers />} />
+            <Route path="/admin/depositors" element={<AdminDepositors />} />
             <Route path="/admin/deposits" element={<AdminDeposits />} />
             <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
             <Route path="/admin/trades" element={<AdminTrades />} />
