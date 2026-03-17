@@ -18,6 +18,7 @@ const statusColors: Record<string, string> = {
 };
 
 const AdminDepositors = () => {
+  const navigate = useNavigate();
   const [depositors, setDepositors] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);

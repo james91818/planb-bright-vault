@@ -23,6 +23,7 @@ const statusColors: Record<string, string> = {
 };
 
 const AdminUsers = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState<any[]>([]);
   const [roles, setRoles] = useState<any[]>([]);
   const [userRoles, setUserRoles] = useState<Record<string, string>>({});
