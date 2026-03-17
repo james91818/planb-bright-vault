@@ -6,6 +6,7 @@ import {
   TrendingUp, Shield, Zap, BarChart3, Star,
   Landmark, Headphones, Eye, Monitor,
   CheckCircle2, UserPlus, Wallet, LineChart,
+  Bot, Brain, Clock, Target, Cpu, ChartCandlestick,
 } from "lucide-react";
 import PriceCards from "@/components/landing/PriceCards";
 import StatsBar from "@/components/landing/StatsBar";
