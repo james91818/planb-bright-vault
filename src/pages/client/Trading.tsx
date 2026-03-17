@@ -63,6 +63,24 @@ const TIMEFRAME_CONFIG: Record<Timeframe, { count: number; intervalMs: number; l
   "1M": { count: 60, intervalMs: 12 * 3600_000, label: "1M" },
 };
 
+// ─── Market hours check ───
+function isMarketOpen(asset: Asset): boolean {
+  if (asset.type === "crypto") return true; // Crypto is 24/7
+  const now = new Date();
+  const utcDay = now.getUTCDay();
+  const marketDays = asset.market_days ?? [1, 2, 3, 4, 5];
+  if (!marketDays.includes(utcDay)) return false;
+  if (asset.market_hours_start && asset.market_hours_end) {
+    const [sh, sm] = asset.market_hours_start.split(":").map(Number);
+    const [eh, em] = asset.market_hours_end.split(":").map(Number);
+    const utcMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
+    const startMin = sh * 60 + sm;
+    const endMin = eh * 60 + em;
+    if (utcMinutes < startMin || utcMinutes >= endMin) return false;
+  }
+  return true;
+}
+
 // ─── Candle generation ───
 function generateCandles(count: number, basePrice: number, intervalMs = 3600000) {
   const candles: { time: string; o: number; h: number; l: number; c: number }[] = [];
@@ -310,14 +328,15 @@ const Trading = () => {
     }
   }, [livePrices, selectedAsset?.symbol]);
 
-  // Simulate small ticks between real updates
+  // Simulate real-time ticks (every 1.2s)
   useEffect(() => {
     if (!selectedAsset || !candles.length) return;
-    const interval = setInterval(() => {
+    const tickInterval = setInterval(() => {
       setCandles(prev => {
         if (!prev.length) return prev;
         const last = { ...prev[prev.length - 1] };
-        const tick = (Math.random() - 0.48) * last.c * 0.0005;
+        const volatility = last.c < 1 ? 0.002 : last.c < 100 ? 0.001 : 0.0006;
+        const tick = (Math.random() - 0.48) * last.c * volatility;
         last.c = +(last.c + tick).toFixed(last.c < 1 ? 6 : 2);
         last.h = Math.max(last.h, last.c);
         last.l = Math.min(last.l, last.c);
@@ -325,9 +344,25 @@ const Trading = () => {
         setPriceChange(+((last.c - prev[0].o) / prev[0].o * 100).toFixed(2));
         return [...prev.slice(0, -1), last];
       });
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [selectedAsset, candles.length]);
+    }, 1200);
+
+    // Shift candles (create new candle) at the timeframe interval, capped to every 10s for fast timeframes
+    const tf = TIMEFRAME_CONFIG[timeframe];
+    const shiftMs = Math.max(10_000, Math.min(tf.intervalMs, 60_000));
+    const shiftInterval = setInterval(() => {
+      setCandles(prev => {
+        if (!prev.length) return prev;
+        const lastClose = prev[prev.length - 1].c;
+        const newCandle = {
+          time: new Date().toISOString(),
+          o: lastClose, h: lastClose, l: lastClose, c: lastClose,
+        };
+        return [...prev.slice(1), newCandle];
+      });
+    }, shiftMs);
+
+    return () => { clearInterval(tickInterval); clearInterval(shiftInterval); };
+  }, [selectedAsset?.id, timeframe, candles.length > 0]);
 
   const selectAsset = (asset: Asset, pricesMap?: Record<string, number>) => {
     setSelectedAsset(asset);
@@ -355,6 +390,10 @@ const Trading = () => {
 
   const placeTrade = async () => {
     if (!user || !selectedAsset || !orderSize) return;
+    if (!isMarketOpen(selectedAsset)) {
+      toast.error(`${selectedAsset.symbol} market is currently closed. Only crypto trading is available.`);
+      return;
+    }
     const sizeNum = Number(orderSize);
     if (isNaN(sizeNum) || sizeNum <= 0) { toast.error("Enter a valid amount"); return; }
     if (sizeNum > balance) { toast.error("Insufficient balance"); return; }
@@ -420,6 +459,7 @@ const Trading = () => {
     return matchesSearch && matchesType;
   });
 
+  const selectedMarketOpen = selectedAsset ? isMarketOpen(selectedAsset) : true;
   const maxLeverage = selectedAsset?.leverage_max ?? 100;
   const leverageSteps = [1, 2, 5, 10, 25, 50, 100].filter(l => l <= maxLeverage);
   const exposure = orderSize ? Number(orderSize) * leverage : 0;
@@ -492,7 +532,12 @@ const Trading = () => {
                                   <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">{a.symbol.slice(0, 3)}</div>
                                 )}
                                 <div className="flex-1 min-w-0">
-                                  <p className="font-semibold text-sm">{a.symbol}</p>
+                                  <div className="flex items-center gap-1.5">
+                                    <p className="font-semibold text-sm">{a.symbol}</p>
+                                    {!isMarketOpen(a) && (
+                                      <span className="text-[9px] px-1 py-0.5 rounded bg-destructive/10 text-destructive font-medium">Closed</span>
+                                    )}
+                                  </div>
                                   <p className="text-xs text-muted-foreground truncate">{a.name}</p>
                                 </div>
                                 <div className="text-right shrink-0">
@@ -513,9 +558,16 @@ const Trading = () => {
 
                 {/* Price display */}
                 <div>
-                  <p className="text-2xl font-display font-bold leading-tight">
-                    €{livePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: livePrice < 1 ? 6 : livePrice < 100 ? 4 : 2 })}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-2xl font-display font-bold leading-tight">
+                      €{livePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: livePrice < 1 ? 6 : livePrice < 100 ? 4 : 2 })}
+                    </p>
+                    {!selectedMarketOpen && (
+                      <Badge variant="outline" className="text-[10px] border-destructive/40 text-destructive">
+                        <Clock className="h-3 w-3 mr-0.5" /> Closed
+                      </Badge>
+                    )}
+                  </div>
                   <span className={`text-sm font-semibold flex items-center gap-0.5 ${priceChange >= 0 ? "text-success" : "text-destructive"}`}>
                     {priceChange >= 0 ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
                     {priceChange >= 0 ? "+" : ""}{priceChange}%
@@ -603,6 +655,13 @@ const Trading = () => {
                 </p>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Market closed warning */}
+                {!selectedMarketOpen && (
+                  <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 text-destructive text-xs font-medium">
+                    <Clock className="h-4 w-4 shrink-0" />
+                    <span>{selectedAsset?.symbol} market is closed. Switch to a crypto asset to trade now.</span>
+                  </div>
+                )}
                 {/* Direction */}
                 <div className="grid grid-cols-2 gap-2">
                   <Button variant={direction === "buy" ? "default" : "outline"} onClick={() => setDirection("buy")}
@@ -690,9 +749,9 @@ const Trading = () => {
                 {/* Submit */}
                 <Button
                   className={`w-full h-12 text-base font-bold rounded-xl ${direction === "buy" ? "bg-success hover:bg-success/90 text-success-foreground" : "bg-destructive hover:bg-destructive/90 text-destructive-foreground"}`}
-                  onClick={placeTrade} disabled={placing || !orderSize}
+                  onClick={placeTrade} disabled={placing || !orderSize || !selectedMarketOpen}
                 >
-                  {placing ? "Placing Order..." : `${direction === "buy" ? "Buy" : "Sell"} ${selectedAsset?.symbol ?? ""}`}
+                  {!selectedMarketOpen ? "Market Closed" : placing ? "Placing Order..." : `${direction === "buy" ? "Buy" : "Sell"} ${selectedAsset?.symbol ?? ""}`}
                 </Button>
               </CardContent>
             </Card>
