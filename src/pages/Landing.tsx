@@ -2,10 +2,9 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  TrendingUp, Shield, Zap, BarChart3, ArrowRight, Star,
-  Lock, Landmark, Headphones, Eye, Monitor,
-  CheckCircle2, UserPlus, Wallet, CandlestickChart,
-  CreditCard,
+  TrendingUp, Shield, Zap, BarChart3, Star,
+  Landmark, Headphones, Eye, Monitor,
+  CheckCircle2, UserPlus, Wallet, LineChart,
 } from "lucide-react";
 import PriceCards from "@/components/landing/PriceCards";
 import StatsBar from "@/components/landing/StatsBar";
