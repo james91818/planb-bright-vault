@@ -67,7 +67,8 @@ const AppSidebar = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const { isStaff } = useRole();
-
+  const { toggleSidebar, state } = useSidebar();
+  const collapsed = state === "collapsed";
   const mainNav = isStaff ? adminNav : clientNav;
 
   const handleSignOut = async () => {
