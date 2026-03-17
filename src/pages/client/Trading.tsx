@@ -328,14 +328,15 @@ const Trading = () => {
     }
   }, [livePrices, selectedAsset?.symbol]);
 
-  // Simulate small ticks between real updates
+  // Simulate real-time ticks (every 1.2s)
   useEffect(() => {
     if (!selectedAsset || !candles.length) return;
-    const interval = setInterval(() => {
+    const tickInterval = setInterval(() => {
       setCandles(prev => {
         if (!prev.length) return prev;
         const last = { ...prev[prev.length - 1] };
-        const tick = (Math.random() - 0.48) * last.c * 0.0005;
+        const volatility = last.c < 1 ? 0.002 : last.c < 100 ? 0.001 : 0.0006;
+        const tick = (Math.random() - 0.48) * last.c * volatility;
         last.c = +(last.c + tick).toFixed(last.c < 1 ? 6 : 2);
         last.h = Math.max(last.h, last.c);
         last.l = Math.min(last.l, last.c);
@@ -343,9 +344,25 @@ const Trading = () => {
         setPriceChange(+((last.c - prev[0].o) / prev[0].o * 100).toFixed(2));
         return [...prev.slice(0, -1), last];
       });
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [selectedAsset, candles.length]);
+    }, 1200);
+
+    // Shift candles (create new candle) at the timeframe interval, capped to every 10s for fast timeframes
+    const tf = TIMEFRAME_CONFIG[timeframe];
+    const shiftMs = Math.max(10_000, Math.min(tf.intervalMs, 60_000));
+    const shiftInterval = setInterval(() => {
+      setCandles(prev => {
+        if (!prev.length) return prev;
+        const lastClose = prev[prev.length - 1].c;
+        const newCandle = {
+          time: new Date().toISOString(),
+          o: lastClose, h: lastClose, l: lastClose, c: lastClose,
+        };
+        return [...prev.slice(1), newCandle];
+      });
+    }, shiftMs);
+
+    return () => { clearInterval(tickInterval); clearInterval(shiftInterval); };
+  }, [selectedAsset?.id, timeframe, candles.length > 0]);
 
   const selectAsset = (asset: Asset, pricesMap?: Record<string, number>) => {
     setSelectedAsset(asset);
