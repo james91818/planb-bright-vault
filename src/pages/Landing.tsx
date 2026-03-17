@@ -176,15 +176,15 @@ const Landing = () => {
 
         <div className="container mx-auto px-4 py-20 md:py-28 relative z-10">
           <div className="max-w-xl space-y-6">
-            <h1 className="text-4xl md:text-5xl lg:text-[3.5rem] font-display font-bold text-hero-foreground leading-[1.15]">
+            <h1 className="text-4xl md:text-5xl lg:text-[3.5rem] font-display font-bold text-foreground leading-[1.15]">
               Integrity<br />
               Reliability<br />
               Transparency
             </h1>
-            <p className="text-hero-muted text-lg">
+            <p className="text-muted-foreground text-lg">
               Trade on global markets with PlanB Trading — your trusted partner for crypto, stocks, and forex investments.
             </p>
-            <Button size="lg" asChild className="rounded-full px-8 text-base">
+            <Button size="lg" asChild className="rounded-full px-8 text-base bg-primary hover:bg-primary/90">
               <Link to="/signup">
                 <TrendingUp className="mr-2 h-5 w-5" />
                 Start Trading Now
