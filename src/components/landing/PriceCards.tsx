@@ -18,7 +18,7 @@ const FALLBACK_PRICES: CoinPrice[] = [
   { symbol: "DOGE", name: "Dogecoin", price: 0.1234, change24h: -0.45, icon: "Ð" },
   { symbol: "AVAX", name: "Avalanche", price: 35.82, change24h: 1.67, icon: "🔺" },
   { symbol: "DOT", name: "Polkadot", price: 7.12, change24h: -0.93, icon: "●" },
-  { symbol: "MATIC", name: "Polygon", price: 0.7845, change24h: 0.56, icon: "⬡" },
+  { symbol: "LINK", name: "Chainlink", price: 14.52, change24h: 0.74, icon: "⬡" },
 ];
 
 const formatPrice = (price: number) => {
