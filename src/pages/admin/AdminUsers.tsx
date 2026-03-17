@@ -25,8 +25,7 @@ const statusColors: Record<string, string> = {
 const AdminUsers = () => {
   const navigate = useNavigate();
   const [users, setUsers] = useState<any[]>([]);
-  const [roles, setRoles] = useState<any[]>([]);
-  const [userRoles, setUserRoles] = useState<Record<string, string>>({});
+  const [staffUserIds, setStaffUserIds] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(true);
@@ -34,18 +33,15 @@ const AdminUsers = () => {
   const [newUser, setNewUser] = useState({ email: "", password: "", full_name: "", phone: "", country: "" });
 
   const fetchData = async () => {
-    const [{ data: profiles }, { data: rolesData }, { data: urData }] = await Promise.all([
+    const [{ data: profiles }, { data: urData }] = await Promise.all([
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
-      supabase.from("roles").select("*"),
-      supabase.from("user_roles").select("user_id, role_id, roles(name)"),
+      supabase.from("user_roles").select("user_id"),
     ]);
-    setUsers(profiles ?? []);
-    setRoles(rolesData ?? []);
-    const roleMap: Record<string, string> = {};
-    (urData ?? []).forEach((ur: any) => {
-      roleMap[ur.user_id] = ur.roles?.name ?? "";
-    });
-    setUserRoles(roleMap);
+    // Staff = anyone with a role assignment
+    const staffIds = new Set((urData ?? []).map((ur: any) => ur.user_id));
+    setStaffUserIds(staffIds);
+    // Only show non-staff profiles (leads/clients)
+    setUsers((profiles ?? []).filter(p => !staffIds.has(p.id)));
     setLoading(false);
   };
 
