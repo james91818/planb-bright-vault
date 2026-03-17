@@ -38,6 +38,8 @@ const AdminUserDetail = () => {
   const [newNote, setNewNote] = useState("");
   const [manualDepositOpen, setManualDepositOpen] = useState(false);
   const [depForm, setDepForm] = useState({ amount: "", currency: "EUR", method: "manual", notes: "" });
+  const [manualWithdrawOpen, setManualWithdrawOpen] = useState(false);
+  const [wdForm, setWdForm] = useState({ amount: "", currency: "EUR", method: "manual", notes: "" });
 
   const fetchAll = async () => {
     if (!userId) return;
@@ -160,6 +162,45 @@ const AdminUserDetail = () => {
     toast.success("Manual deposit created and credited");
     setManualDepositOpen(false);
     setDepForm({ amount: "", currency: "EUR", method: "manual", notes: "" });
+    fetchAll();
+  };
+
+  const submitManualWithdraw = async () => {
+    if (!wdForm.amount || Number(wdForm.amount) <= 0) {
+      toast.error("Enter a valid amount");
+      return;
+    }
+    const amount = Number(wdForm.amount);
+
+    const { data: wallet } = await supabase
+      .from("wallets")
+      .select("id, balance")
+      .eq("user_id", userId!)
+      .eq("currency", wdForm.currency)
+      .maybeSingle();
+
+    if (wallet && Number(wallet.balance) < amount) {
+      toast.error("Insufficient wallet balance");
+      return;
+    }
+
+    await supabase.from("withdrawals").insert({
+      user_id: userId!,
+      amount,
+      currency: wdForm.currency,
+      method: wdForm.method,
+      status: "approved",
+      admin_notes: wdForm.notes || "Manual withdrawal by admin",
+      processed_by: currentUser?.id,
+    });
+
+    if (wallet) {
+      await supabase.from("wallets").update({ balance: Number(wallet.balance) - amount }).eq("id", wallet.id);
+    }
+
+    toast.success("Manual withdrawal created and deducted");
+    setManualWithdrawOpen(false);
+    setWdForm({ amount: "", currency: "EUR", method: "manual", notes: "" });
     fetchAll();
   };
 
@@ -430,6 +471,12 @@ const AdminUserDetail = () => {
         {/* Withdrawals Tab */}
         <TabsContent value="withdrawals">
           <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <CardTitle className="text-base font-display">Withdrawals</CardTitle>
+              <Button size="sm" onClick={() => { setWdForm({ amount: "", currency: "EUR", method: "manual", notes: "" }); setManualWithdrawOpen(true); }}>
+                <Plus className="h-4 w-4 mr-1" /> Manual Withdraw
+              </Button>
+            </CardHeader>
             <CardContent className="p-0">
               <table className="w-full text-sm">
                 <thead>
@@ -544,6 +591,48 @@ const AdminUserDetail = () => {
           </Card>
         </TabsContent>
       </Tabs>
+      {/* Manual Withdraw Dialog */}
+      <Dialog open={manualWithdrawOpen} onOpenChange={setManualWithdrawOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Manual Withdrawal</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label>Amount</Label>
+              <Input type="number" value={wdForm.amount} onChange={e => setWdForm({ ...wdForm, amount: e.target.value })} placeholder="500" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label>Currency</Label>
+                <Select value={wdForm.currency} onValueChange={v => setWdForm({ ...wdForm, currency: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {["EUR", "USD", "GBP", "CHF", "AUD", "CAD"].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label>Method</Label>
+                <Select value={wdForm.method} onValueChange={v => setWdForm({ ...wdForm, method: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="manual">Manual</SelectItem>
+                    <SelectItem value="crypto">Crypto</SelectItem>
+                    <SelectItem value="bank_wire">Bank Wire</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label>Admin Notes</Label>
+              <Textarea value={wdForm.notes} onChange={e => setWdForm({ ...wdForm, notes: e.target.value })} placeholder="Reason for manual withdrawal..." rows={2} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setManualWithdrawOpen(false)}>Cancel</Button>
+            <Button onClick={submitManualWithdraw}>Submit Withdrawal</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
