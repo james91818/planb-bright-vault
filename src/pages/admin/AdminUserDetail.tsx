@@ -442,7 +442,7 @@ const AdminUserDetail = () => {
                     <div key={note.id} className="border rounded-lg p-3 space-y-1">
                       <p className="text-sm whitespace-pre-wrap">{note.content}</p>
                       <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-1">
-                        <span>{(note as any).profiles?.full_name || (note as any).profiles?.email || "Staff"}</span>
+                        <span>Staff</span>
                         <span>{new Date(note.created_at).toLocaleString()}</span>
                       </div>
                     </div>
