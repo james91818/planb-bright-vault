@@ -19,6 +19,7 @@ import {
   ArrowDownRight,
   Shield,
   Newspaper,
+  Globe,
 } from "lucide-react";
 import {
   Sidebar,
