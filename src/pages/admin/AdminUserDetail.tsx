@@ -33,6 +33,8 @@ const AdminUserDetail = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editProfile, setEditProfile] = useState({ full_name: "", phone: "", country: "", kyc_status: "" });
+  const [adminNotes, setAdminNotes] = useState<any[]>([]);
+  const [newNote, setNewNote] = useState("");
 
   const fetchAll = async () => {
     if (!userId) return;
