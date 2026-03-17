@@ -53,7 +53,7 @@ const ThemePickerDialog = ({ open, onClose }: ThemePickerDialogProps) => {
 
           {/* Dark */}
           <button
-            onClick={() => setSelected("dark")}
+            onClick={() => handleSelect("dark")}
             className={`flex flex-col items-center gap-3 p-6 rounded-xl border-2 transition-all ${
               selected === "dark"
                 ? "border-primary bg-primary/5 shadow-md"
