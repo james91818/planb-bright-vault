@@ -169,10 +169,10 @@ const Landing = () => {
       </nav>
 
       {/* ===== HERO ===== */}
-      <section className="relative overflow-hidden min-h-[520px] md:min-h-[600px]" style={{ background: "linear-gradient(135deg, #f5efe6 0%, #ede4d3 40%, #e8dcc8 100%)" }}>
+      <section className="relative overflow-hidden min-h-[520px] md:min-h-[600px]" style={{ background: "#f5efe6" }}>
         {/* Ox wireframe SVG */}
-        <div className="absolute right-[-15%] top-1/2 -translate-y-1/2 w-[120%] md:w-[100%] h-[200%] pointer-events-none">
-          <img src={oxBg} alt="" className="w-full h-full object-contain object-right opacity-80" style={{ filter: "sepia(1) saturate(3) hue-rotate(-15deg) brightness(0.85)" }} />
+        <div className="absolute right-[-5%] top-1/2 -translate-y-1/2 w-[110%] md:w-[90%] h-[180%] pointer-events-none">
+          <img src={oxBg} alt="" className="w-full h-full object-contain object-right opacity-80" />
         </div>
 
         <div className="container mx-auto px-4 py-20 md:py-28 relative z-10">
