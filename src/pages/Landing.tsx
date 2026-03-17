@@ -168,11 +168,10 @@ const Landing = () => {
       </nav>
 
       {/* ===== HERO ===== */}
-      <section className="relative bg-hero overflow-hidden min-h-[520px] md:min-h-[600px]">
-        {/* Hero background image */}
-        <div className="absolute inset-0">
-          <img src={heroImage} alt="Trading charts background" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-r from-hero via-hero/90 to-hero/40" />
+      <section className="relative overflow-hidden min-h-[520px] md:min-h-[600px]" style={{ background: "linear-gradient(135deg, #f5efe6 0%, #ede4d3 40%, #e8dcc8 100%)" }}>
+        {/* Ox wireframe SVG */}
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[55%] md:w-[50%] h-full pointer-events-none">
+          <img src={oxBg} alt="" className="w-full h-full object-contain object-right opacity-80" />
         </div>
 
         <div className="container mx-auto px-4 py-20 md:py-28 relative z-10">
