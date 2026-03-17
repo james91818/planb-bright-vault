@@ -97,7 +97,7 @@ const AdminUsers = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-display font-bold">Users</h1>
+          <h1 className="text-2xl font-display font-bold">Leads</h1>
           <p className="text-muted-foreground text-sm">{users.length} total users</p>
         </div>
         <Button onClick={() => setCreateOpen(true)}>
