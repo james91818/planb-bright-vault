@@ -129,13 +129,12 @@ const AdminUsers = () => {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b bg-muted/50">
-                  <th className="text-left p-3 font-medium text-muted-foreground">User</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">Country</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">Role</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">KYC</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">Status</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">Joined</th>
-                  <th className="text-right p-3 font-medium text-muted-foreground">Actions</th>
+                   <th className="text-left p-3 font-medium text-muted-foreground">User</th>
+                   <th className="text-left p-3 font-medium text-muted-foreground">Country</th>
+                   <th className="text-left p-3 font-medium text-muted-foreground">KYC</th>
+                   <th className="text-left p-3 font-medium text-muted-foreground">Status</th>
+                   <th className="text-left p-3 font-medium text-muted-foreground">Joined</th>
+                   <th className="text-right p-3 font-medium text-muted-foreground">Actions</th>
                 </tr>
               </thead>
               <tbody>
