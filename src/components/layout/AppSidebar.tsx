@@ -9,7 +9,12 @@ import {
   Settings,
   HelpCircle,
   LogOut,
+  Users,
+  FileText,
+  ArrowUpRight,
+  ArrowDownRight,
   Shield,
+  Newspaper,
 } from "lucide-react";
 import {
   Sidebar,
@@ -25,6 +30,7 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuth";
+import { useRole } from "@/hooks/useRole";
 
 const clientNav = [
   { title: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
@@ -32,6 +38,17 @@ const clientNav = [
   { title: "Wallet", icon: Wallet, path: "/wallet" },
   { title: "Staking", icon: Landmark, path: "/staking" },
   { title: "Watchlist", icon: LineChart, path: "/watchlist" },
+];
+
+const adminNav = [
+  { title: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+  { title: "Users", icon: Users, path: "/admin/users" },
+  { title: "Deposits", icon: ArrowUpRight, path: "/admin/deposits" },
+  { title: "Withdrawals", icon: ArrowDownRight, path: "/admin/withdrawals" },
+  { title: "Trades", icon: TrendingUp, path: "/admin/trades" },
+  { title: "Assets", icon: LineChart, path: "/admin/assets" },
+  { title: "News", icon: Newspaper, path: "/admin/news" },
+  { title: "Roles", icon: Shield, path: "/admin/roles" },
 ];
 
 const bottomNav = [
@@ -44,6 +61,9 @@ const AppSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut } = useAuth();
+  const { isAdmin } = useRole();
+
+  const mainNav = isAdmin ? adminNav : clientNav;
 
   const handleSignOut = async () => {
     await signOut();
@@ -58,11 +78,20 @@ const AppSidebar = () => {
           onClick={() => navigate("/dashboard")}
         >
           <div className="h-9 w-9 rounded-lg bg-sidebar-primary flex items-center justify-center">
-            <TrendingUp className="h-5 w-5 text-sidebar-primary-foreground" />
+            {isAdmin ? (
+              <Shield className="h-5 w-5 text-sidebar-primary-foreground" />
+            ) : (
+              <TrendingUp className="h-5 w-5 text-sidebar-primary-foreground" />
+            )}
           </div>
-          <span className="text-lg font-display font-bold text-sidebar-primary-foreground">
-            PlanB Trading
-          </span>
+          <div>
+            <span className="text-lg font-display font-bold text-sidebar-primary-foreground">
+              PlanB Trading
+            </span>
+            {isAdmin && (
+              <p className="text-[10px] font-semibold text-primary uppercase tracking-wider">Admin Panel</p>
+            )}
+          </div>
         </div>
       </SidebarHeader>
 
@@ -70,10 +99,10 @@ const AppSidebar = () => {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Menu</SidebarGroupLabel>
+          <SidebarGroupLabel>{isAdmin ? "Administration" : "Menu"}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {clientNav.map((item) => (
+              {mainNav.map((item) => (
                 <SidebarMenuItem key={item.path}>
                   <SidebarMenuButton
                     isActive={location.pathname === item.path}
