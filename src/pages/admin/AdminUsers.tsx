@@ -24,6 +24,7 @@ const statusColors: Record<string, string> = {
 };
 
 const AdminUsers = () => {
+  const { user: authUser } = useAuth();
   const navigate = useNavigate();
   const [users, setUsers] = useState<any[]>([]);
   const [staffUserIds, setStaffUserIds] = useState<Set<string>>(new Set());
@@ -32,6 +33,8 @@ const AdminUsers = () => {
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [newUser, setNewUser] = useState({ email: "", password: "", full_name: "", phone: "", country: "" });
+  const [depositOpen, setDepositOpen] = useState(false);
+  const [depositForm, setDepositForm] = useState({ user_id: "", amount: "", currency: "EUR", method: "manual", notes: "" });
 
   const fetchData = async () => {
     const [{ data: profiles }, { data: urData }] = await Promise.all([
