@@ -532,7 +532,12 @@ const Trading = () => {
                                   <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">{a.symbol.slice(0, 3)}</div>
                                 )}
                                 <div className="flex-1 min-w-0">
-                                  <p className="font-semibold text-sm">{a.symbol}</p>
+                                  <div className="flex items-center gap-1.5">
+                                    <p className="font-semibold text-sm">{a.symbol}</p>
+                                    {!isMarketOpen(a) && (
+                                      <span className="text-[9px] px-1 py-0.5 rounded bg-destructive/10 text-destructive font-medium">Closed</span>
+                                    )}
+                                  </div>
                                   <p className="text-xs text-muted-foreground truncate">{a.name}</p>
                                 </div>
                                 <div className="text-right shrink-0">
