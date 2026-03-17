@@ -523,16 +523,36 @@ const Trading = () => {
                 </div>
               </div>
 
-              {/* Chart type toggle */}
-              <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
-                <Button size="sm" variant={chartType === "candle" ? "default" : "ghost"}
-                  onClick={() => setChartType("candle")} className="h-8 w-8 p-0">
-                  <CandlestickChart className="h-4 w-4" />
-                </Button>
-                <Button size="sm" variant={chartType === "line" ? "default" : "ghost"}
-                  onClick={() => setChartType("line")} className="h-8 w-8 p-0">
-                  <LineChartIcon className="h-4 w-4" />
-                </Button>
+              {/* Chart type + Timeframe toggles */}
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-0.5 bg-muted rounded-lg p-1">
+                  {(Object.keys(TIMEFRAME_CONFIG) as Timeframe[]).map(tf => (
+                    <Button key={tf} size="sm" variant={timeframe === tf ? "default" : "ghost"}
+                      onClick={() => {
+                        setTimeframe(tf);
+                        if (livePrice > 0) {
+                          const cfg = TIMEFRAME_CONFIG[tf];
+                          const data = generateCandles(cfg.count, livePrice, cfg.intervalMs);
+                          setCandles(data);
+                          setPriceChange(+((data[data.length - 1].c - data[0].o) / data[0].o * 100).toFixed(2));
+                        }
+                      }}
+                      className="h-8 px-2.5 text-xs font-semibold"
+                    >
+                      {tf}
+                    </Button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+                  <Button size="sm" variant={chartType === "candle" ? "default" : "ghost"}
+                    onClick={() => setChartType("candle")} className="h-8 w-8 p-0">
+                    <CandlestickChart className="h-4 w-4" />
+                  </Button>
+                  <Button size="sm" variant={chartType === "line" ? "default" : "ghost"}
+                    onClick={() => setChartType("line")} className="h-8 w-8 p-0">
+                    <LineChartIcon className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
