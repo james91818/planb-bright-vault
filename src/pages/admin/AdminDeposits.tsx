@@ -11,6 +11,8 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus } from "lucide-react";
 
 const statusColors: Record<string, string> = {
   approved: "bg-success/10 text-success",
@@ -24,6 +26,9 @@ const AdminDeposits = () => {
   const [loading, setLoading] = useState(true);
   const [reviewDeposit, setReviewDeposit] = useState<any>(null);
   const [adminNotes, setAdminNotes] = useState("");
+  const [manualOpen, setManualOpen] = useState(false);
+  const [users, setUsers] = useState<any[]>([]);
+  const [manualForm, setManualForm] = useState({ user_id: "", amount: "", currency: "EUR", method: "manual", notes: "" });
 
   const fetchDeposits = async () => {
     const { data } = await supabase
@@ -34,7 +39,53 @@ const AdminDeposits = () => {
     setLoading(false);
   };
 
-  useEffect(() => { fetchDeposits(); }, []);
+  const fetchUsers = async () => {
+    const { data } = await supabase.from("profiles").select("id, full_name, email").order("full_name");
+    setUsers(data ?? []);
+  };
+
+  useEffect(() => { fetchDeposits(); fetchUsers(); }, []);
+
+  const submitManualDeposit = async () => {
+    if (!manualForm.user_id || !manualForm.amount || Number(manualForm.amount) <= 0) {
+      toast.error("Select a user and enter a valid amount");
+      return;
+    }
+    const amount = Number(manualForm.amount);
+
+    // Insert deposit as approved
+    await supabase.from("deposits").insert({
+      user_id: manualForm.user_id,
+      amount,
+      currency: manualForm.currency,
+      method: manualForm.method,
+      status: "approved",
+      admin_notes: manualForm.notes || "Manual deposit by admin",
+      processed_by: user?.id,
+    });
+
+    // Credit the user's wallet
+    const { data: wallet } = await supabase
+      .from("wallets")
+      .select("id, balance")
+      .eq("user_id", manualForm.user_id)
+      .eq("currency", manualForm.currency)
+      .maybeSingle();
+
+    if (wallet) {
+      await supabase.from("wallets").update({ balance: Number(wallet.balance) + amount }).eq("id", wallet.id);
+    }
+
+    // Auto-convert to depositor if amount >= 1
+    if (amount >= 1) {
+      await supabase.from("profiles").update({ is_lead: false }).eq("id", manualForm.user_id);
+    }
+
+    toast.success("Manual deposit created and credited");
+    setManualOpen(false);
+    setManualForm({ user_id: "", amount: "", currency: "EUR", method: "manual", notes: "" });
+    fetchDeposits();
+  };
 
   const updateDeposit = async (id: string, status: string) => {
     const updates: any = { status, admin_notes: adminNotes, processed_by: user?.id };
@@ -65,9 +116,14 @@ const AdminDeposits = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-display font-bold">Deposits</h1>
-        <p className="text-muted-foreground text-sm">Review and manage client deposits</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-display font-bold">Deposits</h1>
+          <p className="text-muted-foreground text-sm">Review and manage client deposits</p>
+        </div>
+        <Button onClick={() => setManualOpen(true)}>
+          <Plus className="h-4 w-4 mr-1" /> Manual Deposit
+        </Button>
       </div>
 
       <Card>
@@ -151,6 +207,64 @@ const AdminDeposits = () => {
           <DialogFooter className="gap-2">
             <Button variant="destructive" onClick={() => updateDeposit(reviewDeposit.id, "rejected")}>Reject</Button>
             <Button onClick={() => updateDeposit(reviewDeposit.id, "approved")}>Approve & Credit</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Manual Deposit Dialog */}
+      <Dialog open={manualOpen} onOpenChange={setManualOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Manual Deposit</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label>User</Label>
+              <Select value={manualForm.user_id} onValueChange={(v) => setManualForm({ ...manualForm, user_id: v })}>
+                <SelectTrigger><SelectValue placeholder="Select user..." /></SelectTrigger>
+                <SelectContent>
+                  {users.map(u => (
+                    <SelectItem key={u.id} value={u.id}>
+                      {u.full_name || u.email} {u.full_name ? `(${u.email})` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label>Amount</Label>
+                <Input type="number" value={manualForm.amount} onChange={(e) => setManualForm({ ...manualForm, amount: e.target.value })} placeholder="1000" />
+              </div>
+              <div className="space-y-1">
+                <Label>Currency</Label>
+                <Select value={manualForm.currency} onValueChange={(v) => setManualForm({ ...manualForm, currency: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {["EUR", "USD", "GBP", "CHF", "AUD", "CAD"].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label>Method</Label>
+              <Select value={manualForm.method} onValueChange={(v) => setManualForm({ ...manualForm, method: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="manual">Manual</SelectItem>
+                  <SelectItem value="crypto">Crypto</SelectItem>
+                  <SelectItem value="bank_wire">Bank Wire</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label>Notes (optional)</Label>
+              <Textarea value={manualForm.notes} onChange={(e) => setManualForm({ ...manualForm, notes: e.target.value })} placeholder="Reason for manual deposit..." />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setManualOpen(false)}>Cancel</Button>
+            <Button onClick={submitManualDeposit}>Create & Credit</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
