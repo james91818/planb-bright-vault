@@ -10,6 +10,7 @@ import AccountTypes from "./pages/AccountTypes";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import AppLayout from "./components/layout/AppLayout";
+import PlaceholderPage from "./pages/PlaceholderPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,23 @@ const App = () => (
           <Route path="/account-types" element={<AccountTypes />} />
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
+            {/* Client routes */}
+            <Route path="/trading" element={<PlaceholderPage />} />
+            <Route path="/wallet" element={<PlaceholderPage />} />
+            <Route path="/staking" element={<PlaceholderPage />} />
+            <Route path="/watchlist" element={<PlaceholderPage />} />
+            {/* Admin routes */}
+            <Route path="/admin/users" element={<PlaceholderPage />} />
+            <Route path="/admin/deposits" element={<PlaceholderPage />} />
+            <Route path="/admin/withdrawals" element={<PlaceholderPage />} />
+            <Route path="/admin/trades" element={<PlaceholderPage />} />
+            <Route path="/admin/assets" element={<PlaceholderPage />} />
+            <Route path="/admin/news" element={<PlaceholderPage />} />
+            <Route path="/admin/roles" element={<PlaceholderPage />} />
+            {/* Shared routes */}
+            <Route path="/notifications" element={<PlaceholderPage />} />
+            <Route path="/support" element={<PlaceholderPage />} />
+            <Route path="/settings" element={<PlaceholderPage />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
