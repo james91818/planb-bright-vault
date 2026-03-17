@@ -17,6 +17,7 @@ import NotFound from "./pages/NotFound";
 
 // Admin pages
 import AdminUsers from "./pages/admin/AdminUsers";
+import AdminUserDetail from "./pages/admin/AdminUserDetail";
 import AdminDeposits from "./pages/admin/AdminDeposits";
 import AdminWithdrawals from "./pages/admin/AdminWithdrawals";
 import AdminTrades from "./pages/admin/AdminTrades";
@@ -62,6 +63,7 @@ const App = () => (
             <Route path="/watchlist" element={<Watchlist />} />
             {/* Admin routes */}
             <Route path="/admin/users" element={<AdminUsers />} />
+            <Route path="/admin/users/:userId" element={<AdminUserDetail />} />
             <Route path="/admin/depositors" element={<AdminDepositors />} />
             <Route path="/admin/deposits" element={<AdminDeposits />} />
             <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />

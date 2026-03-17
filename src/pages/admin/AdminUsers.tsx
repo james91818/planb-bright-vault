@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, UserPlus, MoreHorizontal } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -22,6 +23,7 @@ const statusColors: Record<string, string> = {
 };
 
 const AdminUsers = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState<any[]>([]);
   const [roles, setRoles] = useState<any[]>([]);
   const [userRoles, setUserRoles] = useState<Record<string, string>>({});
@@ -147,7 +149,7 @@ const AdminUsers = () => {
                   <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">No users found</td></tr>
                 ) : (
                   filtered.map((u) => (
-                    <tr key={u.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                    <tr key={u.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => navigate(`/admin/users/${u.id}`)}>
                       <td className="p-3">
                         <div>
                           <p className="font-medium">{u.full_name || "—"}</p>

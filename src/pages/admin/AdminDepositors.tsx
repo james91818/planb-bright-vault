@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Search, MoreHorizontal, DollarSign } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -17,6 +18,7 @@ const statusColors: Record<string, string> = {
 };
 
 const AdminDepositors = () => {
+  const navigate = useNavigate();
   const [depositors, setDepositors] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -164,7 +166,7 @@ const AdminDepositors = () => {
                   <tr><td colSpan={8} className="p-8 text-center text-muted-foreground">No depositors found</td></tr>
                 ) : (
                   filtered.map(u => (
-                    <tr key={u.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                    <tr key={u.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => navigate(`/admin/users/${u.id}`)}>
                       <td className="p-3">
                         <div>
                           <p className="font-medium">{u.full_name || "—"}</p>
