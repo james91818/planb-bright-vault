@@ -20,6 +20,7 @@ const statusColors: Record<string, string> = {
 };
 
 const AdminUserDetail = () => {
+  const { user: currentUser } = useAuth();
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
