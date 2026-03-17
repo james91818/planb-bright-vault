@@ -526,7 +526,7 @@ const Trading = () => {
           {/* Chart */}
           <Card>
             <CardContent className="p-3 md:p-4">
-              <div className="h-[280px] md:h-[380px]">
+              <div className="h-[360px] md:h-[480px]">
                 <PriceChart candles={candles} chartType={chartType} />
               </div>
             </CardContent>
