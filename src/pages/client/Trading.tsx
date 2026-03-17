@@ -303,7 +303,8 @@ const Trading = () => {
       const realPrice = livePrices[selectedAsset.symbol];
       setLivePrice(realPrice);
       // Regenerate chart from real price
-      const data = generateCandles(60, realPrice);
+      const tf = TIMEFRAME_CONFIG[timeframe];
+      const data = generateCandles(tf.count, realPrice, tf.intervalMs);
       setCandles(data);
       setPriceChange(+((data[data.length - 1].c - data[0].o) / data[0].o * 100).toFixed(2));
     }
