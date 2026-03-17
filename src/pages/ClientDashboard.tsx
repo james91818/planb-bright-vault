@@ -124,9 +124,9 @@ const ClientDashboard = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium text-sm">${Number(trade.entry_price).toFixed(2)}</p>
+                    <p className="font-medium text-sm">€{Number(trade.entry_price).toFixed(2)}</p>
                     <p className={`text-xs font-medium ${Number(trade.pnl) >= 0 ? "text-success" : "text-destructive"}`}>
-                      {Number(trade.pnl) >= 0 ? "+" : ""}${Number(trade.pnl || 0).toFixed(2)}
+                      {Number(trade.pnl) >= 0 ? "+" : ""}€{Number(trade.pnl || 0).toFixed(2)}
                     </p>
                   </div>
                 </div>
