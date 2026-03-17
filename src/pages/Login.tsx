@@ -80,12 +80,12 @@ const Login = () => {
       <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
         <Card className="w-full max-w-md border-0 shadow-none lg:border lg:shadow-sm">
           <CardHeader className="text-center space-y-2 pb-2">
-            <div className="flex items-center justify-center gap-2 lg:hidden mb-4">
+            <a href="/" className="flex items-center justify-center gap-2 lg:hidden mb-4">
               <div className="h-9 w-9 rounded-lg bg-primary flex items-center justify-center">
                 <TrendingUp className="h-5 w-5 text-primary-foreground" />
               </div>
               <span className="text-xl font-display font-bold">PlanB Trading</span>
-            </div>
+            </a>
             <h2 className="text-2xl font-display font-bold">
               {forgotMode ? "Reset Password" : "Welcome back"}
             </h2>

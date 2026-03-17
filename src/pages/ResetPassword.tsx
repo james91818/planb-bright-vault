@@ -55,12 +55,12 @@ const ResetPassword = () => {
     <div className="flex min-h-screen items-center justify-center bg-background p-6">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center space-y-2 pb-2">
-          <div className="flex items-center justify-center gap-2 mb-4">
+          <a href="/" className="flex items-center justify-center gap-2 mb-4">
             <div className="h-9 w-9 rounded-lg bg-primary flex items-center justify-center">
               <TrendingUp className="h-5 w-5 text-primary-foreground" />
             </div>
             <span className="text-xl font-display font-bold">PlanB Trading</span>
-          </div>
+          </a>
           <h2 className="text-2xl font-display font-bold">Set New Password</h2>
           <p className="text-muted-foreground text-sm">
             Enter your new password below
