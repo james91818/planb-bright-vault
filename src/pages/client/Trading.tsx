@@ -481,7 +481,13 @@ const Trading = () => {
                                   <p className="font-semibold text-sm">{a.symbol}</p>
                                   <p className="text-xs text-muted-foreground truncate">{a.name}</p>
                                 </div>
-                                <Badge variant="outline" className="text-[10px] capitalize shrink-0">{a.type}</Badge>
+                                <div className="text-right shrink-0">
+                                  {livePrices[a.symbol] ? (
+                                    <p className="text-sm font-semibold">€{livePrices[a.symbol].toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: livePrices[a.symbol] < 1 ? 4 : 2 })}</p>
+                                  ) : (
+                                    <Badge variant="outline" className="text-[10px] capitalize">{a.type}</Badge>
+                                  )}
+                                </div>
                               </button>
                             );
                           })}
