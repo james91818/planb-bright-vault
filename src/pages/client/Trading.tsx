@@ -53,19 +53,30 @@ interface Trade {
 }
 type ChatMsg = { role: "user" | "assistant"; content: string };
 
+// ─── Timeframes ───
+type Timeframe = "1H" | "4H" | "1D" | "1W" | "1M";
+const TIMEFRAME_CONFIG: Record<Timeframe, { count: number; intervalMs: number; label: string }> = {
+  "1H": { count: 60, intervalMs: 60_000, label: "1H" },
+  "4H": { count: 48, intervalMs: 5 * 60_000, label: "4H" },
+  "1D": { count: 48, intervalMs: 30 * 60_000, label: "1D" },
+  "1W": { count: 56, intervalMs: 3 * 3600_000, label: "1W" },
+  "1M": { count: 60, intervalMs: 12 * 3600_000, label: "1M" },
+};
+
 // ─── Candle generation ───
-function generateCandles(count: number, basePrice: number) {
+function generateCandles(count: number, basePrice: number, intervalMs = 3600000) {
   const candles: { time: string; o: number; h: number; l: number; c: number }[] = [];
   let price = basePrice;
   const now = Date.now();
+  const volatility = intervalMs > 3600000 ? 0.03 : 0.02;
   for (let i = count; i >= 0; i--) {
     const open = price;
-    const change = (Math.random() - 0.47) * price * 0.02;
+    const change = (Math.random() - 0.47) * price * volatility;
     const close = open + change;
     const high = Math.max(open, close) + Math.random() * price * 0.008;
     const low = Math.min(open, close) - Math.random() * price * 0.008;
     candles.push({
-      time: new Date(now - i * 3600000).toISOString(),
+      time: new Date(now - i * intervalMs).toISOString(),
       o: +open.toFixed(2), h: +high.toFixed(2), l: +low.toFixed(2), c: +close.toFixed(2),
     });
     price = close;
