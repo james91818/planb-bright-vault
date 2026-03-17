@@ -83,7 +83,16 @@ const steps = [
 
 const partners = ["BNP Paribas", "J.P. Morgan", "Deutsche Bank", "Commerzbank", "Barclays"];
 
-const paymentMethods = ["Visa", "Mastercard", "Skrill", "Neteller", "PayPal", "Apple Pay", "Revolut"];
+const paymentMethods = [
+  { name: "Visa", logo: visaLogo },
+  { name: "Mastercard", logo: mastercardLogo },
+  { name: "Crypto", logo: cryptoLogo },
+  { name: "Bank Wire", logo: bankLogo },
+  { name: "PayPal", logo: paypalLogo },
+  { name: "Apple Pay", logo: applepayLogo },
+  { name: "Skrill", logo: skrillLogo },
+  { name: "Neteller", logo: netellerLogo },
+];
 
 const indices = [
   { symbol: "SPXUSD", name: "S&P 500 Index", price: "6,726.6", change: "+0.47%", changeVal: "+31.20", positive: true },
