@@ -90,6 +90,7 @@ const App = () => (
             <Route path="/admin/deposits" element={<AdminDeposits />} />
             <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
             <Route path="/admin/trades" element={<AdminTrades />} />
+            <Route path="/admin/staking" element={<AdminStaking />} />
             <Route path="/admin/assets" element={<AdminAssets />} />
             <Route path="/admin/agents" element={<AdminAgents />} />
             <Route path="/admin/news" element={<AdminNews />} />
