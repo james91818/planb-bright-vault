@@ -10,6 +10,7 @@ import AccountTypes from "./pages/AccountTypes";
 import Investments from "./pages/Investments";
 import Impressum from "./pages/Impressum";
 import Signup from "./pages/Signup";
+import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import AppLayout from "./components/layout/AppLayout";
 import NotFound from "./pages/NotFound";
