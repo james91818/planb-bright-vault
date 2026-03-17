@@ -124,6 +124,44 @@ const AdminUserDetail = () => {
     fetchAll();
   };
 
+  const submitManualDeposit = async () => {
+    if (!depForm.amount || Number(depForm.amount) <= 0) {
+      toast.error("Enter a valid amount");
+      return;
+    }
+    const amount = Number(depForm.amount);
+
+    await supabase.from("deposits").insert({
+      user_id: userId!,
+      amount,
+      currency: depForm.currency,
+      method: depForm.method,
+      status: "approved",
+      admin_notes: depForm.notes || "Manual deposit by admin",
+      processed_by: currentUser?.id,
+    });
+
+    const { data: wallet } = await supabase
+      .from("wallets")
+      .select("id, balance")
+      .eq("user_id", userId!)
+      .eq("currency", depForm.currency)
+      .maybeSingle();
+
+    if (wallet) {
+      await supabase.from("wallets").update({ balance: Number(wallet.balance) + amount }).eq("id", wallet.id);
+    }
+
+    if (amount >= 1) {
+      await supabase.from("profiles").update({ is_lead: false }).eq("id", userId!);
+    }
+
+    toast.success("Manual deposit created and credited");
+    setManualDepositOpen(false);
+    setDepForm({ amount: "", currency: "EUR", method: "manual", notes: "" });
+    fetchAll();
+  };
+
   const totalDeposited = deposits.filter(d => d.status === "approved").reduce((s, d) => s + Number(d.amount), 0);
   const totalWithdrawn = withdrawals.filter(w => w.status === "approved").reduce((s, w) => s + Number(w.amount), 0);
   const totalPnl = trades.filter(t => t.status === "closed").reduce((s, t) => s + Number(t.pnl ?? 0), 0);
