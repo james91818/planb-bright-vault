@@ -63,6 +63,24 @@ const TIMEFRAME_CONFIG: Record<Timeframe, { count: number; intervalMs: number; l
   "1M": { count: 60, intervalMs: 12 * 3600_000, label: "1M" },
 };
 
+// ─── Market hours check ───
+function isMarketOpen(asset: Asset): boolean {
+  if (asset.type === "crypto") return true; // Crypto is 24/7
+  const now = new Date();
+  const utcDay = now.getUTCDay();
+  const marketDays = asset.market_days ?? [1, 2, 3, 4, 5];
+  if (!marketDays.includes(utcDay)) return false;
+  if (asset.market_hours_start && asset.market_hours_end) {
+    const [sh, sm] = asset.market_hours_start.split(":").map(Number);
+    const [eh, em] = asset.market_hours_end.split(":").map(Number);
+    const utcMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
+    const startMin = sh * 60 + sm;
+    const endMin = eh * 60 + em;
+    if (utcMinutes < startMin || utcMinutes >= endMin) return false;
+  }
+  return true;
+}
+
 // ─── Candle generation ───
 function generateCandles(count: number, basePrice: number, intervalMs = 3600000) {
   const candles: { time: string; o: number; h: number; l: number; c: number }[] = [];
