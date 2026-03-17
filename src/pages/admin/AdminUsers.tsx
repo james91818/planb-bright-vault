@@ -149,7 +149,7 @@ const AdminUsers = () => {
                   <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">No users found</td></tr>
                 ) : (
                   filtered.map((u) => (
-                    <tr key={u.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                    <tr key={u.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => navigate(`/admin/users/${u.id}`)}>
                       <td className="p-3">
                         <div>
                           <p className="font-medium">{u.full_name || "—"}</p>

@@ -17,6 +17,7 @@ import NotFound from "./pages/NotFound";
 
 // Admin pages
 import AdminUsers from "./pages/admin/AdminUsers";
+import AdminUserDetail from "./pages/admin/AdminUserDetail";
 import AdminDeposits from "./pages/admin/AdminDeposits";
 import AdminWithdrawals from "./pages/admin/AdminWithdrawals";
 import AdminTrades from "./pages/admin/AdminTrades";
