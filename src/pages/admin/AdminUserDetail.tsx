@@ -109,6 +109,18 @@ const AdminUserDetail = () => {
     fetchAll();
   };
 
+  const submitNote = async () => {
+    if (!currentUser || !userId || !newNote.trim()) return;
+    await supabase.from("admin_notes").insert({
+      user_id: userId,
+      author_id: currentUser.id,
+      content: newNote.trim(),
+    });
+    setNewNote("");
+    toast.success("Note added");
+    fetchAll();
+  };
+
   const totalDeposited = deposits.filter(d => d.status === "approved").reduce((s, d) => s + Number(d.amount), 0);
   const totalWithdrawn = withdrawals.filter(w => w.status === "approved").reduce((s, w) => s + Number(w.amount), 0);
   const totalPnl = trades.filter(t => t.status === "closed").reduce((s, t) => s + Number(t.pnl ?? 0), 0);
