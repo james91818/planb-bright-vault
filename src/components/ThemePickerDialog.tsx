@@ -12,11 +12,15 @@ interface ThemePickerDialogProps {
 }
 
 const ThemePickerDialog = ({ open, onClose }: ThemePickerDialogProps) => {
-  const { setTheme } = useTheme();
-  const [selected, setSelected] = useState<"light" | "dark">("light");
+  const { theme, setTheme } = useTheme();
+  const [selected, setSelected] = useState<"light" | "dark">(theme);
+
+  const handleSelect = (t: "light" | "dark") => {
+    setSelected(t);
+    setTheme(t);
+  };
 
   const handleConfirm = () => {
-    setTheme(selected);
     localStorage.setItem("planb-theme-chosen", "true");
     onClose();
   };
@@ -33,7 +37,7 @@ const ThemePickerDialog = ({ open, onClose }: ThemePickerDialogProps) => {
         <div className="grid grid-cols-2 gap-4 mt-4">
           {/* Light */}
           <button
-            onClick={() => setSelected("light")}
+            onClick={() => handleSelect("light")}
             className={`flex flex-col items-center gap-3 p-6 rounded-xl border-2 transition-all ${
               selected === "light"
                 ? "border-primary bg-primary/5 shadow-md"
@@ -49,7 +53,7 @@ const ThemePickerDialog = ({ open, onClose }: ThemePickerDialogProps) => {
 
           {/* Dark */}
           <button
-            onClick={() => setSelected("dark")}
+            onClick={() => handleSelect("dark")}
             className={`flex flex-col items-center gap-3 p-6 rounded-xl border-2 transition-all ${
               selected === "dark"
                 ? "border-primary bg-primary/5 shadow-md"
