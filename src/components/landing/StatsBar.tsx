@@ -1,31 +1,27 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Users, BarChart3, Globe, TrendingUp } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Users, BarChart3, Globe, TrendingUp, Percent } from "lucide-react";
 
 const stats = [
-  { label: "Active Traders", value: "120K+", icon: Users },
-  { label: "Daily Volume", value: "$2.4B", icon: BarChart3 },
-  { label: "Countries", value: "150+", icon: Globe },
-  { label: "Assets Available", value: "500+", icon: TrendingUp },
+  { label: "Leverage up to", value: "1:100", icon: TrendingUp },
+  { label: "Spreads from", value: "0.2%", icon: Percent },
+  { label: "Minimum Deposit", value: "€250", icon: BarChart3 },
+  { label: "Crypto & Tokenized Assets", value: "500+", icon: Globe },
+  { label: "Global Clients", value: "150,000+", icon: Users },
 ];
-
-const AnimatedCounter = ({ target, suffix = "" }: { target: string; suffix?: string }) => {
-  const [display, setDisplay] = useState(target);
-  return <span>{display}</span>;
-};
 
 const StatsBar = () => {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {stats.map((stat) => (
-        <Card key={stat.label} className="bg-card border text-center">
-          <CardContent className="pt-6 pb-4 space-y-2">
-            <stat.icon className="h-6 w-6 mx-auto text-primary" />
-            <p className="text-2xl md:text-3xl font-display font-bold">{stat.value}</p>
-            <p className="text-sm text-muted-foreground">{stat.label}</p>
-          </CardContent>
-        </Card>
-      ))}
+    <div className="bg-card border-y">
+      <div className="container mx-auto px-4 py-6">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-6 md:gap-4">
+          {stats.map((stat) => (
+            <div key={stat.label} className="text-center space-y-1">
+              <p className="text-2xl md:text-3xl font-display font-bold text-primary">{stat.value}</p>
+              <p className="text-xs text-muted-foreground">{stat.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

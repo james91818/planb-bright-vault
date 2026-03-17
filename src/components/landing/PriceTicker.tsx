@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import { TrendingUp, TrendingDown } from "lucide-react";
 
 interface CoinPrice {
@@ -35,7 +34,6 @@ const PriceTicker = () => {
   const [prices, setPrices] = useState<CoinPrice[]>(FALLBACK_PRICES);
 
   useEffect(() => {
-    // Try to fetch real prices from CoinGecko (free, no API key)
     const fetchPrices = async () => {
       try {
         const ids = "bitcoin,ethereum,solana,binancecoin,ripple,cardano,dogecoin,avalanche-2,polkadot,chainlink,matic-network,uniswap";
@@ -68,7 +66,7 @@ const PriceTicker = () => {
 
         if (updated.length > 0) setPrices(updated);
       } catch {
-        // Keep fallback prices
+        // Keep fallback
       }
     };
 
@@ -77,43 +75,27 @@ const PriceTicker = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Duplicate for seamless loop
   const doubled = [...prices, ...prices];
 
   return (
-    <div className="w-full overflow-hidden bg-sidebar py-3 border-b border-sidebar-border">
-      <motion.div
-        className="flex gap-8 whitespace-nowrap"
-        animate={{ x: ["0%", "-50%"] }}
-        transition={{
-          x: { repeat: Infinity, repeatType: "loop", duration: 30, ease: "linear" },
-        }}
-      >
+    <div className="w-full overflow-hidden border-b border-border/50 bg-hero py-2.5">
+      <div className="flex gap-8 whitespace-nowrap animate-scroll-left">
         {doubled.map((coin, i) => (
-          <div key={`${coin.symbol}-${i}`} className="flex items-center gap-2.5 shrink-0">
-            <span className="text-lg">{coin.icon}</span>
-            <span className="font-semibold text-sidebar-primary-foreground text-sm">
-              {coin.symbol}
-            </span>
-            <span className="text-sidebar-foreground text-sm font-medium">
-              {formatPrice(coin.price)}
-            </span>
+          <div key={`${coin.symbol}-${i}`} className="flex items-center gap-2 shrink-0">
+            <span className="text-base">{coin.icon}</span>
+            <span className="font-semibold text-hero-foreground text-sm">{coin.symbol}</span>
+            <span className="text-hero-muted text-sm">{formatPrice(coin.price)}</span>
             <span
               className={`flex items-center gap-0.5 text-xs font-semibold ${
-                coin.change24h >= 0 ? "text-emerald-400" : "text-red-400"
+                coin.change24h >= 0 ? "text-success" : "text-destructive"
               }`}
             >
-              {coin.change24h >= 0 ? (
-                <TrendingUp className="h-3 w-3" />
-              ) : (
-                <TrendingDown className="h-3 w-3" />
-              )}
-              {coin.change24h >= 0 ? "+" : ""}
-              {coin.change24h.toFixed(2)}%
+              {coin.change24h >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+              {coin.change24h >= 0 ? "+" : ""}{coin.change24h.toFixed(2)}%
             </span>
           </div>
         ))}
-      </motion.div>
+      </div>
     </div>
   );
 };
