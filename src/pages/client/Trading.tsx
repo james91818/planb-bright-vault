@@ -344,7 +344,8 @@ const Trading = () => {
     const realPrice = prices[asset.symbol];
     const sym = asset.symbol.replace(/\/.*$/, "");
     const base = realPrice || fallbackPrices[sym] || fallbackPrices[asset.symbol] || (100 + Math.random() * 200);
-    const data = generateCandles(60, base);
+    const tf = TIMEFRAME_CONFIG[timeframe];
+    const data = generateCandles(tf.count, base, tf.intervalMs);
     setCandles(data);
     const last = data[data.length - 1];
     setLivePrice(last.c);
