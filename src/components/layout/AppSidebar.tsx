@@ -78,7 +78,7 @@ const AppSidebar = () => {
           onClick={() => navigate("/dashboard")}
         >
           <div className="h-9 w-9 rounded-lg bg-sidebar-primary flex items-center justify-center">
-            {isAdmin ? (
+            {isStaff ? (
               <Shield className="h-5 w-5 text-sidebar-primary-foreground" />
             ) : (
               <TrendingUp className="h-5 w-5 text-sidebar-primary-foreground" />
