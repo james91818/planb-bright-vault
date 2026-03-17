@@ -99,7 +99,7 @@ const PriceCards = () => {
             >
               <div className="shrink-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-base">{coin.icon}</span>
+                  <img src={coin.icon} alt={coin.name} className="h-5 w-5 rounded-full" />
                   <span className="font-semibold text-sm">{coin.symbol}</span>
                 </div>
                 <div className="flex items-center gap-1.5 mt-0.5">
