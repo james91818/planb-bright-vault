@@ -19,6 +19,12 @@ import paypalLogo from "@/assets/payments/paypal.png";
 import skrillLogo from "@/assets/payments/skrill.png";
 import netellerLogo from "@/assets/payments/neteller.png";
 
+import bnpLogo from "@/assets/banks/bnp.png";
+import jpmorganLogo from "@/assets/banks/jpmorgan.png";
+import deutschebankLogo from "@/assets/banks/deutschebank.png";
+import commerzbankLogo from "@/assets/banks/commerzbank.png";
+import barclaysLogo from "@/assets/banks/barclays.png";
+
 const whyFeatures = [
   {
     icon: Shield,
@@ -82,7 +88,13 @@ const steps = [
   },
 ];
 
-const partners = ["BNP Paribas", "J.P. Morgan", "Deutsche Bank", "Commerzbank", "Barclays"];
+const partners = [
+  { name: "BNP Paribas", logo: bnpLogo },
+  { name: "J.P. Morgan", logo: jpmorganLogo },
+  { name: "Deutsche Bank", logo: deutschebankLogo },
+  { name: "Commerzbank", logo: commerzbankLogo },
+  { name: "Barclays", logo: barclaysLogo },
+];
 
 const paymentMethods = [
   { name: "Visa", logo: visaLogo },
@@ -334,12 +346,12 @@ const Landing = () => {
 
       {/* ===== LIQUIDITY PARTNERS ===== */}
       <section className="container mx-auto px-4 py-12 text-center">
-        <h3 className="text-lg font-display font-semibold mb-8 text-muted-foreground">Available Liquidity</h3>
-        <div className="flex flex-wrap items-center justify-center gap-8 md:gap-14">
+        <h3 className="text-lg font-display font-semibold mb-10 text-muted-foreground">Available Liquidity</h3>
+        <div className="flex flex-wrap items-center justify-center gap-10 md:gap-16">
           {partners.map((p) => (
-            <span key={p} className="text-muted-foreground/50 font-display font-bold text-lg md:text-xl tracking-wide hover:text-muted-foreground transition-colors">
-              {p}
-            </span>
+            <div key={p.name} className="grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300">
+              <img src={p.logo} alt={p.name} className="h-12 md:h-14 w-auto object-contain" />
+            </div>
           ))}
         </div>
       </section>
