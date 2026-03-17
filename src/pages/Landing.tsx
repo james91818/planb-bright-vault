@@ -555,10 +555,10 @@ const Landing = () => {
 
           {/* Payment footer strip */}
           <div className="border-t border-white/10 pt-6 mb-4">
-            <div className="flex flex-wrap items-center justify-center gap-6 text-hero-muted/40 text-sm">
-              <span>Our Partners:</span>
+            <div className="flex flex-wrap items-center justify-center gap-6">
+              <span className="text-hero-muted/40 text-sm">Our Partners:</span>
               {paymentMethods.map((pm) => (
-                <span key={pm} className="font-semibold">{pm}</span>
+                <img key={pm.name} src={pm.logo} alt={pm.name} className="h-6 w-auto object-contain opacity-40 hover:opacity-70 transition-opacity" />
               ))}
             </div>
           </div>
