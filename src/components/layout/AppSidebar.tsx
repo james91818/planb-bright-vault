@@ -101,6 +101,17 @@ const AppSidebar = () => {
         </div>
       </SidebarHeader>
 
+      {/* Collapse toggle button */}
+      <div className="hidden md:flex px-3 pb-1">
+        <button
+          onClick={toggleSidebar}
+          className="flex items-center gap-2 w-full rounded-md px-2 py-1.5 text-xs text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"
+        >
+          <ChevronsLeft className={`h-4 w-4 shrink-0 transition-transform duration-200 ${collapsed ? "rotate-180" : ""}`} />
+          {!collapsed && <span>Collapse</span>}
+        </button>
+      </div>
+
       <SidebarSeparator />
 
       <SidebarContent>
