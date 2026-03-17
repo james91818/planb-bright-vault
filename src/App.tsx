@@ -51,6 +51,7 @@ const App = () => (
           <Route path="/account-types" element={<AccountTypes />} />
           <Route path="/investments" element={<Investments />} />
           <Route path="/impressum" element={<Impressum />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             {/* Client routes */}
