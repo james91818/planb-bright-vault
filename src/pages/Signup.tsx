@@ -76,14 +76,14 @@ const Signup = () => {
     <div className="flex min-h-screen">
       {/* Left branding panel */}
       <div className="hidden lg:flex lg:w-1/2 bg-sidebar flex-col justify-between p-12">
-        <div className="flex items-center gap-3">
+        <a href="/" className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center">
             <TrendingUp className="h-6 w-6 text-primary-foreground" />
           </div>
           <span className="text-2xl font-display font-bold text-sidebar-primary-foreground">
             PlanB Trading
           </span>
-        </div>
+        </a>
         <div className="space-y-6">
           <h1 className="text-4xl font-display font-bold text-sidebar-primary-foreground leading-tight">
             Start your<br />trading journey.
