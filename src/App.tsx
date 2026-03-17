@@ -25,6 +25,7 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/backoffice" element={<AdminLogin />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/account-types" element={<AccountTypes />} />
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
           </Route>
