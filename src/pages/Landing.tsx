@@ -9,6 +9,15 @@ import {
 import PriceCards from "@/components/landing/PriceCards";
 import StatsBar from "@/components/landing/StatsBar";
 
+import visaLogo from "@/assets/payments/visa.png";
+import mastercardLogo from "@/assets/payments/mastercard.png";
+import cryptoLogo from "@/assets/payments/crypto.png";
+import bankLogo from "@/assets/payments/bank.png";
+import applepayLogo from "@/assets/payments/applepay.png";
+import paypalLogo from "@/assets/payments/paypal.png";
+import skrillLogo from "@/assets/payments/skrill.png";
+import netellerLogo from "@/assets/payments/neteller.png";
+
 const whyFeatures = [
   {
     icon: Shield,
@@ -74,7 +83,16 @@ const steps = [
 
 const partners = ["BNP Paribas", "J.P. Morgan", "Deutsche Bank", "Commerzbank", "Barclays"];
 
-const paymentMethods = ["Visa", "Mastercard", "Skrill", "Neteller", "PayPal", "Apple Pay", "Revolut"];
+const paymentMethods = [
+  { name: "Visa", logo: visaLogo },
+  { name: "Mastercard", logo: mastercardLogo },
+  { name: "Crypto", logo: cryptoLogo },
+  { name: "Bank Wire", logo: bankLogo },
+  { name: "PayPal", logo: paypalLogo },
+  { name: "Apple Pay", logo: applepayLogo },
+  { name: "Skrill", logo: skrillLogo },
+  { name: "Neteller", logo: netellerLogo },
+];
 
 const indices = [
   { symbol: "SPXUSD", name: "S&P 500 Index", price: "6,726.6", change: "+0.47%", changeVal: "+31.20", positive: true },
@@ -414,10 +432,11 @@ const Landing = () => {
       {/* ===== FUND YOUR ACCOUNT (Payment Methods) ===== */}
       <section className="container mx-auto px-4 py-12 md:py-16 text-center">
         <h3 className="text-lg font-display font-semibold mb-8">Fund Your Account Instantly</h3>
-        <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
+        <div className="flex flex-wrap items-center justify-center gap-5 md:gap-8">
           {paymentMethods.map((pm) => (
-            <div key={pm} className="h-14 px-6 rounded-lg border bg-card flex items-center justify-center hover:shadow-sm transition-shadow">
-              <span className="font-semibold text-sm text-muted-foreground">{pm}</span>
+            <div key={pm.name} className="h-16 w-24 rounded-xl border bg-card flex flex-col items-center justify-center gap-1 hover:shadow-md transition-shadow">
+              <img src={pm.logo} alt={pm.name} className="h-8 w-8 object-contain" />
+              <span className="text-[10px] font-medium text-muted-foreground">{pm.name}</span>
             </div>
           ))}
         </div>
@@ -536,10 +555,10 @@ const Landing = () => {
 
           {/* Payment footer strip */}
           <div className="border-t border-white/10 pt-6 mb-4">
-            <div className="flex flex-wrap items-center justify-center gap-6 text-hero-muted/40 text-sm">
-              <span>Our Partners:</span>
+            <div className="flex flex-wrap items-center justify-center gap-6">
+              <span className="text-hero-muted/40 text-sm">Our Partners:</span>
               {paymentMethods.map((pm) => (
-                <span key={pm} className="font-semibold">{pm}</span>
+                <img key={pm.name} src={pm.logo} alt={pm.name} className="h-6 w-auto object-contain opacity-40 hover:opacity-70 transition-opacity" />
               ))}
             </div>
           </div>
