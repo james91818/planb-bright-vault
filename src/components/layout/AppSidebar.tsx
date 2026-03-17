@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import {
+  ChevronsLeft,
   LayoutDashboard,
   TrendingUp,
   Wallet,
