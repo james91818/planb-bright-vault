@@ -749,9 +749,9 @@ const Trading = () => {
                 {/* Submit */}
                 <Button
                   className={`w-full h-12 text-base font-bold rounded-xl ${direction === "buy" ? "bg-success hover:bg-success/90 text-success-foreground" : "bg-destructive hover:bg-destructive/90 text-destructive-foreground"}`}
-                  onClick={placeTrade} disabled={placing || !orderSize}
+                  onClick={placeTrade} disabled={placing || !orderSize || !selectedMarketOpen}
                 >
-                  {placing ? "Placing Order..." : `${direction === "buy" ? "Buy" : "Sell"} ${selectedAsset?.symbol ?? ""}`}
+                  {!selectedMarketOpen ? "Market Closed" : placing ? "Placing Order..." : `${direction === "buy" ? "Buy" : "Sell"} ${selectedAsset?.symbol ?? ""}`}
                 </Button>
               </CardContent>
             </Card>
