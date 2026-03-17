@@ -46,6 +46,7 @@ const AdminUserDetail = () => {
       { data: wds },
       { data: trs },
       { data: wals },
+      { data: notes },
     ] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", userId).single(),
       supabase.from("roles").select("*"),
@@ -54,6 +55,7 @@ const AdminUserDetail = () => {
       supabase.from("withdrawals").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(50),
       supabase.from("trades").select("*, assets(symbol, name)").eq("user_id", userId).order("opened_at", { ascending: false }).limit(50),
       supabase.from("wallets").select("*").eq("user_id", userId),
+      supabase.from("admin_notes").select("*, profiles!admin_notes_author_id_fkey(full_name, email)").eq("user_id", userId).order("created_at", { ascending: false }),
     ]);
 
     setProfile(prof);
@@ -63,6 +65,7 @@ const AdminUserDetail = () => {
     setWithdrawals(wds ?? []);
     setTrades(trs ?? []);
     setWallets(wals ?? []);
+    setAdminNotes(notes ?? []);
 
     if (prof) {
       setEditProfile({
