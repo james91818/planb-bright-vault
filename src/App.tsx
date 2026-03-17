@@ -47,6 +47,7 @@ const App = () => (
           <Route path="/backoffice" element={<AdminLogin />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/account-types" element={<AccountTypes />} />
+          <Route path="/investments" element={<Investments />} />
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             {/* Client routes */}
