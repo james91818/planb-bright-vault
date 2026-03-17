@@ -348,6 +348,11 @@ const AdminUserDetail = () => {
 
         {/* Deposits Tab */}
         <TabsContent value="deposits">
+          <div className="flex justify-end mb-3">
+            <Button size="sm" onClick={() => setManualDepositOpen(true)}>
+              <Plus className="h-4 w-4 mr-1" /> Manual Deposit
+            </Button>
+          </div>
           <Card>
             <CardContent className="p-0">
               <table className="w-full text-sm">
@@ -365,7 +370,7 @@ const AdminUserDetail = () => {
                   ) : deposits.map(d => (
                     <tr key={d.id} className="border-b last:border-0">
                       <td className="p-3 text-muted-foreground">{new Date(d.created_at).toLocaleDateString()}</td>
-                      <td className="p-3 font-semibold">€{Number(d.amount).toLocaleString()}</td>
+                      <td className="p-3 font-semibold">{d.currency} {Number(d.amount).toLocaleString()}</td>
                       <td className="p-3 text-muted-foreground capitalize">{d.method}</td>
                       <td className="p-3"><Badge variant="outline" className="capitalize text-xs">{d.status}</Badge></td>
                     </tr>
@@ -374,6 +379,51 @@ const AdminUserDetail = () => {
               </table>
             </CardContent>
           </Card>
+
+          {/* Manual Deposit Dialog */}
+          <Dialog open={manualDepositOpen} onOpenChange={setManualDepositOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Manual Deposit for {profile?.full_name || profile?.email}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label>Amount</Label>
+                    <Input type="number" value={depForm.amount} onChange={(e) => setDepForm({ ...depForm, amount: e.target.value })} placeholder="1000" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label>Currency</Label>
+                    <Select value={depForm.currency} onValueChange={(v) => setDepForm({ ...depForm, currency: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {["EUR", "USD", "GBP", "CHF", "AUD", "CAD"].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <Label>Method</Label>
+                  <Select value={depForm.method} onValueChange={(v) => setDepForm({ ...depForm, method: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="manual">Manual</SelectItem>
+                      <SelectItem value="crypto">Crypto</SelectItem>
+                      <SelectItem value="bank_wire">Bank Wire</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label>Notes (optional)</Label>
+                  <Textarea value={depForm.notes} onChange={(e) => setDepForm({ ...depForm, notes: e.target.value })} placeholder="Reason for manual deposit..." />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setManualDepositOpen(false)}>Cancel</Button>
+                <Button onClick={submitManualDeposit}>Create & Credit</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </TabsContent>
 
         {/* Withdrawals Tab */}
