@@ -10,8 +10,27 @@ import AccountTypes from "./pages/AccountTypes";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import AppLayout from "./components/layout/AppLayout";
-import PlaceholderPage from "./pages/PlaceholderPage";
 import NotFound from "./pages/NotFound";
+
+// Admin pages
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminDeposits from "./pages/admin/AdminDeposits";
+import AdminWithdrawals from "./pages/admin/AdminWithdrawals";
+import AdminTrades from "./pages/admin/AdminTrades";
+import AdminAssets from "./pages/admin/AdminAssets";
+import AdminNews from "./pages/admin/AdminNews";
+import AdminRoles from "./pages/admin/AdminRoles";
+
+// Client pages
+import Trading from "./pages/client/Trading";
+import WalletPage from "./pages/client/Wallet";
+import Staking from "./pages/client/Staking";
+import Watchlist from "./pages/client/Watchlist";
+
+// Shared pages
+import Notifications from "./pages/shared/Notifications";
+import Support from "./pages/shared/Support";
+import Settings from "./pages/shared/Settings";
 
 const queryClient = new QueryClient();
 
@@ -30,22 +49,22 @@ const App = () => (
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             {/* Client routes */}
-            <Route path="/trading" element={<PlaceholderPage />} />
-            <Route path="/wallet" element={<PlaceholderPage />} />
-            <Route path="/staking" element={<PlaceholderPage />} />
-            <Route path="/watchlist" element={<PlaceholderPage />} />
+            <Route path="/trading" element={<Trading />} />
+            <Route path="/wallet" element={<WalletPage />} />
+            <Route path="/staking" element={<Staking />} />
+            <Route path="/watchlist" element={<Watchlist />} />
             {/* Admin routes */}
-            <Route path="/admin/users" element={<PlaceholderPage />} />
-            <Route path="/admin/deposits" element={<PlaceholderPage />} />
-            <Route path="/admin/withdrawals" element={<PlaceholderPage />} />
-            <Route path="/admin/trades" element={<PlaceholderPage />} />
-            <Route path="/admin/assets" element={<PlaceholderPage />} />
-            <Route path="/admin/news" element={<PlaceholderPage />} />
-            <Route path="/admin/roles" element={<PlaceholderPage />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
+            <Route path="/admin/deposits" element={<AdminDeposits />} />
+            <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
+            <Route path="/admin/trades" element={<AdminTrades />} />
+            <Route path="/admin/assets" element={<AdminAssets />} />
+            <Route path="/admin/news" element={<AdminNews />} />
+            <Route path="/admin/roles" element={<AdminRoles />} />
             {/* Shared routes */}
-            <Route path="/notifications" element={<PlaceholderPage />} />
-            <Route path="/support" element={<PlaceholderPage />} />
-            <Route path="/settings" element={<PlaceholderPage />} />
+            <Route path="/notifications" element={<Notifications />} />
+            <Route path="/support" element={<Support />} />
+            <Route path="/settings" element={<Settings />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
