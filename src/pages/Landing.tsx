@@ -170,7 +170,7 @@ const Landing = () => {
       {/* ===== HERO ===== */}
       <section className="relative overflow-hidden min-h-[520px] md:min-h-[600px]" style={{ background: "linear-gradient(135deg, #f5efe6 0%, #ede4d3 40%, #e8dcc8 100%)" }}>
         {/* Ox wireframe SVG */}
-        <div className="absolute right-[-5%] top-1/2 -translate-y-1/2 w-[65%] md:w-[60%] h-[120%] pointer-events-none">
+        <div className="absolute right-[-10%] top-1/2 -translate-y-1/2 w-[85%] md:w-[75%] h-[160%] pointer-events-none">
           <img src={oxBg} alt="" className="w-full h-full object-contain object-right opacity-80" />
         </div>
 
