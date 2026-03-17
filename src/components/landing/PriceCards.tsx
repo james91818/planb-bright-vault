@@ -18,10 +18,11 @@ const FALLBACK_PRICES: CoinPrice[] = [
   { symbol: "DOGE", name: "Dogecoin", price: 0.1234, change24h: -0.45, icon: "Ð" },
   { symbol: "AVAX", name: "Avalanche", price: 35.82, change24h: 1.67, icon: "🔺" },
   { symbol: "DOT", name: "Polkadot", price: 7.12, change24h: -0.93, icon: "●" },
-  { symbol: "MATIC", name: "Polygon", price: 0.7845, change24h: 0.56, icon: "⬡" },
+  { symbol: "LINK", name: "Chainlink", price: 14.52, change24h: 0.74, icon: "⬡" },
 ];
 
-const formatPrice = (price: number) => {
+const formatPrice = (price: number | undefined) => {
+  if (price == null) return "—";
   if (price >= 10000) return price.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
   if (price >= 100) return price.toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   if (price >= 1) return price.toFixed(2);
@@ -45,7 +46,7 @@ const PriceCards = () => {
   useEffect(() => {
     const fetchPrices = async () => {
       try {
-        const ids = "bitcoin,ethereum,solana,binancecoin,ripple,cardano,dogecoin,avalanche-2,polkadot,matic-network";
+        const ids = "bitcoin,ethereum,solana,binancecoin,ripple,cardano,dogecoin,avalanche-2,polkadot,chainlink";
         const res = await fetch(
           `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`
         );
@@ -53,7 +54,7 @@ const PriceCards = () => {
         const data = await res.json();
         const mapping: Record<string, number> = {
           bitcoin: 0, ethereum: 1, solana: 2, binancecoin: 3, ripple: 4,
-          cardano: 5, dogecoin: 6, "avalanche-2": 7, polkadot: 8, "matic-network": 9,
+          cardano: 5, dogecoin: 6, "avalanche-2": 7, polkadot: 8, chainlink: 9,
         };
         setPrices((prev) => {
           const updated = [...prev];
@@ -93,7 +94,7 @@ const PriceCards = () => {
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span className="text-sm text-foreground font-medium">${formatPrice(coin.price)}</span>
                   <span className={`text-xs font-semibold ${positive ? "text-success" : "text-destructive"}`}>
-                    {positive ? "+" : ""}{coin.change24h.toFixed(2)}%
+                    {positive ? "+" : ""}{(coin.change24h ?? 0).toFixed(2)}%
                   </span>
                 </div>
               </div>
