@@ -151,7 +151,7 @@ const Landing = () => {
               </div>
             </div>
             <div className="hidden lg:flex items-center gap-6 text-sm text-hero-muted">
-              <a href="#markets" className="hover:text-hero-foreground transition-colors">Trading</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-hero-foreground transition-colors cursor-pointer">Home</a>
               <Link to="/account-types" className="hover:text-hero-foreground transition-colors">Account Types</Link>
               <Link to="/investments" className="hover:text-hero-foreground transition-colors">Investments</Link>
               <a href="#why" className="hover:text-hero-foreground transition-colors">About Us</a>
