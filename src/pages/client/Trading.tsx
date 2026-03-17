@@ -390,6 +390,10 @@ const Trading = () => {
 
   const placeTrade = async () => {
     if (!user || !selectedAsset || !orderSize) return;
+    if (!isMarketOpen(selectedAsset)) {
+      toast.error(`${selectedAsset.symbol} market is currently closed. Only crypto trading is available.`);
+      return;
+    }
     const sizeNum = Number(orderSize);
     if (isNaN(sizeNum) || sizeNum <= 0) { toast.error("Enter a valid amount"); return; }
     if (sizeNum > balance) { toast.error("Insufficient balance"); return; }
