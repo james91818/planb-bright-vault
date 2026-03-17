@@ -152,7 +152,7 @@ const Landing = () => {
             </div>
             <div className="hidden lg:flex items-center gap-6 text-sm text-hero-muted">
               <a href="#markets" className="hover:text-hero-foreground transition-colors">Trading</a>
-              <a href="#instruments" className="hover:text-hero-foreground transition-colors">Accounts</a>
+              <Link to="/account-types" className="hover:text-hero-foreground transition-colors">Account Types</Link>
               <a href="#instruments" className="hover:text-hero-foreground transition-colors">Instruments</a>
               <a href="#why" className="hover:text-hero-foreground transition-colors">About Us</a>
             </div>
