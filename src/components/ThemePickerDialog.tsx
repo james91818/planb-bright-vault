@@ -37,7 +37,7 @@ const ThemePickerDialog = ({ open, onClose }: ThemePickerDialogProps) => {
         <div className="grid grid-cols-2 gap-4 mt-4">
           {/* Light */}
           <button
-            onClick={() => setSelected("light")}
+            onClick={() => handleSelect("light")}
             className={`flex flex-col items-center gap-3 p-6 rounded-xl border-2 transition-all ${
               selected === "light"
                 ? "border-primary bg-primary/5 shadow-md"
