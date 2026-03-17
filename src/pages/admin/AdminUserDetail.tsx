@@ -38,6 +38,8 @@ const AdminUserDetail = () => {
   const [newNote, setNewNote] = useState("");
   const [manualDepositOpen, setManualDepositOpen] = useState(false);
   const [depForm, setDepForm] = useState({ amount: "", currency: "EUR", method: "manual", notes: "" });
+  const [manualWithdrawOpen, setManualWithdrawOpen] = useState(false);
+  const [wdForm, setWdForm] = useState({ amount: "", currency: "EUR", method: "manual", notes: "" });
 
   const fetchAll = async () => {
     if (!userId) return;
