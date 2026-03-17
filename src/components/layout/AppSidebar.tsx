@@ -76,7 +76,7 @@ const AppSidebar = () => {
   };
 
   return (
-    <Sidebar>
+    <Sidebar collapsible="icon">
       <SidebarHeader className="p-4">
         <div
           className="flex items-center gap-3 cursor-pointer"
