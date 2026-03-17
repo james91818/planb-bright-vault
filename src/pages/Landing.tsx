@@ -19,6 +19,12 @@ import paypalLogo from "@/assets/payments/paypal.png";
 import skrillLogo from "@/assets/payments/skrill.png";
 import netellerLogo from "@/assets/payments/neteller.png";
 
+import bnpLogo from "@/assets/banks/bnp.png";
+import jpmorganLogo from "@/assets/banks/jpmorgan.png";
+import deutschebankLogo from "@/assets/banks/deutschebank.png";
+import commerzbankLogo from "@/assets/banks/commerzbank.png";
+import barclaysLogo from "@/assets/banks/barclays.png";
+
 const whyFeatures = [
   {
     icon: Shield,
