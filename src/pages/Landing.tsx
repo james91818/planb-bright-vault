@@ -118,7 +118,7 @@ const indices = [
 
 const Landing = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Top utility bar */}
       <div className="bg-hero text-hero-muted text-xs py-2 border-b border-white/5">
         <div className="container mx-auto px-4 flex items-center justify-between">
@@ -171,7 +171,7 @@ const Landing = () => {
       {/* ===== HERO ===== */}
       <section className="relative overflow-hidden min-h-[520px] md:min-h-[600px]" style={{ background: "#f5efe6" }}>
         {/* Ox wireframe SVG */}
-        <div className="absolute right-[-15%] top-1/2 -translate-y-1/2 w-[187%] md:w-[153%] h-[306%] pointer-events-none">
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[90%] md:w-[70%] h-[130%] pointer-events-none">
           <img src={oxBg} alt="" className="w-full h-full object-contain object-right opacity-80" />
         </div>
 
@@ -238,8 +238,8 @@ const Landing = () => {
                   <p className="text-hero-muted text-xs">Crypto · Stocks · Forex · Indices</p>
                 </div>
                 {/* Floating badges */}
-                <div className="absolute -top-3 -right-3 bg-success text-success-foreground text-xs font-bold px-3 py-1 rounded-full shadow">7%</div>
-                <div className="absolute -bottom-2 -left-2 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full shadow">5%</div>
+                <div className="absolute top-2 right-2 bg-success text-success-foreground text-xs font-bold px-3 py-1 rounded-full shadow">7%</div>
+                <div className="absolute bottom-2 left-2 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full shadow">5%</div>
               </div>
             </div>
           </div>
