@@ -26,6 +26,7 @@ const AdminUsers = () => {
   const navigate = useNavigate();
   const [users, setUsers] = useState<any[]>([]);
   const [staffUserIds, setStaffUserIds] = useState<Set<string>>(new Set());
+  const [agents, setAgents] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(true);
@@ -43,10 +44,15 @@ const AdminUsers = () => {
   const fetchData = async () => {
     const [{ data: profiles }, { data: urData }] = await Promise.all([
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
-      supabase.from("user_roles").select("user_id"),
+      supabase.from("user_roles").select("user_id, role_id, roles(name)"),
     ]);
     const staffIds = new Set((urData ?? []).map((ur: any) => ur.user_id));
     setStaffUserIds(staffIds);
+
+    // Build agents list from staff profiles
+    const agentProfiles = (profiles ?? []).filter(p => staffIds.has(p.id));
+    setAgents(agentProfiles);
+
     const clientProfiles = (profiles ?? []).filter(p => !staffIds.has(p.id) && p.is_lead !== false);
     setUsers(clientProfiles);
 
@@ -72,6 +78,12 @@ const AdminUsers = () => {
   };
 
   useEffect(() => { fetchData(); }, []);
+
+  const assignAgent = async (userId: string, agentId: string | null) => {
+    await supabase.from("profiles").update({ assigned_agent: agentId }).eq("id", userId);
+    toast.success("Agent assigned");
+    fetchData();
+  };
 
   const updateStatus = async (userId: string, status: string) => {
     await supabase.from("profiles").update({ status }).eq("id", userId);
@@ -265,6 +277,7 @@ const AdminUsers = () => {
                   <th className="text-left p-3 font-medium text-muted-foreground">Registration</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Affiliate</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Funnel</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Agent</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Status</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Last Note</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">#Notes</th>
@@ -273,9 +286,9 @@ const AdminUsers = () => {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={11} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
+                  <tr><td colSpan={12} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
                 ) : filtered.length === 0 ? (
-                  <tr><td colSpan={11} className="p-8 text-center text-muted-foreground">No leads found</td></tr>
+                  <tr><td colSpan={12} className="p-8 text-center text-muted-foreground">No leads found</td></tr>
                 ) : (
                   filtered.map((u) => {
                     const note = notesMap[u.id];
@@ -309,6 +322,19 @@ const AdminUsers = () => {
                         </td>
                         <td className="p-3 text-muted-foreground whitespace-nowrap">{u.affiliate || "—"}</td>
                         <td className="p-3 text-muted-foreground whitespace-nowrap">{u.funnel || "—"}</td>
+                        <td className="p-3" onClick={(e) => e.stopPropagation()}>
+                          <Select value={u.assigned_agent || "none"} onValueChange={(v) => assignAgent(u.id, v === "none" ? null : v)}>
+                            <SelectTrigger className="h-8 w-[140px] text-xs">
+                              <SelectValue placeholder="Unassigned" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">Unassigned</SelectItem>
+                              {agents.map(a => (
+                                <SelectItem key={a.id} value={a.id}>{a.full_name || a.email}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </td>
                         <td className="p-3">
                           <StatusChanger userId={u.id} currentStatus={u.status} onStatusChanged={fetchData} />
                         </td>

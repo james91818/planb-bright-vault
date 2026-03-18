@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Search, MoreHorizontal, DollarSign, Phone, Eye, Ban, Mail, KeyRound, Send, LogIn } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import StatusChanger from "@/components/admin/StatusChanger";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -27,6 +28,7 @@ const CRYPTO_IDS: Record<string, string> = {
 const AdminDepositors = () => {
   const navigate = useNavigate();
   const [depositors, setDepositors] = useState<any[]>([]);
+  const [agents, setAgents] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [notesMap, setNotesMap] = useState<Record<string, { content: string; created_at: string; count: number }>>({});
@@ -53,19 +55,24 @@ const AdminDepositors = () => {
   }, []);
 
   const fetchData = async () => {
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("is_lead", false)
-      .order("created_at", { ascending: false });
+    const [{ data: profiles }, { data: urData }] = await Promise.all([
+      supabase.from("profiles").select("*").order("created_at", { ascending: false }),
+      supabase.from("user_roles").select("user_id"),
+    ]);
 
-    if (!profiles || profiles.length === 0) {
+    const staffIds = new Set((urData ?? []).map((ur: any) => ur.user_id));
+    const agentProfiles = (profiles ?? []).filter(p => staffIds.has(p.id));
+    setAgents(agentProfiles);
+
+    const depositorProfiles = (profiles ?? []).filter(p => !staffIds.has(p.id) && p.is_lead === false);
+
+    if (!depositorProfiles || depositorProfiles.length === 0) {
       setDepositors([]);
       setLoading(false);
       return;
     }
 
-    const userIds = profiles.map(p => p.id);
+    const userIds = depositorProfiles.map(p => p.id);
 
     const [{ data: deposits }, { data: wallets }, { data: notes }] = await Promise.all([
       supabase.from("deposits").select("user_id, amount, status, currency").eq("status", "approved").in("user_id", userIds),
@@ -104,7 +111,7 @@ const AdminDepositors = () => {
     });
     setNotesMap(nMap);
 
-    const enriched = profiles.map(p => ({
+    const enriched = depositorProfiles.map(p => ({
       ...p,
       total_deposited: depositTotals[p.id] ?? 0,
       deposit_count: depositCounts[p.id] ?? 0,
@@ -116,6 +123,12 @@ const AdminDepositors = () => {
   };
 
   useEffect(() => { fetchData(); }, [cryptoPricesEur]);
+
+  const assignAgent = async (userId: string, agentId: string | null) => {
+    await supabase.from("profiles").update({ assigned_agent: agentId }).eq("id", userId);
+    toast.success("Agent assigned");
+    fetchData();
+  };
 
   const updateStatus = async (userId: string, status: string) => {
     await supabase.from("profiles").update({ status }).eq("id", userId);
@@ -253,6 +266,7 @@ const AdminDepositors = () => {
                   <th className="text-left p-3 font-medium text-muted-foreground">First Deposit</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Affiliate</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Funnel</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Agent</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Deposits</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Total</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Balance</th>
@@ -264,9 +278,9 @@ const AdminDepositors = () => {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={15} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
+                  <tr><td colSpan={16} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
                 ) : filtered.length === 0 ? (
-                  <tr><td colSpan={15} className="p-8 text-center text-muted-foreground">No depositors found</td></tr>
+                  <tr><td colSpan={16} className="p-8 text-center text-muted-foreground">No depositors found</td></tr>
                 ) : (
                   filtered.map(u => {
                     const note = notesMap[u.id];
@@ -303,6 +317,19 @@ const AdminDepositors = () => {
                         </td>
                         <td className="p-3 text-muted-foreground whitespace-nowrap">{u.affiliate || "—"}</td>
                         <td className="p-3 text-muted-foreground whitespace-nowrap">{u.funnel || "—"}</td>
+                        <td className="p-3" onClick={(e) => e.stopPropagation()}>
+                          <Select value={u.assigned_agent || "none"} onValueChange={(v) => assignAgent(u.id, v === "none" ? null : v)}>
+                            <SelectTrigger className="h-8 w-[140px] text-xs">
+                              <SelectValue placeholder="Unassigned" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">Unassigned</SelectItem>
+                              {agents.map(a => (
+                                <SelectItem key={a.id} value={a.id}>{a.full_name || a.email}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </td>
                         <td className="p-3">
                           <Badge variant="outline" className="text-xs">{u.deposit_count}</Badge>
                         </td>
