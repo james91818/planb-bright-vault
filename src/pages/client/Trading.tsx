@@ -313,7 +313,7 @@ const Trading = () => {
   // Refresh prices every 30 seconds
   useEffect(() => {
     if (!assets.length) return;
-    const interval = setInterval(() => refreshPrices(assets), 30000);
+    const interval = setInterval(() => refreshPrices(assets), 15000);
     return () => clearInterval(interval);
   }, [assets, refreshPrices]);
 
@@ -344,6 +344,10 @@ const Trading = () => {
         last.l = Math.min(last.l, last.c);
         setLivePrice(last.c);
         setPriceChange(+((last.c - prev[0].o) / prev[0].o * 100).toFixed(2));
+        // Update livePrices map so open position P&L refreshes on every tick
+        if (selectedAsset) {
+          setLivePrices(lp => ({ ...lp, [selectedAsset.symbol]: last.c }));
+        }
         return [...prev.slice(0, -1), last];
       });
     }, 1200);
@@ -365,6 +369,27 @@ const Trading = () => {
 
     return () => { clearInterval(tickInterval); clearInterval(shiftInterval); };
   }, [selectedAsset?.id, timeframe, candles.length > 0]);
+
+  // Simulate micro-ticks for all open-trade assets so P&L feels live
+  useEffect(() => {
+    if (!openTrades.length) return;
+    const interval = setInterval(() => {
+      setLivePrices(prev => {
+        const next = { ...prev };
+        for (const t of openTrades) {
+          const sym = t.assets?.symbol;
+          if (!sym || sym === selectedAsset?.symbol) continue;
+          const cur = next[sym];
+          if (!cur) continue;
+          const volatility = cur < 1 ? 0.002 : cur < 100 ? 0.001 : 0.0006;
+          const tick = (Math.random() - 0.48) * cur * volatility;
+          next[sym] = +(cur + tick).toFixed(cur < 1 ? 6 : 2);
+        }
+        return next;
+      });
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [openTrades, selectedAsset?.symbol]);
 
   const selectAsset = (asset: Asset, pricesMap?: Record<string, number>) => {
     setSelectedAsset(asset);
