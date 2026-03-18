@@ -27,6 +27,7 @@ const CRYPTO_IDS: Record<string, string> = {
 const AdminDepositors = () => {
   const navigate = useNavigate();
   const [depositors, setDepositors] = useState<any[]>([]);
+  const [agents, setAgents] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [notesMap, setNotesMap] = useState<Record<string, { content: string; created_at: string; count: number }>>({});
