@@ -37,7 +37,7 @@ const AdminUserDetail = () => {
   const [adminNotes, setAdminNotes] = useState<any[]>([]);
   const [newNote, setNewNote] = useState("");
   const [manualDepositOpen, setManualDepositOpen] = useState(false);
-  const [depForm, setDepForm] = useState({ amount: "", currency: "EUR", method: "manual", notes: "" });
+  const [depForm, setDepForm] = useState({ amount: "", currency: "EUR", method: "manual", notes: "", crypto_asset: "BTC" });
   const [manualWithdrawOpen, setManualWithdrawOpen] = useState(false);
   const [wdForm, setWdForm] = useState({ amount: "", currency: "EUR", method: "manual", notes: "" });
 
@@ -133,11 +133,13 @@ const AdminUserDetail = () => {
       return;
     }
     const amount = Number(depForm.amount);
+    const isCrypto = depForm.method === "crypto";
+    const creditCurrency = isCrypto ? depForm.crypto_asset : depForm.currency;
 
     const { error: depError } = await supabase.from("deposits").insert({
       user_id: userId!,
       amount,
-      currency: depForm.currency,
+      currency: creditCurrency,
       method: depForm.method,
       status: "approved",
       admin_notes: depForm.notes || "Manual deposit by admin",
@@ -149,15 +151,19 @@ const AdminUserDetail = () => {
       return;
     }
 
+    // Credit the appropriate wallet (crypto or fiat)
     const { data: wallet } = await supabase
       .from("wallets")
       .select("id, balance")
       .eq("user_id", userId!)
-      .eq("currency", depForm.currency)
+      .eq("currency", creditCurrency)
       .maybeSingle();
 
     if (wallet) {
       await supabase.from("wallets").update({ balance: Number(wallet.balance) + amount }).eq("id", wallet.id);
+    } else {
+      // Create wallet if it doesn't exist (e.g. crypto wallets)
+      await supabase.from("wallets").insert({ user_id: userId!, currency: creditCurrency, balance: amount });
     }
 
     if (amount >= 1) {
@@ -166,7 +172,7 @@ const AdminUserDetail = () => {
 
     toast.success("Manual deposit created and credited");
     setManualDepositOpen(false);
-    setDepForm({ amount: "", currency: "EUR", method: "manual", notes: "" });
+    setDepForm({ amount: "", currency: "EUR", method: "manual", notes: "", crypto_asset: "BTC" });
     fetchAll();
   };
 
@@ -439,21 +445,6 @@ const AdminUserDetail = () => {
                 <DialogTitle>Manual Deposit for {profile?.full_name || profile?.email}</DialogTitle>
               </DialogHeader>
               <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label>Amount</Label>
-                    <Input type="number" value={depForm.amount} onChange={(e) => setDepForm({ ...depForm, amount: e.target.value })} placeholder="1000" />
-                  </div>
-                  <div className="space-y-1">
-                    <Label>Currency</Label>
-                    <Select value={depForm.currency} onValueChange={(v) => setDepForm({ ...depForm, currency: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {["EUR", "USD", "GBP", "CHF", "AUD", "CAD"].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
                 <div className="space-y-1">
                   <Label>Method</Label>
                   <Select value={depForm.method} onValueChange={(v) => setDepForm({ ...depForm, method: v })}>
@@ -464,6 +455,35 @@ const AdminUserDetail = () => {
                       <SelectItem value="bank_wire">Bank Wire</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label>Amount</Label>
+                    <Input type="number" value={depForm.amount} onChange={(e) => setDepForm({ ...depForm, amount: e.target.value })} placeholder="1000" />
+                  </div>
+                  {depForm.method === "crypto" ? (
+                    <div className="space-y-1">
+                      <Label>Crypto Asset</Label>
+                      <Select value={depForm.crypto_asset} onValueChange={(v) => setDepForm({ ...depForm, crypto_asset: v })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {["BTC", "ETH", "SOL", "XRP", "BNB", "DOGE", "ADA", "DOT", "LINK", "AVAX"].map(c => (
+                            <SelectItem key={c} value={c}>{c}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      <Label>Currency</Label>
+                      <Select value={depForm.currency} onValueChange={(v) => setDepForm({ ...depForm, currency: v })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {["EUR", "USD", "GBP", "CHF", "AUD", "CAD"].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-1">
                   <Label>Notes (optional)</Label>
