@@ -164,31 +164,27 @@ const AdminUsers = () => {
       toast.error("Email, password, and name are required");
       return;
     }
-    const { data, error } = await supabase.auth.signUp({
-      email: newUser.email,
-      password: newUser.password,
-      options: {
-        data: {
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-user-actions", {
+        body: {
+          action: "create_client",
+          email: newUser.email,
+          password: newUser.password,
           full_name: fullName,
           phone: newUser.phone,
           country: newUser.country,
+          funnel: newUser.funnel || null,
         },
-      },
-    });
-    if (error) {
-      toast.error(error.message);
-      return;
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success("User created successfully");
+      setCreateOpen(false);
+      setNewUser({ email: "", password: "", first_name: "", last_name: "", phone: "", country: "Germany", date_of_birth: "", address: "", city: "", postal_code: "", funnel: "" });
+      setTimeout(fetchData, 1000);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create user");
     }
-    // Update profile with extra fields
-    if (data.user) {
-      await supabase.from("profiles").update({
-        funnel: newUser.funnel || null,
-      }).eq("id", data.user.id);
-    }
-    toast.success("User created successfully");
-    setCreateOpen(false);
-    setNewUser({ email: "", password: "", first_name: "", last_name: "", phone: "", country: "Germany", date_of_birth: "", address: "", city: "", postal_code: "", funnel: "" });
-    setTimeout(fetchData, 1000);
   };
 
   const submitManualDeposit = async () => {

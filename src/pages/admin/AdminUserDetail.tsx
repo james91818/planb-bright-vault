@@ -386,9 +386,8 @@ const AdminUserDetail = () => {
       return;
     }
 
-    if (wallet) {
-      await supabase.from("wallets").update({ balance: Number(wallet.balance) - amount }).eq("id", wallet.id);
-    }
+    // Wallet debiting is handled automatically by the debit_wallet_on_withdrawal_approval trigger
+    // No manual wallet update needed here
 
     toast.success("Manual withdrawal created and deducted");
     setManualWithdrawOpen(false);
