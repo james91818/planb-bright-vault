@@ -69,7 +69,7 @@ const AdminDepositors = () => {
 
     const [{ data: deposits }, { data: wallets }, { data: notes }] = await Promise.all([
       supabase.from("deposits").select("user_id, amount, status, currency").eq("status", "approved").in("user_id", userIds),
-      supabase.from("wallets").select("user_id, balance, currency").eq("currency", "EUR").in("user_id", userIds),
+      supabase.from("wallets").select("user_id, balance, currency").in("user_id", userIds),
       supabase.from("admin_notes").select("user_id, content, created_at").in("user_id", userIds).order("created_at", { ascending: false }),
     ]);
 
@@ -87,7 +87,13 @@ const AdminDepositors = () => {
     });
 
     const balanceMap: Record<string, number> = {};
-    (wallets ?? []).forEach((w: any) => { balanceMap[w.user_id] = Number(w.balance); });
+    (wallets ?? []).forEach((w: any) => {
+      const balance = Number(w.balance);
+      const eurValue = FIAT_CURRENCIES.includes(w.currency)
+        ? balance
+        : (cryptoPricesEur[w.currency] ? balance * cryptoPricesEur[w.currency] : balance);
+      balanceMap[w.user_id] = (balanceMap[w.user_id] ?? 0) + eurValue;
+    });
 
     const nMap: Record<string, { content: string; created_at: string; count: number }> = {};
     (notes ?? []).forEach((n: any) => {
@@ -186,7 +192,7 @@ const AdminDepositors = () => {
       <div>
         <h1 className="text-2xl font-display font-bold">Depositors</h1>
         <p className="text-muted-foreground text-sm">
-          {depositors.length} depositors · €{totalDeposited.toLocaleString()} total deposited
+          {depositors.length} depositors · €{totalDeposited.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} total deposited
         </p>
       </div>
 
@@ -209,7 +215,7 @@ const AdminDepositors = () => {
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Total Deposited</p>
-              <p className="text-xl font-display font-bold">€{totalDeposited.toLocaleString()}</p>
+              <p className="text-xl font-display font-bold">€{totalDeposited.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
             </div>
           </CardContent>
         </Card>

@@ -99,7 +99,12 @@ const WalletPage = () => {
 
   const fiatWallets = wallets.filter(w => FIAT_CURRENCIES.includes(w.currency));
   const cryptoWallets = wallets.filter(w => CRYPTO_CURRENCIES.includes(w.currency) && Number(w.balance) > 0);
-  const fiatTotal = fiatWallets.reduce((s, w) => s + Number(w.balance), 0);
+  const totalBalanceEur = wallets.reduce((sum, wallet) => {
+    const balance = Number(wallet.balance);
+    if (FIAT_CURRENCIES.includes(wallet.currency)) return sum + balance;
+    const rate = cryptoPricesEur[wallet.currency];
+    return sum + (rate ? balance * rate : balance);
+  }, 0);
   const hasCrypto = cryptoWallets.length > 0;
 
   const allCurrencies = [...FIAT_CURRENCIES, ...CRYPTO_CURRENCIES];
@@ -130,9 +135,9 @@ const WalletPage = () => {
           {/* Total Balance */}
           <Card className="border-primary/20 bg-primary/5">
             <CardContent className="p-5">
-              <p className="text-sm text-muted-foreground font-medium">Total Fiat Balance</p>
+              <p className="text-sm text-muted-foreground font-medium">Total Balance</p>
               <p className="text-3xl font-display font-bold mt-1">
-                €{fiatTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                €{totalBalanceEur.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </CardContent>
           </Card>
