@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, UserPlus, MoreHorizontal, Plus } from "lucide-react";
+import { Search, UserPlus, MoreHorizontal, Plus, Phone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
@@ -17,6 +17,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
+
 const statusColors: Record<string, string> = {
   active: "bg-success/10 text-success",
   suspended: "bg-destructive/10 text-destructive",
@@ -35,17 +36,36 @@ const AdminUsers = () => {
   const [newUser, setNewUser] = useState({ email: "", password: "", full_name: "", phone: "", country: "" });
   const [depositOpen, setDepositOpen] = useState(false);
   const [depositForm, setDepositForm] = useState({ user_id: "", amount: "", currency: "EUR", method: "manual", notes: "" });
+  const [notesMap, setNotesMap] = useState<Record<string, { content: string; created_at: string; count: number }>>({});
 
   const fetchData = async () => {
     const [{ data: profiles }, { data: urData }] = await Promise.all([
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("user_roles").select("user_id"),
     ]);
-    // Staff = anyone with a role assignment
     const staffIds = new Set((urData ?? []).map((ur: any) => ur.user_id));
     setStaffUserIds(staffIds);
-    // Only show non-staff profiles (leads/clients)
-    setUsers((profiles ?? []).filter(p => !staffIds.has(p.id)));
+    const clientProfiles = (profiles ?? []).filter(p => !staffIds.has(p.id));
+    setUsers(clientProfiles);
+
+    // Fetch latest admin notes for all users
+    if (clientProfiles.length > 0) {
+      const { data: notes } = await supabase
+        .from("admin_notes")
+        .select("user_id, content, created_at")
+        .in("user_id", clientProfiles.map(p => p.id))
+        .order("created_at", { ascending: false });
+
+      const map: Record<string, { content: string; created_at: string; count: number }> = {};
+      (notes ?? []).forEach((n: any) => {
+        if (!map[n.user_id]) {
+          map[n.user_id] = { content: n.content, created_at: n.created_at, count: 0 };
+        }
+        map[n.user_id].count += 1;
+      });
+      setNotesMap(map);
+    }
+
     setLoading(false);
   };
 
@@ -135,7 +155,7 @@ const AdminUsers = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-display font-bold">Leads</h1>
-          <p className="text-muted-foreground text-sm">{users.length} total users</p>
+          <p className="text-muted-foreground text-sm">{users.length} total leads</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => setDepositOpen(true)}>
@@ -150,7 +170,7 @@ const AdminUsers = () => {
       <div className="flex gap-3">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search users..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+          <Input placeholder="Search leads..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-36">
@@ -171,55 +191,82 @@ const AdminUsers = () => {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b bg-muted/50">
-                   <th className="text-left p-3 font-medium text-muted-foreground">User</th>
-                   <th className="text-left p-3 font-medium text-muted-foreground">Country</th>
-                   <th className="text-left p-3 font-medium text-muted-foreground">KYC</th>
-                   <th className="text-left p-3 font-medium text-muted-foreground">Status</th>
-                   <th className="text-left p-3 font-medium text-muted-foreground">Joined</th>
-                   <th className="text-right p-3 font-medium text-muted-foreground">Actions</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Name</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Phone</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Email</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Country</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Registration</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Status</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Last Note</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">#Notes</th>
+                  <th className="text-right p-3 font-medium text-muted-foreground">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
-                 ) : filtered.length === 0 ? (
-                   <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">No leads found</td></tr>
+                  <tr><td colSpan={9} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
+                ) : filtered.length === 0 ? (
+                  <tr><td colSpan={9} className="p-8 text-center text-muted-foreground">No leads found</td></tr>
                 ) : (
-                  filtered.map((u) => (
-                    <tr key={u.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => navigate(`/admin/users/${u.id}`)}>
-                      <td className="p-3">
-                        <div>
-                          <p className="font-medium">{u.full_name || "—"}</p>
-                          <p className="text-xs text-muted-foreground">{u.email}</p>
-                        </div>
-                      </td>
-                      <td className="p-3 text-muted-foreground">{u.country || "—"}</td>
-                      <td className="p-3">
-                        <Badge variant="outline" className="text-xs capitalize">{u.kyc_status ?? "not_submitted"}</Badge>
-                      </td>
-                      <td className="p-3">
-                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${statusColors[u.status] ?? "bg-muted text-muted-foreground"}`}>
-                          {u.status}
-                        </span>
-                      </td>
-                      <td className="p-3 text-muted-foreground text-xs">
-                        {new Date(u.created_at).toLocaleDateString()}
-                      </td>
-                      <td className="p-3 text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => updateStatus(u.id, "active")}>Set Active</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => updateStatus(u.id, "suspended")}>Suspend</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </td>
-                    </tr>
-                  ))
+                  filtered.map((u) => {
+                    const note = notesMap[u.id];
+                    return (
+                      <tr key={u.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => navigate(`/admin/users/${u.id}`)}>
+                        <td className="p-3">
+                          <p className="font-medium whitespace-nowrap">{u.full_name || "—"}</p>
+                        </td>
+                        <td className="p-3">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-muted-foreground whitespace-nowrap">{u.phone || "—"}</span>
+                            {u.phone && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 shrink-0"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  window.open(`tel:${u.phone}`, "_self");
+                                }}
+                              >
+                                <Phone className="h-3.5 w-3.5 text-primary" />
+                              </Button>
+                            )}
+                          </div>
+                        </td>
+                        <td className="p-3 text-muted-foreground">{u.email || "—"}</td>
+                        <td className="p-3 text-muted-foreground">{u.country || "—"}</td>
+                        <td className="p-3 text-muted-foreground text-xs whitespace-nowrap">
+                          {new Date(u.created_at).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" })}
+                        </td>
+                        <td className="p-3">
+                          <span className={`text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap ${statusColors[u.status] ?? "bg-muted text-muted-foreground"}`}>
+                            {u.status}
+                          </span>
+                        </td>
+                        <td className="p-3">
+                          <p className="text-xs text-muted-foreground max-w-[160px] truncate">
+                            {note?.content || "—"}
+                          </p>
+                        </td>
+                        <td className="p-3 text-center">
+                          <Badge variant="outline" className="text-xs">{note?.count ?? 0}</Badge>
+                        </td>
+                        <td className="p-3 text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); updateStatus(u.id, "active"); }}>Set Active</DropdownMenuItem>
+                              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); updateStatus(u.id, "suspended"); }}>Suspend</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
