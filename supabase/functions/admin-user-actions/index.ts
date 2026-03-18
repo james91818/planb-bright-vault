@@ -42,6 +42,33 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { action, user_id, password } = body;
 
+    if (action === "create_client") {
+      const { email, full_name, phone, country, funnel } = body;
+      if (!email || !password) {
+        return new Response(JSON.stringify({ error: "email and password required" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const { data: newUser, error: createErr } = await adminClient.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: { full_name: full_name || "", phone: phone || "", country: country || "" },
+      });
+      if (createErr) {
+        return new Response(JSON.stringify({ error: createErr.message }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      // Update profile with funnel if provided
+      if (funnel && newUser?.user) {
+        await adminClient.from("profiles").update({ funnel }).eq("id", newUser.user.id);
+      }
+      return new Response(JSON.stringify({ success: true, user_id: newUser.user.id }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (action === "create_user") {
       const { email, full_name, role_id } = body;
       if (!email || !password || !role_id) {

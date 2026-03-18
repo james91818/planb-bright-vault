@@ -24,6 +24,7 @@ import TradingHours from "./pages/TradingHours";
 import InstrumentsPage from "./pages/Instruments";
 import Dashboard from "./pages/Dashboard";
 import AppLayout from "./components/layout/AppLayout";
+import ProtectedRoute from "./components/layout/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 
 // Admin pages
@@ -94,23 +95,28 @@ const App = () => (
             <Route path="/watchlist" element={<Watchlist />} />
             <Route path="/copy-trading" element={<CopyTrading />} />
             <Route path="/pnl" element={<PnlSummary />} />
-            {/* Admin routes */}
-            <Route path="/admin/users" element={<AdminUsers />} />
-            <Route path="/admin/users/:userId" element={<AdminUserDetail />} />
-            <Route path="/admin/depositors" element={<AdminDepositors />} />
-            <Route path="/admin/balance" element={<AdminBalance />} />
-            <Route path="/admin/deposits" element={<AdminDeposits />} />
-            <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
-            <Route path="/admin/trades" element={<AdminTrades />} />
-            <Route path="/admin/staking" element={<AdminStaking />} />
-            <Route path="/admin/assets" element={<AdminAssets />} />
-            <Route path="/admin/agents" element={<AdminAgents />} />
-            <Route path="/admin/affiliates" element={<AdminAffiliates />} />
-            <Route path="/admin/news" element={<AdminNews />} />
-            <Route path="/admin/copy-trading" element={<AdminCopyTrading />} />
-            <Route path="/admin/roles" element={<AdminRoles />} />
-            <Route path="/admin/calendar" element={<AdminCalendar />} />
-            <Route path="/admin/scoreboard" element={<AdminScoreboard />} />
+            {/* Admin routes - protected by role */}
+            <Route element={<ProtectedRoute requireStaff />}>
+              <Route path="/admin/users" element={<AdminUsers />} />
+              <Route path="/admin/users/:userId" element={<AdminUserDetail />} />
+              <Route path="/admin/depositors" element={<AdminDepositors />} />
+              <Route path="/admin/balance" element={<AdminBalance />} />
+              <Route path="/admin/deposits" element={<AdminDeposits />} />
+              <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
+              <Route path="/admin/trades" element={<AdminTrades />} />
+              <Route path="/admin/staking" element={<AdminStaking />} />
+              <Route path="/admin/assets" element={<AdminAssets />} />
+              <Route path="/admin/news" element={<AdminNews />} />
+              <Route path="/admin/copy-trading" element={<AdminCopyTrading />} />
+              <Route path="/admin/calendar" element={<AdminCalendar />} />
+              <Route path="/admin/scoreboard" element={<AdminScoreboard />} />
+            </Route>
+            {/* Admin-only routes */}
+            <Route element={<ProtectedRoute allowedRoles={["Admin"]} />}>
+              <Route path="/admin/agents" element={<AdminAgents />} />
+              <Route path="/admin/affiliates" element={<AdminAffiliates />} />
+              <Route path="/admin/roles" element={<AdminRoles />} />
+            </Route>
             {/* Shared routes */}
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/support" element={<Support />} />
