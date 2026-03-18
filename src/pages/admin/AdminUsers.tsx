@@ -18,6 +18,11 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
+  const assignAgent = async (userId: string, agentId: string | null) => {
+    await supabase.from("profiles").update({ assigned_agent: agentId }).eq("id", userId);
+    toast.success("Agent assigned");
+    fetchData();
+  };
 
 
 const AdminUsers = () => {
