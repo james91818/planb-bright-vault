@@ -387,6 +387,7 @@ const ClientDashboard = () => {
                       <div className="text-right">
                         <p className="font-medium text-sm">
                           {tx._type === "deposit" ? "+" : "-"}{tx.currency} {Number(tx.amount).toLocaleString()}
+                          {!FIAT_CURRENCIES.includes(tx.currency) && cryptoPricesEur[tx.currency] ? ` · ≈ €${(Number(tx.amount) * cryptoPricesEur[tx.currency]).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : ""}
                         </p>
                         <p className={`text-[10px] font-medium capitalize ${statusColors[tx.status] ?? "text-muted-foreground"}`}>
                           {tx.status}

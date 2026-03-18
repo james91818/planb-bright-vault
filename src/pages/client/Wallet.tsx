@@ -135,9 +135,9 @@ const WalletPage = () => {
           {/* Total Balance */}
           <Card className="border-primary/20 bg-primary/5">
             <CardContent className="p-5">
-              <p className="text-sm text-muted-foreground font-medium">Total Fiat Balance</p>
+              <p className="text-sm text-muted-foreground font-medium">Total Balance</p>
               <p className="text-3xl font-display font-bold mt-1">
-                €{fiatTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                €{totalBalanceEur.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </CardContent>
           </Card>
