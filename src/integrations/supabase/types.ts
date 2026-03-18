@@ -264,6 +264,47 @@ export type Database = {
           },
         ]
       }
+      client_crypto_addresses: {
+        Row: {
+          address: string
+          created_at: string
+          currency: string
+          id: string
+          label: string | null
+          network: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string
+          created_at?: string
+          currency: string
+          id?: string
+          label?: string | null
+          network?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          label?: string | null
+          network?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_crypto_addresses_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       copied_trades: {
         Row: {
           created_at: string | null

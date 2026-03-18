@@ -56,6 +56,10 @@ const AdminUserDetail = () => {
   const [bankDetails, setBankDetails] = useState<any>(null);
   const [bankForm, setBankForm] = useState({ bank_name: "", account_holder: "", iban: "", swift_bic: "", reference: "", notes: "" });
   const [savingBank, setSavingBank] = useState(false);
+  // Crypto addresses
+  const [cryptoAddresses, setCryptoAddresses] = useState<any[]>([]);
+  const [cryptoForm, setCryptoForm] = useState({ currency: "BTC", address: "", network: "", label: "" });
+  const [savingCrypto, setSavingCrypto] = useState(false);
 
   const fetchAll = async () => {
     if (!userId) return;
@@ -106,6 +110,10 @@ const AdminUserDetail = () => {
         notes: bankData.notes ?? "",
       });
     }
+
+    // Fetch crypto addresses
+    const { data: cryptoData } = await (supabase as any).from("client_crypto_addresses").select("*").eq("user_id", userId).order("currency");
+    setCryptoAddresses(cryptoData ?? []);
 
     if (prof) {
       setEditProfile({
@@ -229,6 +237,27 @@ const AdminUserDetail = () => {
     }
     toast.success("Bank details saved");
     setSavingBank(false);
+    fetchAll();
+  };
+
+  const saveCryptoAddress = async () => {
+    if (!userId || !cryptoForm.address.trim()) { toast.error("Enter wallet address"); return; }
+    setSavingCrypto(true);
+    const existing = cryptoAddresses.find(a => a.currency === cryptoForm.currency);
+    if (existing) {
+      await (supabase as any).from("client_crypto_addresses").update({ address: cryptoForm.address, network: cryptoForm.network, label: cryptoForm.label }).eq("id", existing.id);
+    } else {
+      await (supabase as any).from("client_crypto_addresses").insert({ ...cryptoForm, user_id: userId });
+    }
+    toast.success(`${cryptoForm.currency} address saved`);
+    setCryptoForm({ currency: "BTC", address: "", network: "", label: "" });
+    setSavingCrypto(false);
+    fetchAll();
+  };
+
+  const deleteCryptoAddress = async (id: string) => {
+    await (supabase as any).from("client_crypto_addresses").delete().eq("id", id);
+    toast.success("Address removed");
     fetchAll();
   };
 
@@ -443,6 +472,7 @@ const AdminUserDetail = () => {
           <TabsTrigger value="trades">Trades ({trades.length})</TabsTrigger>
           <TabsTrigger value="stakes">Stakes ({stakes.length})</TabsTrigger>
           <TabsTrigger value="bank">Bank</TabsTrigger>
+          <TabsTrigger value="crypto">Crypto</TabsTrigger>
           <TabsTrigger value="notes">Notes ({adminNotes.length})</TabsTrigger>
         </TabsList>
 
@@ -881,6 +911,76 @@ const AdminUserDetail = () => {
               {bankDetails && (
                 <p className="text-xs text-muted-foreground">Last updated: {new Date(bankDetails.updated_at).toLocaleString()}</p>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Crypto Addresses Tab */}
+        <TabsContent value="crypto">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Wallet className="h-4 w-4" /> Crypto Deposit Addresses
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <p className="text-sm text-muted-foreground">
+                Add wallet addresses for each cryptocurrency. Clients will see these when making crypto deposits.
+              </p>
+
+              {/* Existing addresses */}
+              {cryptoAddresses.length > 0 && (
+                <div className="space-y-2">
+                  {cryptoAddresses.map(a => (
+                    <div key={a.id} className="flex items-center justify-between border rounded-lg p-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs font-mono">{a.currency}</Badge>
+                          {a.network && <span className="text-xs text-muted-foreground">({a.network})</span>}
+                        </div>
+                        <p className="text-xs font-mono text-muted-foreground mt-1 break-all">{a.address}</p>
+                        {a.label && <p className="text-xs text-muted-foreground mt-0.5">{a.label}</p>}
+                      </div>
+                      <Button variant="ghost" size="sm" className="text-destructive" onClick={() => deleteCryptoAddress(a.id)}>
+                        <Ban className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Add new address */}
+              <div className="border-t pt-4 space-y-3 max-w-lg">
+                <Label className="font-semibold">Add / Update Address</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label>Currency</Label>
+                    <Select value={cryptoForm.currency} onValueChange={v => setCryptoForm({ ...cryptoForm, currency: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {["BTC", "ETH", "SOL", "XRP", "BNB", "DOGE", "ADA", "DOT", "LINK", "AVAX", "USDT", "USDC"].map(c => (
+                          <SelectItem key={c} value={c}>{c}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label>Network (optional)</Label>
+                    <Input value={cryptoForm.network} onChange={e => setCryptoForm({ ...cryptoForm, network: e.target.value })} placeholder="ERC-20, TRC-20, etc." />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <Label>Wallet Address</Label>
+                  <Input value={cryptoForm.address} onChange={e => setCryptoForm({ ...cryptoForm, address: e.target.value })} placeholder="0x..." className="font-mono text-sm" />
+                </div>
+                <div className="space-y-1">
+                  <Label>Label / Note for Client (optional)</Label>
+                  <Input value={cryptoForm.label} onChange={e => setCryptoForm({ ...cryptoForm, label: e.target.value })} placeholder="Main deposit address" />
+                </div>
+                <Button onClick={saveCryptoAddress} disabled={savingCrypto} className="w-full">
+                  <Plus className="h-4 w-4 mr-2" /> {savingCrypto ? "Saving..." : "Save Address"}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

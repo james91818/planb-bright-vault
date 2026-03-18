@@ -33,6 +33,7 @@ const WalletPage = () => {
   const [form, setForm] = useState({ amount: "", currency: "EUR", method: "bank_wire", wallet_address: "", destination: "", bank_name: "", iban: "", swift: "" });
   const [cryptoPricesEur, setCryptoPricesEur] = useState<Record<string, number>>({});
   const [clientBankDetails, setClientBankDetails] = useState<any>(null);
+  const [clientCryptoAddresses, setClientCryptoAddresses] = useState<any[]>([]);
 
   const fetchData = async () => {
     if (!user) return;
@@ -54,6 +55,8 @@ const WalletPage = () => {
     if (!user) return;
     (supabase as any).from("client_bank_details").select("*").eq("user_id", user.id).maybeSingle()
       .then(({ data }: any) => setClientBankDetails(data));
+    (supabase as any).from("client_crypto_addresses").select("*").eq("user_id", user.id).order("currency")
+      .then(({ data }: any) => setClientCryptoAddresses(data ?? []));
   }, [user]);
 
   useEffect(() => {
@@ -396,10 +399,32 @@ const WalletPage = () => {
               </div>
             </div>
             {form.method === "crypto" && (
-              <div className="space-y-1">
-                <Label>Wallet Address (sending from)</Label>
-                <Input value={form.wallet_address} onChange={(e) => setForm({ ...form, wallet_address: e.target.value })} />
-              </div>
+              <>
+                {(() => {
+                  const matchedAddr = clientCryptoAddresses.find(a => a.currency === form.currency);
+                  if (matchedAddr) {
+                    return (
+                      <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
+                        <p className="text-sm font-semibold flex items-center gap-2"><Bitcoin className="h-4 w-4 text-primary" /> Send {form.currency} to this address</p>
+                        <div className="space-y-1.5 text-sm">
+                          <div className="bg-background border rounded-md p-2 font-mono text-xs break-all select-all">{matchedAddr.address}</div>
+                          {matchedAddr.network && <p className="text-xs text-muted-foreground">Network: <span className="font-medium">{matchedAddr.network}</span></p>}
+                          {matchedAddr.label && <p className="text-xs text-muted-foreground">{matchedAddr.label}</p>}
+                        </div>
+                      </div>
+                    );
+                  }
+                  return clientCryptoAddresses.length > 0 ? (
+                    <p className="text-sm text-muted-foreground bg-muted/30 p-3 rounded-lg">
+                      No deposit address available for {form.currency}. Please contact support.
+                    </p>
+                  ) : null;
+                })()}
+                <div className="space-y-1">
+                  <Label>Your Wallet Address (sending from)</Label>
+                  <Input value={form.wallet_address} onChange={(e) => setForm({ ...form, wallet_address: e.target.value })} placeholder="Your wallet address" />
+                </div>
+              </>
             )}
             {form.method === "bank_wire" && clientBankDetails && clientBankDetails.bank_name && (
               <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
