@@ -43,6 +43,7 @@ const AdminUserDetail = () => {
   const [newPassword, setNewPassword] = useState("");
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
+  const [cryptoPricesEur, setCryptoPricesEur] = useState<Record<string, number>>({});
 
   const fetchAll = async () => {
     if (!userId) return;
@@ -441,7 +442,19 @@ const AdminUserDetail = () => {
         {/* Deposits Tab */}
         <TabsContent value="deposits">
           <div className="flex justify-end mb-3">
-            <Button size="sm" onClick={() => setManualDepositOpen(true)}>
+            <Button size="sm" onClick={() => {
+              setManualDepositOpen(true);
+              // Fetch crypto prices in EUR
+              fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,ripple,binancecoin,dogecoin,cardano,polkadot,chainlink,avalanche-2&vs_currencies=eur")
+                .then(r => r.json())
+                .then(data => {
+                  const map: Record<string, number> = {};
+                  const idToSymbol: Record<string, string> = { bitcoin: "BTC", ethereum: "ETH", solana: "SOL", ripple: "XRP", binancecoin: "BNB", dogecoin: "DOGE", cardano: "ADA", polkadot: "DOT", chainlink: "LINK", "avalanche-2": "AVAX" };
+                  Object.entries(data).forEach(([id, val]: any) => { map[idToSymbol[id]] = val.eur; });
+                  setCryptoPricesEur(map);
+                })
+                .catch(() => {});
+            }}>
               <Plus className="h-4 w-4 mr-1" /> Manual Deposit
             </Button>
           </div>
@@ -519,6 +532,12 @@ const AdminUserDetail = () => {
                     </div>
                   )}
                 </div>
+                {depForm.method === "crypto" && depForm.amount && cryptoPricesEur[depForm.crypto_asset] ? (
+                  <p className="text-sm text-muted-foreground">
+                    ≈ €{(Number(depForm.amount) * cryptoPricesEur[depForm.crypto_asset]).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} EUR
+                    <span className="text-xs ml-1">(1 {depForm.crypto_asset} = €{cryptoPricesEur[depForm.crypto_asset].toLocaleString()})</span>
+                  </p>
+                ) : null}
                 <div className="space-y-1">
                   <Label>Notes (optional)</Label>
                   <Textarea value={depForm.notes} onChange={(e) => setDepForm({ ...depForm, notes: e.target.value })} placeholder="Reason for manual deposit..." />
