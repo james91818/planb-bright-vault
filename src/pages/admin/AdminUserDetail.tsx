@@ -111,7 +111,10 @@ const AdminUserDetail = () => {
       });
     }
 
-    if (prof) {
+    // Fetch crypto addresses
+    const { data: cryptoData } = await (supabase as any).from("client_crypto_addresses").select("*").eq("user_id", userId).order("currency");
+    setCryptoAddresses(cryptoData ?? []);
+
       setEditProfile({
         full_name: prof.full_name ?? "",
         phone: prof.phone ?? "",
