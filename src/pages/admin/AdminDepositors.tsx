@@ -12,11 +12,6 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const statusColors: Record<string, string> = {
-  active: "bg-success/10 text-success",
-  suspended: "bg-destructive/10 text-destructive",
-  pending: "bg-yellow-500/10 text-yellow-600",
-};
 
 const AdminDepositors = () => {
   const navigate = useNavigate();

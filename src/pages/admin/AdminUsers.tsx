@@ -235,9 +235,7 @@ const AdminUsers = () => {
                           {new Date(u.created_at).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" })}
                         </td>
                         <td className="p-3">
-                          <span className={`text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap ${statusColors[u.status] ?? "bg-muted text-muted-foreground"}`}>
-                            {u.status}
-                          </span>
+                          <StatusChanger userId={u.id} currentStatus={u.status} onStatusChanged={fetchData} />
                         </td>
                         <td className="p-3">
                           <p className="text-xs text-muted-foreground max-w-[160px] truncate">
