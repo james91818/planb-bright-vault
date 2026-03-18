@@ -537,7 +537,13 @@ const Trading = () => {
 
   const closeTrade = async (trade: Trade) => {
     const symbol = trade.assets?.symbol ?? "";
-    const priceForPnl = trade.current_price ? Number(trade.current_price) : (livePrices[symbol] || undefined);
+    let priceForPnl = trade.current_price ? Number(trade.current_price) : (livePrices[symbol] || undefined);
+
+    if (!priceForPnl && symbol) {
+      const freshPrices = await fetchLivePrices([symbol]);
+      priceForPnl = freshPrices[symbol] || undefined;
+    }
+
     const pnl = computeLivePnl(trade, priceForPnl);
     await supabase.from("trades").update({ status: "closed", closed_at: new Date().toISOString(), pnl }).eq("id", trade.id);
     const { data: wallet } = await supabase.from("wallets").select("id, balance").eq("user_id", user!.id).eq("currency", "EUR").maybeSingle();
