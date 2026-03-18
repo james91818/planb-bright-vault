@@ -963,7 +963,6 @@ const Trading = () => {
                 >
                   {!selectedMarketOpen ? "Market Closed" : placing ? "Placing Order..." : `${direction === "buy" ? "Buy" : "Sell"} ${selectedAsset?.symbol ?? ""}`}
                 </Button>
-                </Button>
               </CardContent>
             </Card>
           ) : (
