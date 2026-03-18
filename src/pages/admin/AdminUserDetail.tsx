@@ -90,6 +90,19 @@ const AdminUserDetail = () => {
 
   useEffect(() => { fetchAll(); }, [userId]);
 
+  // Fetch crypto prices on load for EUR conversion
+  useEffect(() => {
+    fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,ripple,binancecoin,dogecoin,cardano,polkadot,chainlink,avalanche-2&vs_currencies=eur")
+      .then(r => r.json())
+      .then(data => {
+        const map: Record<string, number> = {};
+        const idToSymbol: Record<string, string> = { bitcoin: "BTC", ethereum: "ETH", solana: "SOL", ripple: "XRP", binancecoin: "BNB", dogecoin: "DOGE", cardano: "ADA", polkadot: "DOT", chainlink: "LINK", "avalanche-2": "AVAX" };
+        Object.entries(data).forEach(([id, val]: any) => { map[idToSymbol[id]] = val.eur; });
+        setCryptoPricesEur(map);
+      })
+      .catch(() => {});
+  }, []);
+
   const handleSaveProfile = async () => {
     setSaving(true);
     await supabase.from("profiles").update(editProfile).eq("id", userId);
@@ -244,8 +257,20 @@ const AdminUserDetail = () => {
     fetchAll();
   };
 
-  const totalDeposited = deposits.filter(d => d.status === "approved").reduce((s, d) => s + Number(d.amount), 0);
-  const totalWithdrawn = withdrawals.filter(w => w.status === "approved").reduce((s, w) => s + Number(w.amount), 0);
+  const FIAT_CURRENCIES = ["EUR", "USD", "GBP", "CHF", "AUD", "CAD"];
+  const totalDeposited = deposits.filter(d => d.status === "approved").reduce((s, d) => {
+    const amt = Number(d.amount);
+    if (FIAT_CURRENCIES.includes(d.currency)) return s + amt;
+    // Crypto: convert to EUR using live price
+    const eurPrice = cryptoPricesEur[d.currency];
+    return s + (eurPrice ? amt * eurPrice : amt);
+  }, 0);
+  const totalWithdrawn = withdrawals.filter(w => w.status === "approved").reduce((s, w) => {
+    const amt = Number(w.amount);
+    if (FIAT_CURRENCIES.includes(w.currency)) return s + amt;
+    const eurPrice = cryptoPricesEur[w.currency];
+    return s + (eurPrice ? amt * eurPrice : amt);
+  }, 0);
   const totalPnl = trades.filter(t => t.status === "closed").reduce((s, t) => s + Number(t.pnl ?? 0), 0);
   const openTradesCount = trades.filter(t => t.status === "open").length;
 
@@ -285,7 +310,7 @@ const AdminUserDetail = () => {
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Total Deposited</p>
-              <p className="text-lg font-display font-bold">€{totalDeposited.toLocaleString()}</p>
+              <p className="text-lg font-display font-bold">€{totalDeposited.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
             </div>
           </CardContent>
         </Card>
