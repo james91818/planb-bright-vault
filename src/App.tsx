@@ -38,6 +38,7 @@ import AdminDepositors from "./pages/admin/AdminDepositors";
 import AdminAgents from "./pages/admin/AdminAgents";
 import AdminAffiliates from "./pages/admin/AdminAffiliates";
 import AdminStaking from "./pages/admin/AdminStaking";
+import AdminBalance from "./pages/admin/AdminBalance";
 
 // Client pages
 import Trading from "./pages/client/Trading";
@@ -88,6 +89,7 @@ const App = () => (
             <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/admin/users/:userId" element={<AdminUserDetail />} />
             <Route path="/admin/depositors" element={<AdminDepositors />} />
+            <Route path="/admin/balance" element={<AdminBalance />} />
             <Route path="/admin/deposits" element={<AdminDeposits />} />
             <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
             <Route path="/admin/trades" element={<AdminTrades />} />
