@@ -1233,7 +1233,7 @@ const AdminUserDetail = () => {
                     setSendingReport(true);
                     try {
                       const { data, error } = await supabase.functions.invoke("generate-client-report", {
-                        body: { user_id: userId, sections: reportSections, action: "download" },
+                        body: { user_id: userId, sections: reportSections, action: "download", date_range: reportDateRange },
                       });
                       if (error) throw error;
                       setPreviewHtml(typeof data === "string" ? data : JSON.stringify(data));
