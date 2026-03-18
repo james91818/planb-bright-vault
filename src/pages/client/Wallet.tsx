@@ -55,6 +55,8 @@ const WalletPage = () => {
     if (!user) return;
     (supabase as any).from("client_bank_details").select("*").eq("user_id", user.id).maybeSingle()
       .then(({ data }: any) => setClientBankDetails(data));
+    (supabase as any).from("client_crypto_addresses").select("*").eq("user_id", user.id).order("currency")
+      .then(({ data }: any) => setClientCryptoAddresses(data ?? []));
   }, [user]);
 
   useEffect(() => {
