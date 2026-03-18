@@ -69,6 +69,7 @@ const AdminUserDetail = () => {
   const [reportLastSent, setReportLastSent] = useState<string | null>(null);
   const [savingReport, setSavingReport] = useState(false);
   const [sendingReport, setSendingReport] = useState(false);
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null);
 
   const fetchAll = async () => {
     if (!userId) return;
