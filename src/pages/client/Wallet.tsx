@@ -31,6 +31,7 @@ const WalletPage = () => {
   const [depositOpen, setDepositOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [form, setForm] = useState({ amount: "", currency: "EUR", method: "crypto", wallet_address: "", destination: "" });
+  const [cryptoPricesEur, setCryptoPricesEur] = useState<Record<string, number>>({});
 
   const fetchData = async () => {
     if (!user) return;
@@ -46,6 +47,18 @@ const WalletPage = () => {
   };
 
   useEffect(() => { fetchData(); }, [user]);
+
+  useEffect(() => {
+    fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,ripple,binancecoin,dogecoin,cardano,polkadot,chainlink,avalanche-2&vs_currencies=eur")
+      .then(r => r.json())
+      .then(data => {
+        const map: Record<string, number> = {};
+        const idToSymbol: Record<string, string> = { bitcoin: "BTC", ethereum: "ETH", solana: "SOL", ripple: "XRP", binancecoin: "BNB", dogecoin: "DOGE", cardano: "ADA", polkadot: "DOT", chainlink: "LINK", "avalanche-2": "AVAX" };
+        Object.entries(data).forEach(([id, val]: any) => { map[idToSymbol[id]] = val.eur; });
+        setCryptoPricesEur(map);
+      })
+      .catch(() => {});
+  }, []);
 
   const submitDeposit = async () => {
     if (!user || !form.amount) return;
@@ -153,16 +166,24 @@ const WalletPage = () => {
                 <Bitcoin className="h-4 w-4 text-muted-foreground" /> Crypto Assets
               </h2>
               <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
-                {cryptoWallets.map((w) => (
-                  <Card key={w.id} className="border-primary/20">
-                    <CardContent className="p-4">
-                      <p className="text-xs text-muted-foreground font-medium">{w.currency}</p>
-                      <p className="text-lg font-display font-bold mt-1">
-                        {Number(w.balance).toLocaleString("en-US", { minimumFractionDigits: 6 })}
-                      </p>
-                    </CardContent>
-                  </Card>
-                ))}
+                {cryptoWallets.map((w) => {
+                  const eurValue = cryptoPricesEur[w.currency] ? Number(w.balance) * cryptoPricesEur[w.currency] : null;
+                  return (
+                    <Card key={w.id} className="border-primary/20">
+                      <CardContent className="p-4">
+                        <p className="text-xs text-muted-foreground font-medium">{w.currency}</p>
+                        <p className="text-lg font-display font-bold mt-1">
+                          {Number(w.balance).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
+                        </p>
+                        {eurValue !== null && (
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            ≈ €{eurValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             </div>
           )}
