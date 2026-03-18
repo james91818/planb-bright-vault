@@ -339,8 +339,16 @@ const Trading = () => {
       setCandles(prev => {
         if (!prev.length) return prev;
         const last = { ...prev[prev.length - 1] };
-        const volatility = last.c < 1 ? 0.002 : last.c < 100 ? 0.001 : 0.0006;
-        const tick = (Math.random() - 0.48) * last.c * volatility;
+        // Very small micro-ticks to simulate live movement without drifting from real price
+        const volatility = last.c < 1 ? 0.0003 : last.c < 100 ? 0.00015 : 0.00008;
+        // Mean-revert toward real API price to prevent drift
+        const realPrice = realApiPrices[selectedAsset?.symbol ?? ""];
+        let drift = 0;
+        if (realPrice && realPrice > 0) {
+          const deviation = (last.c - realPrice) / realPrice;
+          drift = -deviation * 0.05; // gentle pull back toward real price
+        }
+        const tick = ((Math.random() - 0.5) * last.c * volatility) + (last.c * drift);
         last.c = +(last.c + tick).toFixed(last.c < 1 ? 6 : 2);
         last.h = Math.max(last.h, last.c);
         last.l = Math.min(last.l, last.c);
