@@ -46,6 +46,12 @@ const AdminUserDetail = () => {
   const [changingPassword, setChangingPassword] = useState(false);
   const [cryptoPricesEur, setCryptoPricesEur] = useState<Record<string, number>>({});
   const [livePrices, setLivePrices] = useState<Record<string, number>>({});
+  // Stakes
+  const [stakes, setStakes] = useState<any[]>([]);
+  const [stakingPlans, setStakingPlans] = useState<any[]>([]);
+  const [editStake, setEditStake] = useState<any>(null);
+  const [rewardsInput, setRewardsInput] = useState("");
+  const [claimedInput, setClaimedInput] = useState("false");
 
   const fetchAll = async () => {
     if (!userId) return;
