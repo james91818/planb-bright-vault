@@ -429,6 +429,7 @@ const AdminUserDetail = () => {
           <TabsTrigger value="withdrawals">Withdrawals ({withdrawals.length})</TabsTrigger>
           <TabsTrigger value="trades">Trades ({trades.length})</TabsTrigger>
           <TabsTrigger value="stakes">Stakes ({stakes.length})</TabsTrigger>
+          <TabsTrigger value="bank">Bank</TabsTrigger>
           <TabsTrigger value="notes">Notes ({adminNotes.length})</TabsTrigger>
         </TabsList>
 
