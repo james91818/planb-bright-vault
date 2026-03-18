@@ -127,7 +127,13 @@ const AdminAgents = () => {
     }
     if (data.user) {
       setTimeout(async () => {
-        await supabase.from("user_roles").insert({ user_id: data.user!.id, role_id: newAgent.role_id });
+        // Assign role and auto-confirm email so agent can log in immediately
+        await Promise.all([
+          supabase.from("user_roles").insert({ user_id: data.user!.id, role_id: newAgent.role_id }),
+          supabase.functions.invoke("admin-user-actions", {
+            body: { action: "confirm_email", user_id: data.user!.id },
+          }),
+        ]);
         toast.success("Agent created and role assigned");
         setCreateOpen(false);
         setNewAgent({ email: "", password: "", full_name: "", role_id: "" });
