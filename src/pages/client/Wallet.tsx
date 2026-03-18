@@ -31,6 +31,7 @@ const WalletPage = () => {
   const [depositOpen, setDepositOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [form, setForm] = useState({ amount: "", currency: "EUR", method: "crypto", wallet_address: "", destination: "" });
+  const [cryptoPricesEur, setCryptoPricesEur] = useState<Record<string, number>>({});
 
   const fetchData = async () => {
     if (!user) return;
