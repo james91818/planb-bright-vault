@@ -55,10 +55,11 @@ const AssetsManager = () => {
     setEditAsset(a);
   };
 
+  const assetTypes = [...new Set(assets.map(a => a.type))].sort();
+
   if (loading) return <div className="flex items-center justify-center h-32"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
 
   return (
-  const assetTypes = [...new Set(assets.map(a => a.type))].sort();
 
   const renderTable = (filtered: any[]) => (
     <Card>
