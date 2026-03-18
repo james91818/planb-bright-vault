@@ -43,6 +43,7 @@ export type Database = {
       }
       admin_notes: {
         Row: {
+          attachments: string[] | null
           author_id: string
           content: string
           created_at: string
@@ -50,6 +51,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          attachments?: string[] | null
           author_id: string
           content: string
           created_at?: string
@@ -57,6 +59,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          attachments?: string[] | null
           author_id?: string
           content?: string
           created_at?: string
