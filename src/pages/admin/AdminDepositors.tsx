@@ -149,6 +149,7 @@ const AdminDepositors = () => {
                   <th className="text-left p-3 font-medium text-muted-foreground">Email</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Country</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Registration</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">First Deposit</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Affiliate</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Funnel</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Deposits</th>
@@ -162,9 +163,9 @@ const AdminDepositors = () => {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={14} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
+                  <tr><td colSpan={15} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
                 ) : filtered.length === 0 ? (
-                  <tr><td colSpan={14} className="p-8 text-center text-muted-foreground">No depositors found</td></tr>
+                  <tr><td colSpan={15} className="p-8 text-center text-muted-foreground">No depositors found</td></tr>
                 ) : (
                   filtered.map(u => {
                     const note = notesMap[u.id];
@@ -195,6 +196,9 @@ const AdminDepositors = () => {
                         <td className="p-3 text-muted-foreground">{u.country || "—"}</td>
                         <td className="p-3 text-muted-foreground text-xs whitespace-nowrap">
                           {new Date(u.created_at).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" })}
+                        </td>
+                        <td className="p-3 text-muted-foreground text-xs whitespace-nowrap">
+                          {u.first_deposit_at ? new Date(u.first_deposit_at).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" }) : "—"}
                         </td>
                         <td className="p-3 text-muted-foreground whitespace-nowrap">{u.affiliate || "—"}</td>
                         <td className="p-3 text-muted-foreground whitespace-nowrap">{u.funnel || "—"}</td>
