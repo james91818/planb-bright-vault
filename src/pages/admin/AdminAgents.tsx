@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, UserPlus, MoreHorizontal, Shield } from "lucide-react";
+import { Search, UserPlus, MoreHorizontal, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -22,12 +22,20 @@ const statusColors: Record<string, string> = {
 };
 
 const AdminAgents = () => {
+  const navigate = useNavigate();
   const [agents, setAgents] = useState<any[]>([]);
   const [roles, setRoles] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [newAgent, setNewAgent] = useState({ email: "", password: "", full_name: "", role_id: "" });
+
+  // Password reset
+  const [pwOpen, setPwOpen] = useState(false);
+  const [pwUserId, setPwUserId] = useState("");
+  const [pwUserName, setPwUserName] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [pwLoading, setPwLoading] = useState(false);
 
   const fetchData = async () => {
     const [{ data: rolesData }, { data: urData }] = await Promise.all([
@@ -37,7 +45,6 @@ const AdminAgents = () => {
 
     setRoles(rolesData ?? []);
 
-    // Only users that have a role are agents
     const agentUserIds = (urData ?? []).map((ur: any) => ur.user_id);
     const roleMap: Record<string, { name: string; role_id: string }> = {};
     (urData ?? []).forEach((ur: any) => {
@@ -83,6 +90,27 @@ const AdminAgents = () => {
     fetchData();
   };
 
+  const handleResetPassword = async () => {
+    if (!newPassword || newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+    setPwLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-user-actions", {
+        body: { action: "change_password", user_id: pwUserId, password: newPassword },
+      });
+      if (error) throw error;
+      toast.success("Password reset successfully");
+      setPwOpen(false);
+      setNewPassword("");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to reset password");
+    } finally {
+      setPwLoading(false);
+    }
+  };
+
   const handleCreateAgent = async () => {
     if (!newAgent.role_id) {
       toast.error("Please select a role for the agent");
@@ -97,7 +125,6 @@ const AdminAgents = () => {
       toast.error(error.message);
       return;
     }
-    // Assign role after creation
     if (data.user) {
       setTimeout(async () => {
         await supabase.from("user_roles").insert({ user_id: data.user!.id, role_id: newAgent.role_id });
@@ -151,10 +178,14 @@ const AdminAgents = () => {
                   <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">No agents found</td></tr>
                 ) : (
                   filtered.map(u => (
-                    <tr key={u.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                    <tr
+                      key={u.id}
+                      className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
+                      onClick={() => navigate(`/admin/users/${u.id}`)}
+                    >
                       <td className="p-3">
                         <div>
-                          <p className="font-medium">{u.full_name || "—"}</p>
+                          <p className="font-medium text-primary hover:underline">{u.full_name || "—"}</p>
                           <p className="text-xs text-muted-foreground">{u.email}</p>
                         </div>
                       </td>
@@ -182,7 +213,7 @@ const AdminAgents = () => {
                       <td className="p-3 text-muted-foreground text-xs">
                         {new Date(u.created_at).toLocaleDateString()}
                       </td>
-                      <td className="p-3 text-right">
+                      <td className="p-3 text-right" onClick={e => e.stopPropagation()}>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -190,8 +221,20 @@ const AdminAgents = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => navigate(`/admin/users/${u.id}`)}>
+                              View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => updateStatus(u.id, "active")}>Set Active</DropdownMenuItem>
                             <DropdownMenuItem onClick={() => updateStatus(u.id, "suspended")}>Suspend</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => {
+                              setPwUserId(u.id);
+                              setPwUserName(u.full_name || u.email);
+                              setPwOpen(true);
+                            }}>
+                              <KeyRound className="h-4 w-4 mr-2" /> Reset Password
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </td>
@@ -240,6 +283,32 @@ const AdminAgents = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
             <Button onClick={handleCreateAgent}>Create Agent</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reset Password Dialog */}
+      <Dialog open={pwOpen} onOpenChange={setPwOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reset Password — {pwUserName}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label>New Password</Label>
+              <Input
+                type="password"
+                placeholder="Min 6 characters"
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setPwOpen(false); setNewPassword(""); }}>Cancel</Button>
+            <Button onClick={handleResetPassword} disabled={pwLoading}>
+              {pwLoading ? "Resetting..." : "Reset Password"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
