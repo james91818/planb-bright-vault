@@ -1015,7 +1015,7 @@ const Trading = () => {
                           </td>
                           <td className="p-3.5 font-medium">€{Number(t.size).toLocaleString()}</td>
                           <td className="p-3.5 text-muted-foreground">€{Number(t.entry_price).toFixed(2)}</td>
-                          <td className="p-3.5">€{Number(t.current_price ?? t.entry_price).toFixed(2)}</td>
+                          <td className="p-3.5">€{(t.current_price ? Number(t.current_price) : (livePrices[symbol ?? ""] || Number(t.entry_price))).toFixed(2)}</td>
                           <td className="p-3.5">{t.leverage}×</td>
                           <td className={`p-3.5 font-bold ${pnl >= 0 ? "text-success" : "text-destructive"}`}>
                             {pnl >= 0 ? "+" : ""}€{pnl.toFixed(2)}
