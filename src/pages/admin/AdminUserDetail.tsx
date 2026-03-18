@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { ArrowLeft, Save, Ban, CheckCircle, DollarSign, TrendingUp, Wallet, Shield, MessageSquare, Send, Plus, Eye, EyeOff, KeyRound, Landmark, Lock, Clock, TrendingDown, CalendarDays } from "lucide-react";
+import { ArrowLeft, Save, Ban, CheckCircle, DollarSign, TrendingUp, Wallet, Shield, MessageSquare, Send, Plus, Eye, EyeOff, KeyRound, Landmark, Lock, Clock, TrendingDown, CalendarDays, Phone } from "lucide-react";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
@@ -400,11 +400,24 @@ const AdminUserDetail = () => {
         </Button>
         <div className="flex-1">
           <h1 className="text-2xl font-display font-bold">{profile.full_name || profile.email}</h1>
-          <p className="text-sm text-muted-foreground">{profile.email}</p>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span>{profile.email}</span>
+            {profile.phone && (
+              <>
+                <span>•</span>
+                <span>{profile.phone}</span>
+              </>
+            )}
+          </div>
         </div>
         <span className={`text-xs px-3 py-1.5 rounded-full font-medium ${statusColors[profile.status] ?? "bg-muted text-muted-foreground"}`}>
           {profile.status}
         </span>
+        {profile.phone && (
+          <Button variant="outline" size="sm" className="text-success border-success/30 hover:bg-success/10" onClick={() => window.open(`tel:${profile.phone}`, "_self")}>
+            <Phone className="h-4 w-4 mr-1" /> Call
+          </Button>
+        )}
         <Button variant="outline" size="sm" onClick={() => navigate(`/admin/calendar?client=${userId}&clientName=${encodeURIComponent(profile.full_name || profile.email)}`)}>
           <CalendarDays className="h-4 w-4 mr-1" /> Schedule Appointment
         </Button>
