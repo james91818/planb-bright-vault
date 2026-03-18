@@ -87,6 +87,7 @@ const App = () => (
             <Route path="/wallet" element={<WalletPage />} />
             <Route path="/staking" element={<Staking />} />
             <Route path="/watchlist" element={<Watchlist />} />
+            <Route path="/copy-trading" element={<CopyTrading />} />
             {/* Admin routes */}
             <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/admin/users/:userId" element={<AdminUserDetail />} />
