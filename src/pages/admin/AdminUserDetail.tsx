@@ -1408,6 +1408,24 @@ const AdminUserDetail = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Report Preview Dialog */}
+      <Dialog open={!!previewHtml} onOpenChange={() => setPreviewHtml(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden">
+          <DialogHeader className="px-6 pt-6 pb-2">
+            <DialogTitle>Report Preview</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-auto px-2 pb-2" style={{ maxHeight: "calc(90vh - 80px)" }}>
+            <iframe
+              srcDoc={previewHtml || ""}
+              className="w-full border rounded-lg"
+              style={{ minHeight: "600px", height: "100%" }}
+              title="Report Preview"
+              sandbox=""
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
