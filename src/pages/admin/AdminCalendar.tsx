@@ -48,6 +48,8 @@ const AdminCalendar = () => {
   const { user } = useAuth();
   const { roleName } = useRole();
   const canViewOthers = roleName === "Admin" || roleName === "Manager";
+  const [searchParams, setSearchParams] = useSearchParams();
+  const autoOpenDone = useRef(false);
 
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [appointments, setAppointments] = useState<Appointment[]>([]);
