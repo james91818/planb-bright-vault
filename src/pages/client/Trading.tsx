@@ -273,6 +273,8 @@ const Trading = () => {
   const [orderType, setOrderType] = useState("market");
   const [stopLoss, setStopLoss] = useState("");
   const [takeProfit, setTakeProfit] = useState("");
+  const [slMode, setSlMode] = useState<"price" | "pct">("price");
+  const [tpMode, setTpMode] = useState<"price" | "pct">("price");
   const [placing, setPlacing] = useState(false);
   const [showAssetList, setShowAssetList] = useState(false);
   const [balance, setBalance] = useState(0);
@@ -455,7 +457,7 @@ const Trading = () => {
     setCandles(data);
     setLivePrice(base);
     setPriceChange(+((data[data.length - 1].c - data[0].o) / data[0].o * 100).toFixed(2));
-    setOrderSize(""); setLeverage(1); setStopLoss(""); setTakeProfit("");
+    setOrderSize(""); setLeverage(1); setStopLoss(""); setTakeProfit(""); setSlMode("price"); setTpMode("price");
     chartInitialized.current = true;
   };
 
@@ -478,7 +480,8 @@ const Trading = () => {
     const { error } = await supabase.from("trades").insert({
       user_id: user.id, asset_id: selectedAsset.id, direction, size: sizeNum,
       entry_price: livePrice, leverage, order_type: orderType,
-      stop_loss: stopLoss ? Number(stopLoss) : null, take_profit: takeProfit ? Number(takeProfit) : null,
+      stop_loss: stopLoss ? (slMode === "pct" ? +(livePrice * (1 - Number(stopLoss) / 100)).toFixed(2) : Number(stopLoss)) : null,
+      take_profit: takeProfit ? (tpMode === "pct" ? +(livePrice * (1 + Number(takeProfit) / 100)).toFixed(2) : Number(takeProfit)) : null,
     });
     if (error) toast.error("Failed to place order");
     else {
@@ -796,12 +799,30 @@ const Trading = () => {
                 {/* SL / TP */}
                 <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-1">
-                    <Label className="text-xs text-destructive font-medium">Stop Loss</Label>
-                    <Input type="number" value={stopLoss} onChange={e => setStopLoss(e.target.value)} placeholder="Optional" className="h-10" />
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs text-destructive font-medium">Stop Loss</Label>
+                      <div className="flex gap-0.5 bg-muted rounded-md p-0.5">
+                        <button onClick={() => { setSlMode("price"); setStopLoss(""); }} className={`px-1.5 py-0.5 text-[10px] rounded font-semibold transition-colors ${slMode === "price" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"}`}>€</button>
+                        <button onClick={() => { setSlMode("pct"); setStopLoss(""); }} className={`px-1.5 py-0.5 text-[10px] rounded font-semibold transition-colors ${slMode === "pct" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"}`}>%</button>
+                      </div>
+                    </div>
+                    <Input type="number" value={stopLoss} onChange={e => setStopLoss(e.target.value)} placeholder={slMode === "pct" ? "e.g. 5" : "Optional"} className="h-10" />
+                    {slMode === "pct" && stopLoss && livePrice > 0 && (
+                      <p className="text-[10px] text-muted-foreground">= €{(livePrice * (1 - Number(stopLoss) / 100)).toFixed(2)}</p>
+                    )}
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs text-success font-medium">Take Profit</Label>
-                    <Input type="number" value={takeProfit} onChange={e => setTakeProfit(e.target.value)} placeholder="Optional" className="h-10" />
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs text-success font-medium">Take Profit</Label>
+                      <div className="flex gap-0.5 bg-muted rounded-md p-0.5">
+                        <button onClick={() => { setTpMode("price"); setTakeProfit(""); }} className={`px-1.5 py-0.5 text-[10px] rounded font-semibold transition-colors ${tpMode === "price" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"}`}>€</button>
+                        <button onClick={() => { setTpMode("pct"); setTakeProfit(""); }} className={`px-1.5 py-0.5 text-[10px] rounded font-semibold transition-colors ${tpMode === "pct" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"}`}>%</button>
+                      </div>
+                    </div>
+                    <Input type="number" value={takeProfit} onChange={e => setTakeProfit(e.target.value)} placeholder={tpMode === "pct" ? "e.g. 10" : "Optional"} className="h-10" />
+                    {tpMode === "pct" && takeProfit && livePrice > 0 && (
+                      <p className="text-[10px] text-muted-foreground">= €{(livePrice * (1 + Number(takeProfit) / 100)).toFixed(2)}</p>
+                    )}
                   </div>
                 </div>
 
