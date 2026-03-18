@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { computeLivePnl } from "@/lib/tradePnl";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -301,6 +301,14 @@ const Trading = () => {
   const [balance, setBalance] = useState(0);
   const [livePrices, setLivePrices] = useState<Record<string, number>>({});
   const [realApiPrices, setRealApiPrices] = useState<Record<string, number>>({});
+  const openTradeSnapshots = useMemo(() => Object.fromEntries(openTrades.map((trade) => {
+    const symbol = trade.assets?.symbol ?? "";
+    const snapshotPrice = trade.current_price ? Number(trade.current_price) : (livePrices[symbol] || undefined);
+    const displayPrice = trade.current_price ? Number(trade.current_price) : (livePrices[symbol] || Number(trade.entry_price));
+    const displayPnl = computeLivePnl(trade, snapshotPrice);
+
+    return [trade.id, { displayPrice, displayPnl }];
+  })), [openTrades, livePrices]);
 
   // Trading mode: "manual" or "ai"
   const [tradingMode, setTradingMode] = useState<"manual" | "ai">("manual");
@@ -535,9 +543,10 @@ const Trading = () => {
     setPlacing(false);
   };
 
-  const closeTrade = async (trade: Trade, displayedPrice?: number, displayedPnl?: number) => {
-    const finalPrice = displayedPrice ?? (trade.current_price ? Number(trade.current_price) : null);
-    const finalPnl = Number((displayedPnl ?? trade.pnl ?? 0).toFixed(2));
+  const closeTrade = async (trade: Trade) => {
+    const snapshot = openTradeSnapshots[trade.id];
+    const finalPrice = snapshot?.displayPrice ?? (trade.current_price ? Number(trade.current_price) : Number(trade.entry_price));
+    const finalPnl = Number((snapshot?.displayPnl ?? trade.pnl ?? 0).toFixed(2));
 
     await supabase.from("trades").update({
       status: "closed",
@@ -1034,7 +1043,7 @@ const Trading = () => {
                           </td>
                           <td className="p-3.5 text-right">
                             <Button size="sm" variant="outline" className="text-destructive border-destructive/30 hover:bg-destructive/10 text-xs h-8 px-3"
-                              onClick={() => closeTrade(t, displayPrice, pnl)}>
+                              onClick={() => closeTrade(t)}>
                               <X className="h-3.5 w-3.5 mr-1" /> Close
                             </Button>
                           </td>
