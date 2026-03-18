@@ -265,6 +265,7 @@ const Trading = () => {
   const [showAssetList, setShowAssetList] = useState(false);
   const [balance, setBalance] = useState(0);
   const [livePrices, setLivePrices] = useState<Record<string, number>>({});
+  const [realApiPrices, setRealApiPrices] = useState<Record<string, number>>({});
 
   // Trading mode: "manual" or "ai"
   const [tradingMode, setTradingMode] = useState<"manual" | "ai">("manual");
