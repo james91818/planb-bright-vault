@@ -280,6 +280,7 @@ const AdminTrades = () => {
           </Badge>
         </td>
         <td className="p-3">€{Number(t.size).toLocaleString()}</td>
+        <td className="p-3 text-muted-foreground">{Number(t.entry_price) > 0 ? (Number(t.size) / Number(t.entry_price)).toFixed(Number(t.entry_price) > 100 ? 6 : 4) : "—"} {symbol}</td>
         <td className="p-3">€{Number(t.entry_price).toFixed(2)}</td>
         <td className="p-3">{t.current_price ? `€${Number(t.current_price).toFixed(2)}` : <span className="text-muted-foreground">—</span>}</td>
         <td className="p-3">{t.leverage}×</td>
