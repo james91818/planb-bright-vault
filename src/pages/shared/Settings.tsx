@@ -161,6 +161,7 @@ const Settings = () => {
           {isAdmin && <TabsTrigger value="notifications">Notifications</TabsTrigger>}
           {isAdmin && <TabsTrigger value="landing">Landing Page</TabsTrigger>}
           {isAdmin && <TabsTrigger value="roles">Roles</TabsTrigger>}
+          {isAdmin && <TabsTrigger value="assets">Assets</TabsTrigger>}
         </TabsList>
 
         {/* ACCOUNT TAB */}
