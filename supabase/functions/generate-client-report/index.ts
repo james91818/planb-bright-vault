@@ -76,7 +76,7 @@ function formatCurrency(n: number, currency = "EUR"): string {
 }
 
 function generateHtmlReport(data: ReportData): string {
-  const { profile, wallets, trades, deposits, withdrawals, stakes, sections } = data;
+  const { profile, wallets, trades, deposits, withdrawals, stakes, sections, dateRangeLabel: drLabel } = data;
   const now = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" });
 
   let html = `
