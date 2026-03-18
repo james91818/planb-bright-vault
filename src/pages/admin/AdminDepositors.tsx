@@ -197,10 +197,20 @@ const AdminDepositors = () => {
     }
   };
 
-  const filtered = depositors.filter(u =>
-    (u.full_name ?? "").toLowerCase().includes(search.toLowerCase()) ||
-    (u.email ?? "").toLowerCase().includes(search.toLowerCase())
-  );
+  const uniqueCountries = [...new Set(depositors.map(u => u.country).filter(Boolean))].sort();
+  const uniqueAffiliates = [...new Set(depositors.map(u => u.affiliate).filter(Boolean))].sort();
+  const uniqueFunnels = [...new Set(depositors.map(u => u.funnel).filter(Boolean))].sort();
+
+  const filtered = depositors.filter(u => {
+    const matchesSearch =
+      (u.full_name ?? "").toLowerCase().includes(search.toLowerCase()) ||
+      (u.email ?? "").toLowerCase().includes(search.toLowerCase());
+    const matchesCountry = countryFilter === "all" || u.country === countryFilter;
+    const matchesAgent = agentFilter === "all" || (agentFilter === "none" ? !u.assigned_agent : u.assigned_agent === agentFilter);
+    const matchesAffiliate = affiliateFilter === "all" || (affiliateFilter === "none" ? !u.affiliate : u.affiliate === affiliateFilter);
+    const matchesFunnel = funnelFilter === "all" || (funnelFilter === "none" ? !u.funnel : u.funnel === funnelFilter);
+    return matchesSearch && matchesCountry && matchesAgent && matchesAffiliate && matchesFunnel;
+  });
 
   const totalDeposited = depositors.reduce((sum, d) => sum + d.total_deposited, 0);
 
