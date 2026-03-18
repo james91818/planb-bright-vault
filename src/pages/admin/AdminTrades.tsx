@@ -116,6 +116,97 @@ const AdminTrades = () => {
     fetchTrades();
   };
 
+  const openTrades = trades.filter(t => t.status === "open");
+  const closedTrades = trades.filter(t => t.status === "closed");
+
+  const editClosedPnl = async (trade: any, newPnl: number) => {
+    // Update trade P&L
+    await supabase.from("trades").update({ pnl: newPnl }).eq("id", trade.id);
+    // Adjust wallet: remove old pnl, apply new
+    const oldPnl = Number(trade.pnl ?? 0);
+    const diff = newPnl - oldPnl;
+    if (diff !== 0) {
+      const { data: wallet } = await supabase
+        .from("wallets").select("id, balance")
+        .eq("user_id", trade.user_id).eq("currency", "EUR").maybeSingle();
+      if (wallet) {
+        await supabase.from("wallets").update({
+          balance: Number(wallet.balance) + diff,
+        }).eq("id", wallet.id);
+      }
+    }
+    toast.success("Trade P&L updated");
+    fetchTrades();
+  };
+
+  // Edit closed trade dialog
+  const [editPnlOpen, setEditPnlOpen] = useState<any>(null);
+  const [editPnlValue, setEditPnlValue] = useState("");
+
+  const renderTradeRow = (t: any, isClosed: boolean) => {
+    const override = t.trade_overrides?.[0];
+    const symbol = t.assets?.symbol;
+    const pnl = isClosed ? Number(t.pnl ?? 0) : computeLivePnl(t, livePrices[symbol]);
+    return (
+      <tr key={t.id} className="border-b last:border-0 hover:bg-muted/30">
+        <td className="p-3">
+          <p className="font-medium text-xs">{t.profiles?.full_name || "—"}</p>
+        </td>
+        <td className="p-3 font-medium">{symbol ?? "—"}</td>
+        <td className="p-3">
+          <Badge variant={t.direction === "buy" ? "default" : "destructive"} className="text-xs capitalize">
+            {t.direction}
+          </Badge>
+        </td>
+        <td className="p-3">€{Number(t.size).toLocaleString()}</td>
+        <td className="p-3">€{Number(t.entry_price).toFixed(2)}</td>
+        <td className="p-3">{t.leverage}×</td>
+        <td className={`p-3 font-semibold ${pnl >= 0 ? "text-success" : "text-destructive"}`}>
+          {pnl >= 0 ? "+" : ""}€{pnl.toFixed(2)}
+        </td>
+        <td className="p-3">
+          {override?.is_active ? (
+            <Badge className="text-xs bg-warning/10 text-warning border-warning/30">
+              {override.override_mode}
+            </Badge>
+          ) : (
+            <span className="text-xs text-muted-foreground">—</span>
+          )}
+        </td>
+        <td className="p-3 text-right space-x-1">
+          <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => {
+            setOverrideOpen(t);
+            setOverrideMode(override?.override_mode ?? "none");
+            setTargetValue(override?.target_value?.toString() ?? "");
+          }}>
+            Override
+          </Button>
+          {!isClosed && (
+            <Button size="sm" variant="destructive" className="text-xs h-7" onClick={() => closeTrade(t, pnl)}>
+              Close
+            </Button>
+          )}
+          {isClosed && (
+            <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => {
+              setEditPnlOpen(t);
+              setEditPnlValue(String(Number(t.pnl ?? 0)));
+            }}>
+              Edit P&L
+            </Button>
+          )}
+        </td>
+      </tr>
+    );
+  };
+
+  const tableHeaders = (
+    <tr className="border-b bg-muted/50">
+      {["Client", "Asset", "Direction", "Size", "Entry", "Leverage", "P&L", "Override", ""].map(h => (
+        <th key={h} className={`p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider ${h === "" ? "text-right" : "text-left"}`}>{h || "Actions"}</th>
+      ))}
+    </tr>
+  );
+
   return (
     <div className="space-y-6">
       <div>
@@ -123,88 +214,57 @@ const AdminTrades = () => {
         <p className="text-muted-foreground text-sm">View and manage all client trades</p>
       </div>
 
-      <Card>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b bg-muted/50">
-                  <th className="text-left p-3 font-medium text-muted-foreground">Client</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">Asset</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">Direction</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">Size</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">Entry</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">Leverage</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">P&L</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">Status</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">Override</th>
-                  <th className="text-right p-3 font-medium text-muted-foreground">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr><td colSpan={10} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
-                ) : trades.length === 0 ? (
-                  <tr><td colSpan={10} className="p-8 text-center text-muted-foreground">No trades yet</td></tr>
-                ) : (
-                  trades.map((t) => {
-                    const override = t.trade_overrides?.[0];
-                    const symbol = (t as any).assets?.symbol;
-                    const pnl = computeLivePnl(t, livePrices[symbol]);
-                    return (
-                      <tr key={t.id} className="border-b last:border-0 hover:bg-muted/30">
-                        <td className="p-3">
-                          <p className="font-medium text-xs">{(t as any).profiles?.full_name || "—"}</p>
-                        </td>
-                        <td className="p-3 font-medium">{symbol ?? "—"}</td>
-                        <td className="p-3">
-                          <Badge variant={t.direction === "buy" ? "default" : "destructive"} className="text-xs capitalize">
-                            {t.direction}
-                          </Badge>
-                        </td>
-                        <td className="p-3">€{Number(t.size).toLocaleString()}</td>
-                        <td className="p-3">€{Number(t.entry_price).toFixed(2)}</td>
-                        <td className="p-3">{t.leverage}×</td>
-                        <td className={`p-3 font-semibold ${pnl >= 0 ? "text-success" : "text-destructive"}`}>
-                          {pnl >= 0 ? "+" : ""}€{pnl.toFixed(2)}
-                        </td>
-                        <td className="p-3">
-                          <Badge variant="outline" className="capitalize text-xs">{t.status}</Badge>
-                        </td>
-                        <td className="p-3">
-                          {override?.is_active ? (
-                            <Badge className="text-xs bg-amber-500/10 text-amber-600 border-amber-500/30">
-                              {override.override_mode}
-                            </Badge>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">—</span>
-                          )}
-                        </td>
-                        <td className="p-3 text-right space-x-1">
-                          {t.status === "open" && (
-                            <>
-                              <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => {
-                                setOverrideOpen(t);
-                                setOverrideMode(override?.override_mode ?? "none");
-                                setTargetValue(override?.target_value?.toString() ?? "");
-                              }}>
-                                Override
-                              </Button>
-                              <Button size="sm" variant="destructive" className="text-xs h-7" onClick={() => closeTrade(t, pnl)}>
-                                Close
-                              </Button>
-                            </>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Open Trades */}
+      <div>
+        <h2 className="text-base font-display font-semibold mb-2 flex items-center gap-2">
+          Open Positions
+          {openTrades.length > 0 && <Badge variant="secondary" className="text-[10px] px-1.5">{openTrades.length}</Badge>}
+        </h2>
+        <Card>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>{tableHeaders}</thead>
+                <tbody>
+                  {loading ? (
+                    <tr><td colSpan={9} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
+                  ) : openTrades.length === 0 ? (
+                    <tr><td colSpan={9} className="p-8 text-center text-muted-foreground">No open trades</td></tr>
+                  ) : (
+                    openTrades.map(t => renderTradeRow(t, false))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Closed Trades */}
+      <div>
+        <h2 className="text-base font-display font-semibold mb-2 flex items-center gap-2">
+          Closed Trades
+          {closedTrades.length > 0 && <Badge variant="secondary" className="text-[10px] px-1.5">{closedTrades.length}</Badge>}
+        </h2>
+        <Card>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>{tableHeaders}</thead>
+                <tbody>
+                  {loading ? (
+                    <tr><td colSpan={9} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
+                  ) : closedTrades.length === 0 ? (
+                    <tr><td colSpan={9} className="p-8 text-center text-muted-foreground">No closed trades</td></tr>
+                  ) : (
+                    closedTrades.map(t => renderTradeRow(t, true))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Override Dialog */}
       <Dialog open={!!overrideOpen} onOpenChange={() => setOverrideOpen(null)}>
@@ -241,6 +301,35 @@ const AdminTrades = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setOverrideOpen(null)}>Cancel</Button>
             <Button onClick={setOverride}>Apply Override</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Closed P&L Dialog */}
+      <Dialog open={!!editPnlOpen} onOpenChange={() => setEditPnlOpen(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit Closed Trade P&L</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Change the final P&L of this closed trade. The client's wallet balance will be adjusted accordingly.
+            </p>
+            <div className="space-y-1">
+              <Label>Current P&L</Label>
+              <p className="text-sm font-semibold">€{Number(editPnlOpen?.pnl ?? 0).toFixed(2)}</p>
+            </div>
+            <div className="space-y-1">
+              <Label>New P&L (€)</Label>
+              <Input type="number" value={editPnlValue} onChange={(e) => setEditPnlValue(e.target.value)} placeholder="e.g. 500 or -200" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditPnlOpen(null)}>Cancel</Button>
+            <Button onClick={() => {
+              if (editPnlOpen && editPnlValue) {
+                editClosedPnl(editPnlOpen, Number(editPnlValue));
+                setEditPnlOpen(null);
+              }
+            }}>Update P&L</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
