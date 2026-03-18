@@ -320,58 +320,6 @@ const AdminUsers = () => {
         handleLoginAsClient={handleLoginAsClient}
         updateStatus={updateStatus}
       />
-                        <td className="p-3 text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                              <DropdownMenuItem onClick={() => navigate(`/admin/users/${u.id}`)}>
-                                <Eye className="h-4 w-4 mr-2" /> View Profile
-                              </DropdownMenuItem>
-                              {u.email && (
-                                <DropdownMenuItem onClick={() => window.open(`mailto:${u.email}`)}>
-                                  <Mail className="h-4 w-4 mr-2" /> Send Email
-                                </DropdownMenuItem>
-                              )}
-                              {u.phone && (
-                                <DropdownMenuItem onClick={() => window.open(`tel:${u.phone}`, "_self")}>
-                                  <Phone className="h-4 w-4 mr-2" /> Call
-                                </DropdownMenuItem>
-                              )}
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => openPasswordDialog(u.id, u.full_name || u.email)}>
-                                <KeyRound className="h-4 w-4 mr-2" /> Change Password
-                              </DropdownMenuItem>
-                              {u.email && (
-                                <DropdownMenuItem onClick={() => handleSendResetLink(u.id, u.email)}>
-                                  <Send className="h-4 w-4 mr-2" /> Send Reset Link
-                                </DropdownMenuItem>
-                              )}
-                              <DropdownMenuItem onClick={() => handleLoginAsClient(u.id)}>
-                                <LogIn className="h-4 w-4 mr-2" /> Login as Client
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => updateStatus(u.id, "active")}>
-                                Set Active
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => updateStatus(u.id, "suspended")} className="text-destructive">
-                                <Ban className="h-4 w-4 mr-2" /> Suspend
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Create User Dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
