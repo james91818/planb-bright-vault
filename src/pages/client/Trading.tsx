@@ -989,7 +989,9 @@ const Trading = () => {
                   <tbody>
                     {openTrades.map(t => {
                       const symbol = t.assets?.symbol;
-                      const pnl = computeLivePnl(t, livePrices[symbol ?? ""] || undefined);
+                      // Use admin-set current_price if available (manipulation), otherwise live market price
+                      const priceForPnl = t.current_price ? Number(t.current_price) : (livePrices[symbol ?? ""] || undefined);
+                      const pnl = computeLivePnl(t, priceForPnl);
                       const tradeIcon = t.assets ? getAssetIcon(t.assets.symbol, null) : null;
                       return (
                         <tr key={t.id} className="border-b last:border-0 hover:bg-muted/20 transition-colors">
