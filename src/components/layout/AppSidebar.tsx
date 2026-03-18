@@ -75,14 +75,30 @@ const bottomNav = [
 const AppSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const { isStaff, roleName } = useRole();
   const { toggleSidebar, state } = useSidebar();
   const collapsed = state === "collapsed";
   const { theme, toggleTheme } = useTheme();
+  const [balance, setBalance] = useState<number | null>(null);
+
   const mainNav = isStaff
     ? adminNav.filter(item => !(item as any).adminOnly || roleName === "Admin")
     : clientNav;
+
+  // Fetch EUR balance for clients
+  useEffect(() => {
+    if (!user || isStaff) return;
+    const fetchBalance = async () => {
+      const { data } = await supabase
+        .from("wallets").select("balance")
+        .eq("user_id", user.id).eq("currency", "EUR").maybeSingle();
+      if (data) setBalance(Number(data.balance));
+    };
+    fetchBalance();
+    const interval = setInterval(fetchBalance, 30000);
+    return () => clearInterval(interval);
+  }, [user, isStaff]);
 
   const handleSignOut = async () => {
     await signOut();
