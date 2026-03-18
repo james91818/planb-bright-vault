@@ -79,6 +79,12 @@ const AdminUsers = () => {
 
   useEffect(() => { fetchData(); }, []);
 
+  const assignAgent = async (userId: string, agentId: string | null) => {
+    await supabase.from("profiles").update({ assigned_agent: agentId }).eq("id", userId);
+    toast.success("Agent assigned");
+    fetchData();
+  };
+
   const updateStatus = async (userId: string, status: string) => {
     await supabase.from("profiles").update({ status }).eq("id", userId);
     toast.success(`User status updated to ${status}`);
