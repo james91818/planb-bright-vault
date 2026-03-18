@@ -1003,6 +1003,7 @@ const Trading = () => {
                       // Use admin-set current_price if available (manipulation), otherwise live market price
                       const priceForPnl = t.current_price ? Number(t.current_price) : (livePrices[symbol ?? ""] || undefined);
                       const pnl = computeLivePnl(t, priceForPnl);
+                      const displayPrice = t.current_price ? Number(t.current_price) : (livePrices[symbol ?? ""] || Number(t.entry_price));
                       const tradeIcon = t.assets ? getAssetIcon(t.assets.symbol, null) : null;
                       return (
                         <tr key={t.id} className="border-b last:border-0 hover:bg-muted/20 transition-colors">
@@ -1026,14 +1027,14 @@ const Trading = () => {
                           </td>
                           <td className="p-3.5 font-medium">€{Number(t.size).toLocaleString()}</td>
                           <td className="p-3.5 text-muted-foreground">€{Number(t.entry_price).toFixed(2)}</td>
-                          <td className="p-3.5">€{(t.current_price ? Number(t.current_price) : (livePrices[symbol ?? ""] || Number(t.entry_price))).toFixed(2)}</td>
+                          <td className="p-3.5">€{displayPrice.toFixed(2)}</td>
                           <td className="p-3.5">{t.leverage}×</td>
                           <td className={`p-3.5 font-bold ${pnl >= 0 ? "text-success" : "text-destructive"}`}>
                             {pnl >= 0 ? "+" : ""}€{pnl.toFixed(2)}
                           </td>
                           <td className="p-3.5 text-right">
                             <Button size="sm" variant="outline" className="text-destructive border-destructive/30 hover:bg-destructive/10 text-xs h-8 px-3"
-                              onClick={() => closeTrade(t)}>
+                              onClick={() => closeTrade(t, displayPrice, pnl)}>
                               <X className="h-3.5 w-3.5 mr-1" /> Close
                             </Button>
                           </td>
