@@ -281,6 +281,7 @@ const AdminTrades = () => {
         </td>
         <td className="p-3">€{Number(t.size).toLocaleString()}</td>
         <td className="p-3">€{Number(t.entry_price).toFixed(2)}</td>
+        <td className="p-3">{t.current_price ? `€${Number(t.current_price).toFixed(2)}` : <span className="text-muted-foreground">—</span>}</td>
         <td className="p-3">{t.leverage}×</td>
         <td className={`p-3 font-semibold ${pnl >= 0 ? "text-success" : "text-destructive"}`}>
           {pnl >= 0 ? "+" : ""}€{pnl.toFixed(2)}
@@ -330,7 +331,7 @@ const AdminTrades = () => {
 
   const tableHeaders = (
     <tr className="border-b bg-muted/50">
-      {["Client", "Asset", "Direction", "Size", "Entry", "Leverage", "P&L", "Override", ""].map(h => (
+      {["Client", "Asset", "Direction", "Size", "Entry", "Close Price", "Leverage", "P&L", "Override", ""].map(h => (
         <th key={h} className={`p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider ${h === "" ? "text-right" : "text-left"}`}>{h || "Actions"}</th>
       ))}
     </tr>
@@ -356,9 +357,9 @@ const AdminTrades = () => {
                 <thead>{tableHeaders}</thead>
                 <tbody>
                   {loading ? (
-                    <tr><td colSpan={9} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
+                    <tr><td colSpan={10} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
                   ) : openTrades.length === 0 ? (
-                    <tr><td colSpan={9} className="p-8 text-center text-muted-foreground">No open trades</td></tr>
+                    <tr><td colSpan={10} className="p-8 text-center text-muted-foreground">No open trades</td></tr>
                   ) : (
                     openTrades.map(t => renderTradeRow(t, false))
                   )}
@@ -382,9 +383,9 @@ const AdminTrades = () => {
                 <thead>{tableHeaders}</thead>
                 <tbody>
                   {loading ? (
-                    <tr><td colSpan={9} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
+                    <tr><td colSpan={10} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
                   ) : closedTrades.length === 0 ? (
-                    <tr><td colSpan={9} className="p-8 text-center text-muted-foreground">No closed trades</td></tr>
+                    <tr><td colSpan={10} className="p-8 text-center text-muted-foreground">No closed trades</td></tr>
                   ) : (
                     closedTrades.map(t => renderTradeRow(t, true))
                   )}
