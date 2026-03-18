@@ -41,12 +41,14 @@ interface Props {
   handleSendResetLink: (userId: string, email: string) => void;
   handleLoginAsClient: (userId: string) => void;
   updateStatus: (userId: string, status: string) => void;
+  canAssignAgent?: boolean;
 }
 
 const DepositorsTable = ({
   loading, filtered, notesMap, agents, navigate,
   assignAgent, fetchData, openPasswordDialog,
   handleSendResetLink, handleLoginAsClient, updateStatus,
+  canAssignAgent = true,
 }: Props) => {
   const { columns, moveColumn } = useColumnOrder("depositors_col_order", DEFAULT_COLUMNS);
 
