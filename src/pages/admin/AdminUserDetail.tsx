@@ -105,6 +105,23 @@ const AdminUserDetail = () => {
       .catch(() => {});
   }, []);
 
+  // Fetch live asset prices for trade P&L
+  const refreshLivePrices = useCallback(async () => {
+    if (!trades.length) return;
+    const symbols = [...new Set(trades.map((t: any) => t.assets?.symbol).filter(Boolean))] as string[];
+    if (symbols.length) {
+      const prices = await fetchLivePrices(symbols);
+      if (Object.keys(prices).length) setLivePrices(prices);
+    }
+  }, [trades]);
+
+  useEffect(() => { refreshLivePrices(); }, [refreshLivePrices]);
+  useEffect(() => {
+    if (!trades.length) return;
+    const interval = setInterval(refreshLivePrices, 30000);
+    return () => clearInterval(interval);
+  }, [trades, refreshLivePrices]);
+
   const handleSaveProfile = async () => {
     setSaving(true);
     await supabase.from("profiles").update(editProfile).eq("id", userId);
