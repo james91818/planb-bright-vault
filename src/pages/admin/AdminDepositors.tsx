@@ -54,13 +54,18 @@ const AdminDepositors = () => {
   }, []);
 
   const fetchData = async () => {
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("is_lead", false)
-      .order("created_at", { ascending: false });
+    const [{ data: profiles }, { data: urData }] = await Promise.all([
+      supabase.from("profiles").select("*").order("created_at", { ascending: false }),
+      supabase.from("user_roles").select("user_id"),
+    ]);
 
-    if (!profiles || profiles.length === 0) {
+    const staffIds = new Set((urData ?? []).map((ur: any) => ur.user_id));
+    const agentProfiles = (profiles ?? []).filter(p => staffIds.has(p.id));
+    setAgents(agentProfiles);
+
+    const depositorProfiles = (profiles ?? []).filter(p => !staffIds.has(p.id) && p.is_lead === false);
+
+    if (!depositorProfiles || depositorProfiles.length === 0) {
       setDepositors([]);
       setLoading(false);
       return;
