@@ -456,7 +456,7 @@ const AdminUserDetail = () => {
                 </thead>
                 <tbody>
                   {wallets.map(w => (
-                    <WalletRow key={w.id} wallet={w} onUpdate={updateWalletBalance} />
+                    <WalletRow key={w.id} wallet={w} onUpdate={updateWalletBalance} cryptoPricesEur={cryptoPricesEur} />
                   ))}
                 </tbody>
               </table>
@@ -746,9 +746,12 @@ const AdminUserDetail = () => {
 };
 
 /* Inline wallet row with editable balance */
-const WalletRow = ({ wallet, onUpdate }: { wallet: any; onUpdate: (id: string, bal: number) => void }) => {
+const FIAT_LIST = ["EUR", "USD", "GBP", "CHF", "AUD", "CAD"];
+const WalletRow = ({ wallet, onUpdate, cryptoPricesEur }: { wallet: any; onUpdate: (id: string, bal: number) => void; cryptoPricesEur: Record<string, number> }) => {
   const [editing, setEditing] = useState(false);
   const [val, setVal] = useState(String(wallet.balance));
+  const isCrypto = !FIAT_LIST.includes(wallet.currency);
+  const eurValue = isCrypto && cryptoPricesEur[wallet.currency] ? Number(wallet.balance) * cryptoPricesEur[wallet.currency] : null;
 
   return (
     <tr className="border-b last:border-0">
@@ -757,7 +760,12 @@ const WalletRow = ({ wallet, onUpdate }: { wallet: any; onUpdate: (id: string, b
         {editing ? (
           <Input type="number" value={val} onChange={e => setVal(e.target.value)} className="w-32 h-8 text-sm" autoFocus />
         ) : (
-          <span className="font-semibold">{Number(wallet.balance).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+          <div>
+            <span className="font-semibold">{Number(wallet.balance).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+            {eurValue !== null && Number(wallet.balance) > 0 && (
+              <span className="text-xs text-muted-foreground ml-2">≈ €{eurValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            )}
+          </div>
         )}
       </td>
       <td className="p-3 text-right">
