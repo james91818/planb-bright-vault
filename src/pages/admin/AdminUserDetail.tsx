@@ -874,6 +874,57 @@ const AdminUserDetail = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Manage Stake Dialog */}
+      <Dialog open={!!editStake} onOpenChange={() => setEditStake(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Landmark className="h-5 w-5" /> Manage Stake
+            </DialogTitle>
+          </DialogHeader>
+          {editStake && (
+            <div className="space-y-4">
+              <div className="bg-muted/50 rounded-lg p-3 text-sm space-y-1">
+                <p><span className="text-muted-foreground">Plan:</span> {(editStake as any).staking_plans?.name}</p>
+                <p><span className="text-muted-foreground">Staked:</span> €{Number(editStake.amount).toLocaleString()}</p>
+                <p><span className="text-muted-foreground">APY:</span> {(editStake as any).staking_plans?.apy}%</p>
+                <p><span className="text-muted-foreground">Unlocks:</span> {new Date(editStake.unlocks_at).toLocaleString()}</p>
+              </div>
+              <div className="space-y-1">
+                <Label>Rewards Earned (€)</Label>
+                <p className="text-xs text-muted-foreground">Set positive for profit, negative for loss</p>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" className="text-success" onClick={() => setRewardsInput(String(Math.abs(Number(rewardsInput) || 0)))}>
+                    <TrendingUp className="h-3.5 w-3.5 mr-1" /> Profit
+                  </Button>
+                  <Button size="sm" variant="outline" className="text-destructive" onClick={() => setRewardsInput(String(-Math.abs(Number(rewardsInput) || 0)))}>
+                    <TrendingDown className="h-3.5 w-3.5 mr-1" /> Loss
+                  </Button>
+                </div>
+                <Input type="number" value={rewardsInput} onChange={(e) => setRewardsInput(e.target.value)} placeholder="0.00" />
+              </div>
+              <div className="space-y-1">
+                <Label>Status</Label>
+                <Select value={claimedInput} onValueChange={setClaimedInput}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="false">Active (not claimed)</SelectItem>
+                    <SelectItem value="true">Claimed (return funds + rewards to wallet)</SelectItem>
+                  </SelectContent>
+                </Select>
+                {claimedInput === "true" && !editStake.claimed && (
+                  <p className="text-xs text-success">Will credit €{(Number(editStake.amount) + Number(rewardsInput || 0)).toFixed(2)} to user's EUR wallet</p>
+                )}
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditStake(null)}>Cancel</Button>
+            <Button onClick={saveStakeOverride}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
