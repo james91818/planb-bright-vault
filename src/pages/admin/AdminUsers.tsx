@@ -26,6 +26,8 @@ import { useRole } from "@/hooks/useRole";
 
 const AdminUsers = () => {
   const { user: authUser } = useAuth();
+  const { roleName } = useRole();
+  const canAssignAgent = roleName === "Admin" || roleName === "Manager";
   const leadStatuses = useLeadStatuses();
   const navigate = useNavigate();
   const [users, setUsers] = useState<any[]>([]);
