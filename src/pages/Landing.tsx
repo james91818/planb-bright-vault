@@ -531,7 +531,7 @@ const Landing = () => {
               </button>
             ))}
           </div>
-
+        <AnimatedSection>
           <Card className="overflow-hidden">
             {/* Chart area */}
             <CardContent className="p-0">
