@@ -48,6 +48,7 @@ import WalletPage from "./pages/client/Wallet";
 import Staking from "./pages/client/Staking";
 import Watchlist from "./pages/client/Watchlist";
 import CopyTrading from "./pages/client/CopyTrading";
+import PnlSummary from "./pages/client/PnlSummary";
 
 // Shared pages
 import Notifications from "./pages/shared/Notifications";
