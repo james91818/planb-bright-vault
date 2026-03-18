@@ -303,7 +303,8 @@ const Trading = () => {
     refreshPrices(assetList);
 
     if (!selectedAsset && assetList.length > 0) {
-      selectAsset(assetList[0], {});
+      const btcAsset = assetList.find(a => a.symbol.toUpperCase().includes("BTC") && a.type === "crypto");
+      selectAsset(btcAsset ?? assetList[0], {});
     }
   }, [user, selectedAsset]);
 
