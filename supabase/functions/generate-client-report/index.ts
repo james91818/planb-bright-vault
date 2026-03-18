@@ -247,7 +247,7 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const { user_id, sections, action } = await req.json();
+    const { user_id, sections, action, date_range } = await req.json();
     if (!user_id) {
       return new Response(JSON.stringify({ error: "user_id required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -256,8 +256,24 @@ Deno.serve(async (req: Request) => {
 
     const defaultSections = { wallets: true, trades: true, deposits: true, withdrawals: true, staking: true, pnl: true };
     const activeSections = sections || defaultSections;
+    const range = getDateRange(date_range || "all");
 
-    // Fetch all client data
+    // Fetch all client data with optional date filtering
+    const profilePromise = supabase.from("profiles").select("*").eq("id", user_id).single();
+    const walletsPromise = supabase.from("wallets").select("*").eq("user_id", user_id);
+
+    let tradesQuery = supabase.from("trades").select("*, assets(symbol, name)").eq("user_id", user_id).order("opened_at", { ascending: false }).limit(100);
+    let depsQuery = supabase.from("deposits").select("*").eq("user_id", user_id).order("created_at", { ascending: false }).limit(100);
+    let wdsQuery = supabase.from("withdrawals").select("*").eq("user_id", user_id).order("created_at", { ascending: false }).limit(100);
+    let stakesQuery = supabase.from("user_stakes").select("*, staking_plans(name, asset, apy)").eq("user_id", user_id).order("started_at", { ascending: false });
+
+    if (range.from) {
+      tradesQuery = tradesQuery.gte("opened_at", range.from).lt("opened_at", range.to);
+      depsQuery = depsQuery.gte("created_at", range.from).lt("created_at", range.to);
+      wdsQuery = wdsQuery.gte("created_at", range.from).lt("created_at", range.to);
+      stakesQuery = stakesQuery.gte("started_at", range.from).lt("started_at", range.to);
+    }
+
     const [
       { data: profile },
       { data: wallets },
@@ -266,12 +282,7 @@ Deno.serve(async (req: Request) => {
       { data: wds },
       { data: stakes },
     ] = await Promise.all([
-      supabase.from("profiles").select("*").eq("id", user_id).single(),
-      supabase.from("wallets").select("*").eq("user_id", user_id),
-      supabase.from("trades").select("*, assets(symbol, name)").eq("user_id", user_id).order("opened_at", { ascending: false }).limit(100),
-      supabase.from("deposits").select("*").eq("user_id", user_id).order("created_at", { ascending: false }).limit(100),
-      supabase.from("withdrawals").select("*").eq("user_id", user_id).order("created_at", { ascending: false }).limit(100),
-      supabase.from("user_stakes").select("*, staking_plans(name, asset, apy)").eq("user_id", user_id).order("started_at", { ascending: false }),
+      profilePromise, walletsPromise, tradesQuery, depsQuery, wdsQuery, stakesQuery,
     ]);
 
     if (!profile) {
