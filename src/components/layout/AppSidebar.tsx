@@ -24,6 +24,7 @@ import {
   Handshake,
   Copy,
   CalendarDays,
+  Trophy,
 } from "lucide-react";
 import {
   Sidebar,
@@ -67,6 +68,7 @@ const adminNav = [
   { title: "Staking", icon: Landmark, path: "/admin/staking" },
   { title: "Copy Trading", icon: Copy, path: "/admin/copy-trading" },
   
+  { title: "Score Board", icon: Trophy, path: "/admin/scoreboard", adminOnly: true },
   { title: "News", icon: Newspaper, path: "/admin/news" },
   { title: "Calendar", icon: CalendarDays, path: "/admin/calendar" },
 ];

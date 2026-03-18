@@ -42,6 +42,7 @@ import AdminStaking from "./pages/admin/AdminStaking";
 import AdminBalance from "./pages/admin/AdminBalance";
 import AdminCopyTrading from "./pages/admin/AdminCopyTrading";
 import AdminCalendar from "./pages/admin/AdminCalendar";
+import AdminScoreboard from "./pages/admin/AdminScoreboard";
 
 // Client pages
 import Trading from "./pages/client/Trading";
@@ -109,6 +110,7 @@ const App = () => (
             <Route path="/admin/copy-trading" element={<AdminCopyTrading />} />
             <Route path="/admin/roles" element={<AdminRoles />} />
             <Route path="/admin/calendar" element={<AdminCalendar />} />
+            <Route path="/admin/scoreboard" element={<AdminScoreboard />} />
             {/* Shared routes */}
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/support" element={<Support />} />
