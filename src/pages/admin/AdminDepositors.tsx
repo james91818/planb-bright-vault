@@ -149,6 +149,7 @@ const AdminDepositors = () => {
                   <th className="text-left p-3 font-medium text-muted-foreground">Email</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Country</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Registration</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">First Deposit</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Affiliate</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Funnel</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Deposits</th>
