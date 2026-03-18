@@ -63,6 +63,7 @@ const AdminUserDetail = () => {
   const [cryptoForm, setCryptoForm] = useState({ currency: "BTC", address: "", network: "", label: "" });
   const [savingCrypto, setSavingCrypto] = useState(false);
   // Report settings
+  const [reportType, setReportType] = useState("custom");
   const [reportSections, setReportSections] = useState<Record<string, boolean>>({ wallets: true, trades: true, deposits: true, withdrawals: true, staking: true, pnl: true });
   const [reportFrequency, setReportFrequency] = useState("manual");
   const [reportEnabled, setReportEnabled] = useState(false);
@@ -70,6 +71,15 @@ const AdminUserDetail = () => {
   const [savingReport, setSavingReport] = useState(false);
   const [sendingReport, setSendingReport] = useState(false);
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
+
+  const reportTemplates: Record<string, { label: string; description: string; sections: Record<string, boolean> }> = {
+    custom: { label: "Custom Report", description: "Select sections manually", sections: { wallets: true, trades: true, deposits: true, withdrawals: true, staking: true, pnl: true } },
+    pnl_report: { label: "Profit & Loss Report", description: "Portfolio performance, trades and P&L summary", sections: { wallets: true, trades: true, deposits: false, withdrawals: false, staking: false, pnl: true } },
+    account_summary: { label: "Account Summary", description: "Full overview of all account activity", sections: { wallets: true, trades: true, deposits: true, withdrawals: true, staking: true, pnl: true } },
+    deposit_banking: { label: "Deposit & Banking Details", description: "Deposit history and bank information", sections: { wallets: true, trades: false, deposits: true, withdrawals: true, staking: false, pnl: false } },
+    staking_report: { label: "Staking Report", description: "Active stakes, rewards earned and plan details", sections: { wallets: false, trades: false, deposits: false, withdrawals: false, staking: true, pnl: false } },
+    trading_activity: { label: "Trading Activity Report", description: "Detailed trading history with entry/exit prices", sections: { wallets: false, trades: true, deposits: false, withdrawals: false, staking: false, pnl: true } },
+  };
 
   const fetchAll = async () => {
     if (!userId) return;
