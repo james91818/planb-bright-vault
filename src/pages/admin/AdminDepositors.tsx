@@ -265,6 +265,7 @@ const AdminDepositors = () => {
                   <th className="text-left p-3 font-medium text-muted-foreground">First Deposit</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Affiliate</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Funnel</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Agent</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Deposits</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Total</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Balance</th>
@@ -276,9 +277,9 @@ const AdminDepositors = () => {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={15} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
+                  <tr><td colSpan={16} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
                 ) : filtered.length === 0 ? (
-                  <tr><td colSpan={15} className="p-8 text-center text-muted-foreground">No depositors found</td></tr>
+                  <tr><td colSpan={16} className="p-8 text-center text-muted-foreground">No depositors found</td></tr>
                 ) : (
                   filtered.map(u => {
                     const note = notesMap[u.id];
