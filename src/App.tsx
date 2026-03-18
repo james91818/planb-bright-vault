@@ -110,6 +110,7 @@ const App = () => (
             <Route path="/admin/copy-trading" element={<AdminCopyTrading />} />
             <Route path="/admin/roles" element={<AdminRoles />} />
             <Route path="/admin/calendar" element={<AdminCalendar />} />
+            <Route path="/admin/scoreboard" element={<AdminScoreboard />} />
             {/* Shared routes */}
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/support" element={<Support />} />

@@ -24,6 +24,7 @@ import {
   Handshake,
   Copy,
   CalendarDays,
+  Trophy,
 } from "lucide-react";
 import {
   Sidebar,
