@@ -29,6 +29,10 @@ const AdminUsers = () => {
   const [agents, setAgents] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [countryFilter, setCountryFilter] = useState("all");
+  const [agentFilter, setAgentFilter] = useState("all");
+  const [affiliateFilter, setAffiliateFilter] = useState("all");
+  const [funnelFilter, setFunnelFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [newUser, setNewUser] = useState({ email: "", password: "", first_name: "", last_name: "", phone: "", country: "Germany", date_of_birth: "", address: "", city: "", postal_code: "", funnel: "" });
