@@ -457,7 +457,7 @@ const Trading = () => {
     setCandles(data);
     setLivePrice(base);
     setPriceChange(+((data[data.length - 1].c - data[0].o) / data[0].o * 100).toFixed(2));
-    setOrderSize(""); setLeverage(1); setStopLoss(""); setTakeProfit("");
+    setOrderSize(""); setLeverage(1); setStopLoss(""); setTakeProfit(""); setSlMode("price"); setTpMode("price");
     chartInitialized.current = true;
   };
 
