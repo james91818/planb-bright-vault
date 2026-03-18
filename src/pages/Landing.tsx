@@ -623,15 +623,19 @@ const Landing = () => {
 
       {/* ===== FUND YOUR ACCOUNT (Payment Methods) ===== */}
       <section className="container mx-auto px-4 py-12 md:py-16 text-center">
-        <h3 className="text-lg font-display font-semibold mb-8">Fund Your Account Instantly</h3>
-        <div className="flex flex-wrap items-center justify-center gap-5 md:gap-8">
+        <AnimatedSection>
+          <h3 className="text-lg font-display font-semibold mb-8">Fund Your Account Instantly</h3>
+        </AnimatedSection>
+        <StaggerContainer className="flex flex-wrap items-center justify-center gap-5 md:gap-8">
           {paymentMethods.map((pm) => (
-            <div key={pm.name} className="h-16 w-24 rounded-xl border bg-card flex flex-col items-center justify-center gap-1 hover:shadow-md transition-shadow">
-              <img src={pm.logo} alt={pm.name} className="h-8 w-8 object-contain" />
-              <span className="text-[10px] font-medium text-muted-foreground">{pm.name}</span>
-            </div>
+            <StaggerItem key={pm.name}>
+              <div className="h-16 w-24 rounded-xl border bg-card flex flex-col items-center justify-center gap-1 hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+                <img src={pm.logo} alt={pm.name} className="h-8 w-8 object-contain" />
+                <span className="text-[10px] font-medium text-muted-foreground">{pm.name}</span>
+              </div>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerContainer>
       </section>
 
       {/* ===== GET STARTED IN 3 STEPS ===== */}
