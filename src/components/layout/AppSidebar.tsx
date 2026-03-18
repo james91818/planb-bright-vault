@@ -60,7 +60,7 @@ const adminNav = [
   { title: "Staking", icon: Landmark, path: "/admin/staking" },
   { title: "Assets", icon: LineChart, path: "/admin/assets" },
   { title: "News", icon: Newspaper, path: "/admin/news" },
-  { title: "Roles", icon: FileText, path: "/admin/roles" },
+  
 ];
 
 const bottomNav = [
