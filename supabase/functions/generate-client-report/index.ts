@@ -79,134 +79,322 @@ function generateHtmlReport(data: ReportData): string {
   const { profile, wallets, trades, deposits, withdrawals, stakes, sections, dateRangeLabel: drLabel } = data;
   const now = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" });
 
+  const openTrades = trades.filter(t => t.status === "open");
+  const closedTrades = trades.filter(t => t.status === "closed");
+  const openPnl = openTrades.reduce((s, t) => s + Number(t.pnl || 0), 0);
+  const closedPnl = closedTrades.reduce((s, t) => s + Number(t.pnl || 0), 0);
+  const totalPnl = openPnl + closedPnl;
+  const totalBalance = wallets.reduce((s, w) => s + Number(w.balance || 0), 0);
+  const totalDeps = deposits.filter(d => d.status === "approved").reduce((s, d) => s + Number(d.amount), 0);
+  const totalWds = withdrawals.filter(w => w.status === "approved").reduce((s, w) => s + Number(w.amount), 0);
+  const totalStaked = stakes.reduce((s, st) => s + Number(st.amount || 0), 0);
+  const totalRewards = stakes.reduce((s, st) => s + Number(st.rewards_earned || 0), 0);
+
   let html = `
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
 <style>
-  body { font-family: Arial, Helvetica, sans-serif; color: #1a1a2e; margin: 0; padding: 40px; background: #fff; }
-  h1 { font-size: 24px; margin-bottom: 4px; }
-  h2 { font-size: 18px; color: #16213e; border-bottom: 2px solid #0f3460; padding-bottom: 6px; margin-top: 32px; }
-  .subtitle { color: #666; font-size: 13px; margin-bottom: 24px; }
-  table { width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 13px; }
-  th { background: #0f3460; color: #fff; text-align: left; padding: 8px 12px; }
-  td { padding: 7px 12px; border-bottom: 1px solid #e0e0e0; }
-  tr:nth-child(even) { background: #f8f9fa; }
-  .positive { color: #16a34a; }
-  .negative { color: #dc2626; }
-  .summary-grid { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
-  .summary-card { flex: 1; min-width: 140px; background: #f0f4f8; border-radius: 8px; padding: 16px; text-align: center; }
-  .summary-card .label { font-size: 11px; color: #666; text-transform: uppercase; }
-  .summary-card .value { font-size: 20px; font-weight: bold; margin-top: 4px; }
-  .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #ccc; font-size: 11px; color: #999; text-align: center; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; color: #1e293b; margin: 0; padding: 0; background: #f8fafc; line-height: 1.6; }
+  .page { max-width: 800px; margin: 0 auto; background: #fff; }
+
+  /* Header */
+  .header { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); color: #fff; padding: 40px 48px 32px; }
+  .header h1 { font-size: 28px; margin: 0 0 4px; font-weight: 700; letter-spacing: -0.5px; }
+  .header .tagline { color: #94a3b8; font-size: 14px; margin: 0 0 20px; }
+  .client-info { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px; }
+  .client-name { font-size: 18px; font-weight: 600; }
+  .client-meta { font-size: 12px; color: #94a3b8; text-align: right; }
+  .client-meta span { display: block; }
+
+  /* Quick Overview Banner */
+  .overview-banner { background: linear-gradient(135deg, #0f172a, #1e3a5f); margin: 0; padding: 24px 48px; }
+  .overview-grid { display: flex; gap: 0; flex-wrap: wrap; }
+  .overview-item { flex: 1; min-width: 120px; text-align: center; padding: 12px 8px; border-right: 1px solid rgba(255,255,255,0.1); }
+  .overview-item:last-child { border-right: none; }
+  .overview-item .ov-label { font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .overview-item .ov-value { font-size: 22px; font-weight: 700; color: #fff; }
+  .overview-item .ov-value.positive { color: #4ade80; }
+  .overview-item .ov-value.negative { color: #f87171; }
+
+  /* Content */
+  .content { padding: 32px 48px 40px; }
+
+  /* Section */
+  .section { margin-bottom: 36px; page-break-inside: avoid; }
+  .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .section-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .section-title { font-size: 18px; font-weight: 700; color: #0f172a; margin: 0; }
+  .section-desc { font-size: 13px; color: #64748b; margin: 0 0 16px; padding-left: 42px; }
+
+  /* Summary Cards */
+  .cards { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+  .card { flex: 1; min-width: 130px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; text-align: center; }
+  .card .c-label { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+  .card .c-value { font-size: 22px; font-weight: 700; color: #0f172a; }
+  .card .c-value.positive { color: #16a34a; }
+  .card .c-value.negative { color: #dc2626; }
+  .card .c-hint { font-size: 10px; color: #94a3b8; margin-top: 4px; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin-bottom: 8px; font-size: 12px; }
+  th { background: #f1f5f9; color: #475569; text-align: left; padding: 10px 12px; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0; }
+  td { padding: 9px 12px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+  tr:hover { background: #fafbfc; }
+  .positive { color: #16a34a; font-weight: 600; }
+  .negative { color: #dc2626; font-weight: 600; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; text-transform: uppercase; }
+  .badge-open { background: #dbeafe; color: #1d4ed8; }
+  .badge-closed { background: #f1f5f9; color: #64748b; }
+  .badge-approved { background: #dcfce7; color: #16a34a; }
+  .badge-pending { background: #fef3c7; color: #d97706; }
+  .badge-rejected { background: #fee2e2; color: #dc2626; }
+
+  /* Glossary */
+  .glossary { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px 24px; margin-top: 8px; }
+  .glossary h4 { font-size: 13px; color: #475569; margin: 0 0 8px; font-weight: 700; }
+  .glossary dl { margin: 0; font-size: 12px; }
+  .glossary dt { font-weight: 600; color: #334155; margin-top: 6px; }
+  .glossary dd { margin: 0 0 2px 0; color: #64748b; }
+
+  /* Footer */
+  .footer { background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 24px 48px; text-align: center; }
+  .footer p { margin: 0; font-size: 11px; color: #94a3b8; }
+  .footer .support { margin-top: 8px; font-size: 12px; color: #64748b; }
+
+  /* Print */
+  @media print {
+    body { background: #fff; }
+    .page { box-shadow: none; }
+    .section { page-break-inside: avoid; }
+  }
 </style>
 </head>
 <body>
-<h1>Investment Report</h1>
-<p class="subtitle">Prepared for <strong>${profile.full_name || profile.email}</strong> &mdash; ${now} &mdash; Period: <strong>${drLabel}</strong></p>
+<div class="page">
+
+<!-- Header -->
+<div class="header">
+  <h1>📊 Investment Report</h1>
+  <p class="tagline">Your personalised financial summary — everything you need to know at a glance</p>
+  <div class="client-info">
+    <div class="client-name">${profile.full_name || profile.email}</div>
+    <div class="client-meta">
+      <span>Report Date: ${now}</span>
+      <span>Period: ${drLabel}</span>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Overview Banner -->
+<div class="overview-banner">
+  <div class="overview-grid">
+    ${sections.wallets ? `<div class="overview-item"><div class="ov-label">Portfolio Value</div><div class="ov-value">${formatCurrency(totalBalance)}</div></div>` : ""}
+    ${sections.pnl && trades.length > 0 ? `<div class="overview-item"><div class="ov-label">Total P&L</div><div class="ov-value ${totalPnl >= 0 ? 'positive' : 'negative'}">${formatCurrency(totalPnl)}</div></div>` : ""}
+    ${sections.deposits && deposits.length > 0 ? `<div class="overview-item"><div class="ov-label">Deposited</div><div class="ov-value positive">${formatCurrency(totalDeps)}</div></div>` : ""}
+    ${sections.withdrawals && withdrawals.length > 0 ? `<div class="overview-item"><div class="ov-label">Withdrawn</div><div class="ov-value">${formatCurrency(totalWds)}</div></div>` : ""}
+    ${sections.staking && stakes.length > 0 ? `<div class="overview-item"><div class="ov-label">Rewards Earned</div><div class="ov-value positive">${formatCurrency(totalRewards)}</div></div>` : ""}
+  </div>
+</div>
+
+<div class="content">
 `;
 
-  // Wallets / Portfolio
+  // --- Portfolio Summary ---
   if (sections.wallets && wallets.length > 0) {
-    const totalBalance = wallets.reduce((s, w) => s + Number(w.balance || 0), 0);
-    html += `<h2>Portfolio Summary</h2>`;
-    html += `<div class="summary-grid">
-      <div class="summary-card"><div class="label">Total Balance</div><div class="value">${formatCurrency(totalBalance)}</div></div>
-      <div class="summary-card"><div class="label">Currencies</div><div class="value">${wallets.length}</div></div>
-    </div>`;
-    html += `<table><tr><th>Currency</th><th>Balance</th></tr>`;
+    html += `
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon" style="background:#dbeafe;color:#2563eb;">💰</div>
+        <h2 class="section-title">Portfolio Summary</h2>
+      </div>
+      <p class="section-desc">This section shows the total value of your account across all currencies. Your portfolio balance reflects the funds currently available in your account.</p>
+      <div class="cards">
+        <div class="card"><div class="c-label">Total Balance</div><div class="c-value">${formatCurrency(totalBalance)}</div><div class="c-hint">Combined value of all your assets</div></div>
+        <div class="card"><div class="c-label">Currencies Held</div><div class="c-value">${wallets.length}</div><div class="c-hint">Number of different currencies</div></div>
+      </div>
+      <table><tr><th>Currency</th><th style="text-align:right">Balance</th></tr>`;
     wallets.forEach(w => {
-      html += `<tr><td>${w.currency}</td><td>${formatCurrency(Number(w.balance), w.currency)}</td></tr>`;
+      html += `<tr><td><strong>${w.currency}</strong></td><td style="text-align:right">${formatCurrency(Number(w.balance), w.currency)}</td></tr>`;
     });
-    html += `</table>`;
-  }
-
-  // P&L
-  if (sections.pnl && trades.length > 0) {
-    const openTrades = trades.filter(t => t.status === "open");
-    const closedTrades = trades.filter(t => t.status === "closed");
-    const openPnl = openTrades.reduce((s, t) => s + Number(t.pnl || 0), 0);
-    const closedPnl = closedTrades.reduce((s, t) => s + Number(t.pnl || 0), 0);
-    html += `<h2>Profit &amp; Loss</h2>`;
-    html += `<div class="summary-grid">
-      <div class="summary-card"><div class="label">Open P&L</div><div class="value ${openPnl >= 0 ? 'positive' : 'negative'}">${formatCurrency(openPnl)}</div></div>
-      <div class="summary-card"><div class="label">Realized P&L</div><div class="value ${closedPnl >= 0 ? 'positive' : 'negative'}">${formatCurrency(closedPnl)}</div></div>
-      <div class="summary-card"><div class="label">Open Positions</div><div class="value">${openTrades.length}</div></div>
+    html += `</table>
     </div>`;
   }
 
-  // Trades
+  // --- Profit & Loss ---
+  if (sections.pnl && trades.length > 0) {
+    const winCount = closedTrades.filter(t => Number(t.pnl || 0) > 0).length;
+    const winRate = closedTrades.length > 0 ? ((winCount / closedTrades.length) * 100).toFixed(1) : "0.0";
+    html += `
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon" style="background:#dcfce7;color:#16a34a;">📈</div>
+        <h2 class="section-title">Profit & Loss</h2>
+      </div>
+      <p class="section-desc">This is a summary of how your investments have performed. <strong>Open P&L</strong> shows the unrealised profit/loss on trades still active. <strong>Realised P&L</strong> shows the actual profit/loss from trades that have been closed.</p>
+      <div class="cards">
+        <div class="card"><div class="c-label">Open P&L</div><div class="c-value ${openPnl >= 0 ? 'positive' : 'negative'}">${formatCurrency(openPnl)}</div><div class="c-hint">From ${openTrades.length} active position${openTrades.length !== 1 ? 's' : ''}</div></div>
+        <div class="card"><div class="c-label">Realised P&L</div><div class="c-value ${closedPnl >= 0 ? 'positive' : 'negative'}">${formatCurrency(closedPnl)}</div><div class="c-hint">From ${closedTrades.length} closed trade${closedTrades.length !== 1 ? 's' : ''}</div></div>
+        <div class="card"><div class="c-label">Win Rate</div><div class="c-value">${winRate}%</div><div class="c-hint">${winCount} of ${closedTrades.length} trades profitable</div></div>
+      </div>
+      <div class="glossary">
+        <h4>💡 What do these numbers mean?</h4>
+        <dl>
+          <dt>Open P&L (Unrealised)</dt><dd>The potential profit or loss from trades that are still running. This value changes as the market moves.</dd>
+          <dt>Realised P&L</dt><dd>The actual profit or loss from trades that have been completed. This is the money you have gained or lost.</dd>
+          <dt>Win Rate</dt><dd>The percentage of your closed trades that ended with a profit.</dd>
+        </dl>
+      </div>
+    </div>`;
+  }
+
+  // --- Trades ---
   if (sections.trades && trades.length > 0) {
-    html += `<h2>Trades</h2><table><tr><th>Asset</th><th>Direction</th><th>Entry</th><th>Size</th><th>Leverage</th><th>P&L</th><th>Status</th><th>Date</th></tr>`;
+    html += `
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon" style="background:#fef3c7;color:#d97706;">📋</div>
+        <h2 class="section-title">Trading Activity</h2>
+      </div>
+      <p class="section-desc">A detailed list of all your trades during this period. Each row shows the asset traded, the direction (Buy or Sell), the price you entered at, and the current profit or loss.</p>
+      <table>
+        <tr><th>Asset</th><th>Direction</th><th style="text-align:right">Entry Price</th><th style="text-align:right">Size</th><th>Leverage</th><th style="text-align:right">P&L</th><th>Status</th><th>Date</th></tr>`;
     trades.forEach(t => {
       const pnl = Number(t.pnl || 0);
       const symbol = t.assets?.symbol || "—";
+      const statusClass = t.status === "open" ? "badge-open" : "badge-closed";
       html += `<tr>
-        <td>${symbol}</td>
-        <td>${t.direction}</td>
-        <td>${formatCurrency(Number(t.entry_price))}</td>
-        <td>${Number(t.size).toFixed(4)}</td>
+        <td><strong>${symbol}</strong></td>
+        <td>${t.direction === "buy" ? "🟢 Buy" : "🔴 Sell"}</td>
+        <td style="text-align:right">${formatCurrency(Number(t.entry_price))}</td>
+        <td style="text-align:right">${Number(t.size).toFixed(4)}</td>
         <td>${t.leverage}x</td>
-        <td class="${pnl >= 0 ? 'positive' : 'negative'}">${formatCurrency(pnl)}</td>
-        <td>${t.status}</td>
+        <td style="text-align:right" class="${pnl >= 0 ? 'positive' : 'negative'}">${formatCurrency(pnl)}</td>
+        <td><span class="badge ${statusClass}">${t.status}</span></td>
         <td>${new Date(t.opened_at).toLocaleDateString("en-GB")}</td>
       </tr>`;
     });
-    html += `</table>`;
-  }
-
-  // Deposits
-  if (sections.deposits && deposits.length > 0) {
-    const totalDeps = deposits.filter(d => d.status === "approved").reduce((s, d) => s + Number(d.amount), 0);
-    html += `<h2>Deposits</h2>`;
-    html += `<div class="summary-grid"><div class="summary-card"><div class="label">Total Deposited</div><div class="value positive">${formatCurrency(totalDeps)}</div></div></div>`;
-    html += `<table><tr><th>Amount</th><th>Currency</th><th>Method</th><th>Status</th><th>Date</th></tr>`;
-    deposits.forEach(d => {
-      html += `<tr><td>${Number(d.amount).toLocaleString()}</td><td>${d.currency}</td><td>${d.method}</td><td>${d.status}</td><td>${new Date(d.created_at).toLocaleDateString("en-GB")}</td></tr>`;
-    });
-    html += `</table>`;
-  }
-
-  // Withdrawals
-  if (sections.withdrawals && withdrawals.length > 0) {
-    const totalWds = withdrawals.filter(w => w.status === "approved").reduce((s, w) => s + Number(w.amount), 0);
-    html += `<h2>Withdrawals</h2>`;
-    html += `<div class="summary-grid"><div class="summary-card"><div class="label">Total Withdrawn</div><div class="value negative">${formatCurrency(totalWds)}</div></div></div>`;
-    html += `<table><tr><th>Amount</th><th>Currency</th><th>Method</th><th>Status</th><th>Date</th></tr>`;
-    withdrawals.forEach(w => {
-      html += `<tr><td>${Number(w.amount).toLocaleString()}</td><td>${w.currency}</td><td>${w.method}</td><td>${w.status}</td><td>${new Date(w.created_at).toLocaleDateString("en-GB")}</td></tr>`;
-    });
-    html += `</table>`;
-  }
-
-  // Staking
-  if (sections.staking && stakes.length > 0) {
-    const totalStaked = stakes.reduce((s, st) => s + Number(st.amount || 0), 0);
-    const totalRewards = stakes.reduce((s, st) => s + Number(st.rewards_earned || 0), 0);
-    html += `<h2>Staking</h2>`;
-    html += `<div class="summary-grid">
-      <div class="summary-card"><div class="label">Total Staked</div><div class="value">${formatCurrency(totalStaked)}</div></div>
-      <div class="summary-card"><div class="label">Total Rewards</div><div class="value positive">${formatCurrency(totalRewards)}</div></div>
+    html += `</table>
+      <div class="glossary">
+        <h4>💡 Understanding your trades</h4>
+        <dl>
+          <dt>Direction</dt><dd><strong>Buy</strong> means you expect the price to go up. <strong>Sell</strong> means you expect it to go down.</dd>
+          <dt>Entry Price</dt><dd>The price at which your trade was opened.</dd>
+          <dt>Size</dt><dd>The amount of the asset you are trading.</dd>
+          <dt>Leverage</dt><dd>A multiplier that increases your trade exposure. For example, 10x means your gains and losses are multiplied by 10.</dd>
+          <dt>P&L</dt><dd>Profit and Loss — the amount you have gained or lost on this trade so far.</dd>
+        </dl>
+      </div>
     </div>`;
-    html += `<table><tr><th>Plan</th><th>Asset</th><th>Amount</th><th>APY</th><th>Rewards</th><th>Unlocks</th><th>Claimed</th></tr>`;
+  }
+
+  // --- Deposits ---
+  if (sections.deposits && deposits.length > 0) {
+    html += `
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon" style="background:#dcfce7;color:#16a34a;">💳</div>
+        <h2 class="section-title">Deposits</h2>
+      </div>
+      <p class="section-desc">This section lists all the funds you have added to your account. Only <strong>approved</strong> deposits are counted toward your total.</p>
+      <div class="cards">
+        <div class="card"><div class="c-label">Total Deposited</div><div class="c-value positive">${formatCurrency(totalDeps)}</div><div class="c-hint">Approved deposits only</div></div>
+        <div class="card"><div class="c-label">Transactions</div><div class="c-value">${deposits.length}</div><div class="c-hint">Total deposit requests</div></div>
+      </div>
+      <table><tr><th style="text-align:right">Amount</th><th>Currency</th><th>Method</th><th>Status</th><th>Date</th></tr>`;
+    deposits.forEach(d => {
+      const statusClass = d.status === "approved" ? "badge-approved" : d.status === "pending" ? "badge-pending" : "badge-rejected";
+      html += `<tr>
+        <td style="text-align:right"><strong>${Number(d.amount).toLocaleString()}</strong></td>
+        <td>${d.currency}</td><td>${d.method}</td>
+        <td><span class="badge ${statusClass}">${d.status}</span></td>
+        <td>${new Date(d.created_at).toLocaleDateString("en-GB")}</td>
+      </tr>`;
+    });
+    html += `</table>
+    </div>`;
+  }
+
+  // --- Withdrawals ---
+  if (sections.withdrawals && withdrawals.length > 0) {
+    html += `
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon" style="background:#fee2e2;color:#dc2626;">🏦</div>
+        <h2 class="section-title">Withdrawals</h2>
+      </div>
+      <p class="section-desc">All withdrawal requests from your account are listed below. Approved withdrawals have been processed and sent to your chosen payment method.</p>
+      <div class="cards">
+        <div class="card"><div class="c-label">Total Withdrawn</div><div class="c-value negative">${formatCurrency(totalWds)}</div><div class="c-hint">Approved withdrawals only</div></div>
+        <div class="card"><div class="c-label">Requests</div><div class="c-value">${withdrawals.length}</div><div class="c-hint">Total withdrawal requests</div></div>
+      </div>
+      <table><tr><th style="text-align:right">Amount</th><th>Currency</th><th>Method</th><th>Status</th><th>Date</th></tr>`;
+    withdrawals.forEach(w => {
+      const statusClass = w.status === "approved" ? "badge-approved" : w.status === "pending" ? "badge-pending" : "badge-rejected";
+      html += `<tr>
+        <td style="text-align:right"><strong>${Number(w.amount).toLocaleString()}</strong></td>
+        <td>${w.currency}</td><td>${w.method}</td>
+        <td><span class="badge ${statusClass}">${w.status}</span></td>
+        <td>${new Date(w.created_at).toLocaleDateString("en-GB")}</td>
+      </tr>`;
+    });
+    html += `</table>
+    </div>`;
+  }
+
+  // --- Staking ---
+  if (sections.staking && stakes.length > 0) {
+    html += `
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon" style="background:#ede9fe;color:#7c3aed;">🔒</div>
+        <h2 class="section-title">Staking</h2>
+      </div>
+      <p class="section-desc">Staking means locking your assets for a set period to earn rewards. Below are your active and past stakes, including how much you've earned. The <strong>unlock date</strong> is when you can access your staked funds again.</p>
+      <div class="cards">
+        <div class="card"><div class="c-label">Total Staked</div><div class="c-value">${formatCurrency(totalStaked)}</div><div class="c-hint">Assets currently locked</div></div>
+        <div class="card"><div class="c-label">Rewards Earned</div><div class="c-value positive">${formatCurrency(totalRewards)}</div><div class="c-hint">Income from staking</div></div>
+        <div class="card"><div class="c-label">Active Stakes</div><div class="c-value">${stakes.filter(s => !s.claimed).length}</div><div class="c-hint">Currently locked positions</div></div>
+      </div>
+      <table><tr><th>Plan</th><th>Asset</th><th style="text-align:right">Amount</th><th>APY</th><th style="text-align:right">Rewards</th><th>Unlocks</th><th>Claimed</th></tr>`;
     stakes.forEach(st => {
       const plan = st.staking_plans;
       html += `<tr>
-        <td>${plan?.name || "—"}</td>
+        <td><strong>${plan?.name || "—"}</strong></td>
         <td>${plan?.asset || "—"}</td>
-        <td>${Number(st.amount).toLocaleString()}</td>
+        <td style="text-align:right">${Number(st.amount).toLocaleString()}</td>
         <td>${plan?.apy || 0}%</td>
-        <td class="positive">${formatCurrency(Number(st.rewards_earned || 0))}</td>
+        <td style="text-align:right" class="positive">${formatCurrency(Number(st.rewards_earned || 0))}</td>
         <td>${new Date(st.unlocks_at).toLocaleDateString("en-GB")}</td>
-        <td>${st.claimed ? "Yes" : "No"}</td>
+        <td>${st.claimed ? '<span class="badge badge-approved">Yes</span>' : '<span class="badge badge-pending">Not yet</span>'}</td>
       </tr>`;
     });
-    html += `</table>`;
+    html += `</table>
+      <div class="glossary">
+        <h4>💡 What is staking?</h4>
+        <dl>
+          <dt>APY (Annual Percentage Yield)</dt><dd>The yearly return rate you earn on your staked assets. For example, 12% APY means you earn 12% per year.</dd>
+          <dt>Unlock Date</dt><dd>The date when your staked assets become available for withdrawal.</dd>
+          <dt>Claimed</dt><dd>Whether you have already collected your earned rewards.</dd>
+        </dl>
+      </div>
+    </div>`;
   }
 
-  html += `<div class="footer">This report was generated automatically. For questions, please contact support.</div>`;
-  html += `</body></html>`;
+  // --- Disclaimer / Footer ---
+  html += `
+</div><!-- end content -->
+
+<div class="footer">
+  <p>This report was generated automatically on ${now}. All figures are based on data available at the time of generation and may not reflect real-time market changes.</p>
+  <p class="support">Questions about this report? Contact your account manager or reach out to our support team — we're here to help.</p>
+</div>
+
+</div><!-- end page -->
+</body></html>`;
+
   return html;
 }
 
