@@ -77,11 +77,12 @@ const AdminUserDetail = () => {
       supabase.from("wallets").select("*").eq("user_id", userId),
     ]);
 
-    // Fetch admin notes and stakes
-    const [{ data: notes }, { data: userStakes }, { data: plans }] = await Promise.all([
+    // Fetch admin notes, stakes, and bank details
+    const [{ data: notes }, { data: userStakes }, { data: plans }, { data: bankData }] = await Promise.all([
       (supabase as any).from("admin_notes").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
       supabase.from("user_stakes").select("*, staking_plans(name, asset, apy)").eq("user_id", userId).order("started_at", { ascending: false }),
       supabase.from("staking_plans").select("*").order("apy"),
+      (supabase as any).from("client_bank_details").select("*").eq("user_id", userId).maybeSingle(),
     ]);
 
     setProfile(prof);
@@ -94,6 +95,17 @@ const AdminUserDetail = () => {
     setAdminNotes(notes ?? []);
     setStakes(userStakes ?? []);
     setStakingPlans(plans ?? []);
+    setBankDetails(bankData);
+    if (bankData) {
+      setBankForm({
+        bank_name: bankData.bank_name ?? "",
+        account_holder: bankData.account_holder ?? "",
+        iban: bankData.iban ?? "",
+        swift_bic: bankData.swift_bic ?? "",
+        reference: bankData.reference ?? "",
+        notes: bankData.notes ?? "",
+      });
+    }
 
     if (prof) {
       setEditProfile({
