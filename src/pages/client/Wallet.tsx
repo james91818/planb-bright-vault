@@ -48,6 +48,18 @@ const WalletPage = () => {
 
   useEffect(() => { fetchData(); }, [user]);
 
+  useEffect(() => {
+    fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,ripple,binancecoin,dogecoin,cardano,polkadot,chainlink,avalanche-2&vs_currencies=eur")
+      .then(r => r.json())
+      .then(data => {
+        const map: Record<string, number> = {};
+        const idToSymbol: Record<string, string> = { bitcoin: "BTC", ethereum: "ETH", solana: "SOL", ripple: "XRP", binancecoin: "BNB", dogecoin: "DOGE", cardano: "ADA", polkadot: "DOT", chainlink: "LINK", "avalanche-2": "AVAX" };
+        Object.entries(data).forEach(([id, val]: any) => { map[idToSymbol[id]] = val.eur; });
+        setCryptoPricesEur(map);
+      })
+      .catch(() => {});
+  }, []);
+
   const submitDeposit = async () => {
     if (!user || !form.amount) return;
     await supabase.from("deposits").insert({
