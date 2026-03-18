@@ -141,6 +141,7 @@ const Staking = () => {
                 })}
               </tbody>
             </table>
+            </div>
           </CardContent>
         </Card>
       )}

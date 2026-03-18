@@ -165,7 +165,7 @@ const Settings = () => {
       </div>
 
       <Tabs defaultValue="account">
-        <TabsList className="w-full justify-start flex-wrap h-auto gap-1">
+        <TabsList className="w-full justify-start overflow-x-auto flex-nowrap md:flex-wrap h-auto gap-1">
           <TabsTrigger value="account">Account</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
           {isAdmin && <TabsTrigger value="statuses">Statuses</TabsTrigger>}

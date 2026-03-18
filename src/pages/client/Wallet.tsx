@@ -341,7 +341,8 @@ const WalletPage = () => {
             <TabsContent value="withdrawals">
               <Card>
                 <CardContent className="p-0">
-                  <table className="w-full text-sm">
+              <div className="overflow-x-auto">
+                  <table className="w-full text-sm min-w-[400px]">
                     <thead>
                       <tr className="border-b bg-muted/50">
                         <th className="text-left p-3 font-medium text-muted-foreground">Amount</th>
@@ -355,14 +356,15 @@ const WalletPage = () => {
                         <tr><td colSpan={4} className="p-8 text-center text-muted-foreground">No withdrawals yet</td></tr>
                       ) : withdrawals.map((w) => (
                         <tr key={w.id} className="border-b last:border-0">
-                          <td className="p-3 font-semibold">{w.currency} {Number(w.amount).toLocaleString()}</td>
+                          <td className="p-3 font-semibold whitespace-nowrap">{w.currency} {Number(w.amount).toLocaleString()}</td>
                           <td className="p-3 capitalize text-muted-foreground">{w.method}</td>
                           <td className="p-3"><span className={`text-xs px-2 py-1 rounded-full font-medium ${statusColors[w.status] ?? "bg-muted"}`}>{w.status}</span></td>
-                          <td className="p-3 text-muted-foreground text-xs">{new Date(w.created_at).toLocaleDateString()}</td>
+                          <td className="p-3 text-muted-foreground text-xs whitespace-nowrap">{new Date(w.created_at).toLocaleDateString()}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
+                </div>
                 </CardContent>
               </Card>
             </TabsContent>

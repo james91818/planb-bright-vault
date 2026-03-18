@@ -263,43 +263,45 @@ const CopyTrading = () => {
                 if (!trader) return null;
                 return (
                   <Card key={sub.id}>
-                    <CardContent className="p-4 flex items-center justify-between">
+                    <CardContent className="p-4 space-y-3">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">
                           {trader.display_name.charAt(0).toUpperCase()}
                         </div>
-                        <div>
-                          <p className="font-semibold">{trader.display_name}</p>
-                          <div className="flex items-center gap-2 mt-0.5">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold truncate">{trader.display_name}</p>
+                          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                             <Badge variant={sub.is_active ? "default" : "secondary"} className="text-[10px]">
                               {sub.is_active ? "Active" : "Paused"}
                             </Badge>
                             <span className="text-xs text-muted-foreground">
-                              {sub.mode === "auto" ? "Auto-copy" : "Manual confirm"} · €{Number(sub.fixed_amount).toLocaleString()} per trade
+                              {sub.mode === "auto" ? "Auto-copy" : "Manual confirm"} · €{Number(sub.fixed_amount).toLocaleString()}
                             </span>
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <div className="text-right mr-2 hidden sm:block">
+                      <div className="flex items-center justify-between">
+                        <div className="text-left">
                           <p className={`text-sm font-bold ${trader.total_pnl >= 0 ? "text-success" : "text-destructive"}`}>
                             {trader.total_pnl >= 0 ? "+" : ""}€{trader.total_pnl.toFixed(2)}
                           </p>
                           <p className="text-[10px] text-muted-foreground">{trader.win_rate.toFixed(1)}% win rate</p>
                         </div>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => {
-                          setEditSub(sub);
-                          setSubMode(sub.mode);
-                          setFixedAmount(String(sub.fixed_amount));
-                        }}>
-                          <Settings2 className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => toggleSubscription(sub)}>
-                          {sub.is_active ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => unsubscribe(sub)}>
-                          <X className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => {
+                            setEditSub(sub);
+                            setSubMode(sub.mode);
+                            setFixedAmount(String(sub.fixed_amount));
+                          }}>
+                            <Settings2 className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => toggleSubscription(sub)}>
+                            {sub.is_active ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => unsubscribe(sub)}>
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>

@@ -669,7 +669,7 @@ const Trading = () => {
         <div className="flex-1 flex flex-col space-y-3">
           {/* Asset header */}
           <Card>
-            <CardContent className="p-4 flex items-center justify-between flex-wrap gap-3">
+            <CardContent className="p-3 sm:p-4 flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-4">
                 {/* Asset selector */}
                 <div className="relative">
