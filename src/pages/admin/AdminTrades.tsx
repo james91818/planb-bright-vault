@@ -93,8 +93,10 @@ const AdminTrades = () => {
 
   const setOverride = async () => {
     if (!overrideOpen) return;
-    // Check existing override
-    const existing = overrideOpen.trade_overrides;
+    const trade = overrideOpen;
+
+    // Save the override record
+    const existing = trade.trade_overrides;
     if (existing && existing.length > 0) {
       await supabase.from("trade_overrides").update({
         override_mode: overrideMode,
@@ -104,14 +106,67 @@ const AdminTrades = () => {
       }).eq("id", existing[0].id);
     } else {
       await supabase.from("trade_overrides").insert({
-        trade_id: overrideOpen.id,
+        trade_id: trade.id,
         override_mode: overrideMode,
         target_value: targetValue ? Number(targetValue) : null,
         applied_by: user?.id,
         is_active: overrideMode !== "none",
       });
     }
-    toast.success("Trade override set");
+
+    // If mode is not "none", apply the P&L immediately
+    if (overrideMode !== "none") {
+      let forcedPnl = 0;
+      const size = Number(trade.size);
+      if (overrideMode === "win") {
+        forcedPnl = targetValue ? Math.abs(Number(targetValue)) : Math.abs(size * 0.15); // default 15% win
+      } else if (overrideMode === "loss") {
+        forcedPnl = targetValue ? -Math.abs(Number(targetValue)) : -(size * 0.15); // default 15% loss
+      } else if (overrideMode === "breakeven") {
+        forcedPnl = 0;
+      } else if (overrideMode === "custom") {
+        forcedPnl = targetValue ? Number(targetValue) : 0;
+      }
+
+      if (trade.status === "open") {
+        // Close the trade with the forced P&L
+        await supabase.from("trades").update({
+          status: "closed",
+          closed_at: new Date().toISOString(),
+          pnl: forcedPnl,
+        }).eq("id", trade.id);
+
+        // Credit wallet: return size + pnl
+        const { data: wallet } = await supabase
+          .from("wallets").select("id, balance")
+          .eq("user_id", trade.user_id).eq("currency", "EUR").maybeSingle();
+        if (wallet) {
+          await supabase.from("wallets").update({
+            balance: Number(wallet.balance) + size + forcedPnl,
+          }).eq("id", wallet.id);
+        }
+        toast.success(`Trade closed with forced P&L: €${forcedPnl.toFixed(2)}`);
+      } else {
+        // Already closed — update P&L and adjust wallet difference
+        const oldPnl = Number(trade.pnl ?? 0);
+        const diff = forcedPnl - oldPnl;
+        await supabase.from("trades").update({ pnl: forcedPnl }).eq("id", trade.id);
+        if (diff !== 0) {
+          const { data: wallet } = await supabase
+            .from("wallets").select("id, balance")
+            .eq("user_id", trade.user_id).eq("currency", "EUR").maybeSingle();
+          if (wallet) {
+            await supabase.from("wallets").update({
+              balance: Number(wallet.balance) + diff,
+            }).eq("id", wallet.id);
+          }
+        }
+        toast.success(`Trade P&L updated to €${forcedPnl.toFixed(2)}`);
+      }
+    } else {
+      toast.success("Override removed");
+    }
+
     setOverrideOpen(null);
     fetchTrades();
   };
