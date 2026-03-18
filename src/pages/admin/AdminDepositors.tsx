@@ -71,7 +71,7 @@ const AdminDepositors = () => {
       return;
     }
 
-    const userIds = profiles.map(p => p.id);
+    const userIds = depositorProfiles.map(p => p.id);
 
     const [{ data: deposits }, { data: wallets }, { data: notes }] = await Promise.all([
       supabase.from("deposits").select("user_id, amount, status, currency").eq("status", "approved").in("user_id", userIds),
