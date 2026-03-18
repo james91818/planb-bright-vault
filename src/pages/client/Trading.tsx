@@ -347,6 +347,29 @@ const Trading = () => {
 
   useEffect(() => { fetchData(); }, [user]);
 
+  // Re-fetch open trades every 5s to pick up admin manipulations
+  useEffect(() => {
+    if (!user) return;
+    const interval = setInterval(async () => {
+      const { data: openT } = await supabase
+        .from("trades").select("*, assets(symbol, name)")
+        .eq("user_id", user.id).eq("status", "open")
+        .order("opened_at", { ascending: false });
+      if (openT) setOpenTrades(openT as Trade[]);
+      // Also refresh closed trades and balance
+      const { data: closedT } = await supabase
+        .from("trades").select("*, assets(symbol, name)")
+        .eq("user_id", user.id).eq("status", "closed")
+        .order("closed_at", { ascending: false }).limit(20);
+      if (closedT) setClosedTrades(closedT as Trade[]);
+      const { data: wallet } = await supabase
+        .from("wallets").select("balance")
+        .eq("user_id", user.id).eq("currency", "EUR").maybeSingle();
+      if (wallet) setBalance(Number(wallet.balance));
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [user]);
+
   // Refresh prices every 30 seconds
   useEffect(() => {
     if (!assets.length) return;
