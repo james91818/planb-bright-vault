@@ -5,17 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Search, MoreHorizontal, DollarSign, Phone } from "lucide-react";
+import StatusChanger from "@/components/admin/StatusChanger";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const statusColors: Record<string, string> = {
-  active: "bg-success/10 text-success",
-  suspended: "bg-destructive/10 text-destructive",
-  pending: "bg-yellow-500/10 text-yellow-600",
-};
 
 const AdminDepositors = () => {
   const navigate = useNavigate();
@@ -204,9 +200,7 @@ const AdminDepositors = () => {
                         <td className="p-3 font-semibold text-success whitespace-nowrap">€{u.total_deposited.toLocaleString()}</td>
                         <td className="p-3 whitespace-nowrap">€{u.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                         <td className="p-3">
-                          <span className={`text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap ${statusColors[u.status] ?? "bg-muted text-muted-foreground"}`}>
-                            {u.status}
-                          </span>
+                          <StatusChanger userId={u.id} currentStatus={u.status} onStatusChanged={fetchData} />
                         </td>
                         <td className="p-3">
                           <p className="text-xs text-muted-foreground max-w-[160px] truncate">

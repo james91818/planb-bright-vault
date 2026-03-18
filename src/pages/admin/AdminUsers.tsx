@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, UserPlus, MoreHorizontal, Plus, Phone } from "lucide-react";
+import StatusChanger, { useLeadStatuses } from "@/components/admin/StatusChanger";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
@@ -18,14 +19,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
 
-const statusColors: Record<string, string> = {
-  active: "bg-success/10 text-success",
-  suspended: "bg-destructive/10 text-destructive",
-  pending: "bg-yellow-500/10 text-yellow-600",
-};
 
 const AdminUsers = () => {
   const { user: authUser } = useAuth();
+  const leadStatuses = useLeadStatuses();
   const navigate = useNavigate();
   const [users, setUsers] = useState<any[]>([]);
   const [staffUserIds, setStaffUserIds] = useState<Set<string>>(new Set());
@@ -178,9 +175,9 @@ const AdminUsers = () => {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="suspended">Suspended</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
+            {leadStatuses.map(s => (
+              <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -239,9 +236,7 @@ const AdminUsers = () => {
                           {new Date(u.created_at).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" })}
                         </td>
                         <td className="p-3">
-                          <span className={`text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap ${statusColors[u.status] ?? "bg-muted text-muted-foreground"}`}>
-                            {u.status}
-                          </span>
+                          <StatusChanger userId={u.id} currentStatus={u.status} onStatusChanged={fetchData} />
                         </td>
                         <td className="p-3">
                           <p className="text-xs text-muted-foreground max-w-[160px] truncate">
