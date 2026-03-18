@@ -132,12 +132,14 @@ const AdminTrades = () => {
                 ) : (
                   trades.map((t) => {
                     const override = t.trade_overrides?.[0];
+                    const symbol = (t as any).assets?.symbol;
+                    const pnl = computeLivePnl(t, livePrices[symbol]);
                     return (
                       <tr key={t.id} className="border-b last:border-0 hover:bg-muted/30">
                         <td className="p-3">
                           <p className="font-medium text-xs">{(t as any).profiles?.full_name || "—"}</p>
                         </td>
-                        <td className="p-3 font-medium">{(t as any).assets?.symbol ?? "—"}</td>
+                        <td className="p-3 font-medium">{symbol ?? "—"}</td>
                         <td className="p-3">
                           <Badge variant={t.direction === "buy" ? "default" : "destructive"} className="text-xs capitalize">
                             {t.direction}
@@ -146,8 +148,8 @@ const AdminTrades = () => {
                         <td className="p-3">€{Number(t.size).toLocaleString()}</td>
                         <td className="p-3">€{Number(t.entry_price).toFixed(2)}</td>
                         <td className="p-3">{t.leverage}×</td>
-                        <td className={`p-3 font-semibold ${Number(t.pnl) >= 0 ? "text-success" : "text-destructive"}`}>
-                          {Number(t.pnl) >= 0 ? "+" : ""}€{Number(t.pnl ?? 0).toFixed(2)}
+                        <td className={`p-3 font-semibold ${pnl >= 0 ? "text-success" : "text-destructive"}`}>
+                          {pnl >= 0 ? "+" : ""}€{pnl.toFixed(2)}
                         </td>
                         <td className="p-3">
                           <Badge variant="outline" className="capitalize text-xs">{t.status}</Badge>
