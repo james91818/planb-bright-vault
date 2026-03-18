@@ -281,6 +281,7 @@ const Trading = () => {
     const symbols = assetList.map(a => a.symbol);
     const prices = await fetchLivePrices(symbols);
     if (Object.keys(prices).length > 0) {
+      setRealApiPrices(prices);
       setLivePrices(prices);
     }
   }, []);
