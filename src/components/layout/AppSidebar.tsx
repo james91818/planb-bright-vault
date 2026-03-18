@@ -40,6 +40,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { useRole } from "@/hooks/useRole";
 import { useTheme } from "@/hooks/useTheme";
+import { supabase } from "@/integrations/supabase/client";
 
 const clientNav = [
   { title: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
