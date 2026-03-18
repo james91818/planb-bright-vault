@@ -355,27 +355,65 @@ const Trading = () => {
 
   useEffect(() => { fetchData(); }, [user]);
 
-  // Re-fetch open trades every 5s to pick up admin manipulations
+  // Realtime subscription for instant trade updates (admin manipulation)
   useEffect(() => {
     if (!user) return;
+
+    const channel = supabase
+      .channel('client-trades-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'trades',
+          filter: `user_id=eq.${user.id}`,
+        },
+        async (payload) => {
+          const updated = payload.new as any;
+          if (updated.status === 'open') {
+            // Update the specific trade in-place for instant P&L refresh
+            setOpenTrades(prev => prev.map(t => 
+              t.id === updated.id 
+                ? { ...t, ...updated, assets: t.assets } 
+                : t
+            ));
+          } else if (updated.status === 'closed') {
+            // Trade was closed (possibly by admin manipulation finishing)
+            // Move from open to closed
+            setOpenTrades(prev => prev.filter(t => t.id !== updated.id));
+            // Re-fetch closed trades and balance
+            const [{ data: closedT }, { data: wallet }] = await Promise.all([
+              supabase.from("trades").select("*, assets(symbol, name)")
+                .eq("user_id", user.id).eq("status", "closed")
+                .order("closed_at", { ascending: false }).limit(20),
+              supabase.from("wallets").select("balance")
+                .eq("user_id", user.id).eq("currency", "EUR").maybeSingle(),
+            ]);
+            if (closedT) setClosedTrades(closedT as Trade[]);
+            if (wallet) setBalance(Number(wallet.balance));
+          }
+        }
+      )
+      .subscribe();
+
+    // Also poll every 15s as a fallback
     const interval = setInterval(async () => {
       const { data: openT } = await supabase
         .from("trades").select("*, assets(symbol, name)")
         .eq("user_id", user.id).eq("status", "open")
         .order("opened_at", { ascending: false });
       if (openT) setOpenTrades(openT as Trade[]);
-      // Also refresh closed trades and balance
-      const { data: closedT } = await supabase
-        .from("trades").select("*, assets(symbol, name)")
-        .eq("user_id", user.id).eq("status", "closed")
-        .order("closed_at", { ascending: false }).limit(20);
-      if (closedT) setClosedTrades(closedT as Trade[]);
       const { data: wallet } = await supabase
         .from("wallets").select("balance")
         .eq("user_id", user.id).eq("currency", "EUR").maybeSingle();
       if (wallet) setBalance(Number(wallet.balance));
-    }, 5000);
-    return () => clearInterval(interval);
+    }, 15000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
   }, [user]);
 
   // Refresh prices every 30 seconds
