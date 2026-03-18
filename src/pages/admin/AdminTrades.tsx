@@ -34,6 +34,22 @@ const AdminTrades = () => {
 
   useEffect(() => { fetchTrades(); }, []);
 
+  // Fetch live prices for P&L
+  const refreshPrices = useCallback(async () => {
+    const symbols = [...new Set(trades.map((t: any) => t.assets?.symbol).filter(Boolean))] as string[];
+    if (symbols.length) {
+      const prices = await fetchLivePrices(symbols);
+      if (Object.keys(prices).length) setLivePrices(prices);
+    }
+  }, [trades]);
+
+  useEffect(() => { refreshPrices(); }, [refreshPrices]);
+  useEffect(() => {
+    if (!trades.length) return;
+    const interval = setInterval(refreshPrices, 30000);
+    return () => clearInterval(interval);
+  }, [trades, refreshPrices]);
+
   const closeTrade = async (trade: any, pnl: number) => {
     await supabase.from("trades").update({
       status: "closed",
