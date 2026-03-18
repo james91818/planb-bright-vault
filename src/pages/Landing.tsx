@@ -300,27 +300,29 @@ const Landing = () => {
           <div className="absolute bottom-0 w-full h-40 bg-gradient-to-t from-white/10 to-transparent" />
         </div>
         <div className="container mx-auto px-4 relative z-10">
-          <div className="text-center mb-12">
+          <AnimatedSection className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-display font-bold text-primary">Why PlanB Trading</h2>
             <p className="text-hero-muted mt-3 max-w-2xl mx-auto">
               An established broker with a global presence, operating with integrity, reliability, and transparency.
             </p>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2 max-w-5xl mx-auto">
+          </AnimatedSection>
+          <StaggerContainer className="grid gap-4 md:grid-cols-2 max-w-5xl mx-auto">
             {whyFeatures.map((f) => (
-              <Card key={f.title} className="bg-white/[0.06] border-white/10 hover:border-primary/30 transition-colors backdrop-blur-sm">
-                <CardContent className="p-6 flex gap-5">
-                  <div className="h-14 w-14 shrink-0 rounded-xl border border-primary/30 bg-primary/10 flex items-center justify-center">
-                    <f.icon className="h-7 w-7 text-primary" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <h3 className="font-display font-semibold text-hero-foreground">{f.title}</h3>
-                    <p className="text-sm text-hero-muted leading-relaxed">{f.description}</p>
-                  </div>
-                </CardContent>
-              </Card>
+              <StaggerItem key={f.title}>
+                <Card className="bg-white/[0.06] border-white/10 hover:border-primary/30 transition-all duration-300 backdrop-blur-sm hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/5">
+                  <CardContent className="p-6 flex gap-5">
+                    <div className="h-14 w-14 shrink-0 rounded-xl border border-primary/30 bg-primary/10 flex items-center justify-center">
+                      <f.icon className="h-7 w-7 text-primary" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <h3 className="font-display font-semibold text-hero-foreground">{f.title}</h3>
+                      <p className="text-sm text-hero-muted leading-relaxed">{f.description}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         </div>
       </section>
 
