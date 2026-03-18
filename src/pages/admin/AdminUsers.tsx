@@ -263,6 +263,8 @@ const AdminUsers = () => {
                   <th className="text-left p-3 font-medium text-muted-foreground">Email</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Country</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Registration</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Affiliate</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Funnel</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Status</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Last Note</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">#Notes</th>
@@ -271,9 +273,9 @@ const AdminUsers = () => {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={9} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
+                  <tr><td colSpan={11} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
                 ) : filtered.length === 0 ? (
-                  <tr><td colSpan={9} className="p-8 text-center text-muted-foreground">No leads found</td></tr>
+                  <tr><td colSpan={11} className="p-8 text-center text-muted-foreground">No leads found</td></tr>
                 ) : (
                   filtered.map((u) => {
                     const note = notesMap[u.id];
@@ -305,6 +307,8 @@ const AdminUsers = () => {
                         <td className="p-3 text-muted-foreground text-xs whitespace-nowrap">
                           {new Date(u.created_at).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" })}
                         </td>
+                        <td className="p-3 text-muted-foreground whitespace-nowrap">{u.affiliate || "—"}</td>
+                        <td className="p-3 text-muted-foreground whitespace-nowrap">{u.funnel || "—"}</td>
                         <td className="p-3">
                           <StatusChanger userId={u.id} currentStatus={u.status} onStatusChanged={fetchData} />
                         </td>
@@ -323,9 +327,39 @@ const AdminUsers = () => {
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); updateStatus(u.id, "active"); }}>Set Active</DropdownMenuItem>
-                              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); updateStatus(u.id, "suspended"); }}>Suspend</DropdownMenuItem>
+                            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                              <DropdownMenuItem onClick={() => navigate(`/admin/users/${u.id}`)}>
+                                <Eye className="h-4 w-4 mr-2" /> View Profile
+                              </DropdownMenuItem>
+                              {u.email && (
+                                <DropdownMenuItem onClick={() => window.open(`mailto:${u.email}`)}>
+                                  <Mail className="h-4 w-4 mr-2" /> Send Email
+                                </DropdownMenuItem>
+                              )}
+                              {u.phone && (
+                                <DropdownMenuItem onClick={() => window.open(`tel:${u.phone}`, "_self")}>
+                                  <Phone className="h-4 w-4 mr-2" /> Call
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => openPasswordDialog(u.id, u.full_name || u.email)}>
+                                <KeyRound className="h-4 w-4 mr-2" /> Change Password
+                              </DropdownMenuItem>
+                              {u.email && (
+                                <DropdownMenuItem onClick={() => handleSendResetLink(u.id, u.email)}>
+                                  <Send className="h-4 w-4 mr-2" /> Send Reset Link
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuItem onClick={() => handleLoginAsClient(u.id)}>
+                                <LogIn className="h-4 w-4 mr-2" /> Login as Client
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => updateStatus(u.id, "active")}>
+                                Set Active
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => updateStatus(u.id, "suspended")} className="text-destructive">
+                                <Ban className="h-4 w-4 mr-2" /> Suspend
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </td>
