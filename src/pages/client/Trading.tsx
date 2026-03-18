@@ -763,8 +763,8 @@ const Trading = () => {
               </div>
 
               {/* Chart type + Timeframe toggles */}
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-0.5 bg-muted rounded-lg p-1">
+              <div className="flex items-center gap-2 overflow-x-auto">
+                <div className="flex items-center gap-0.5 bg-muted rounded-lg p-1 shrink-0">
                   {(Object.keys(TIMEFRAME_CONFIG) as Timeframe[]).map(tf => (
                     <Button key={tf} size="sm" variant={timeframe === tf ? "default" : "ghost"}
                       onClick={() => {
