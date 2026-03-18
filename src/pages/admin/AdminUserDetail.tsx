@@ -73,8 +73,12 @@ const AdminUserDetail = () => {
       supabase.from("wallets").select("*").eq("user_id", userId),
     ]);
 
-    // Fetch admin notes separately (table may not be in generated types)
-    const { data: notes } = await (supabase as any).from("admin_notes").select("*").eq("user_id", userId).order("created_at", { ascending: false });
+    // Fetch admin notes and stakes
+    const [{ data: notes }, { data: userStakes }, { data: plans }] = await Promise.all([
+      (supabase as any).from("admin_notes").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
+      supabase.from("user_stakes").select("*, staking_plans(name, asset, apy)").eq("user_id", userId).order("started_at", { ascending: false }),
+      supabase.from("staking_plans").select("*").order("apy"),
+    ]);
 
     setProfile(prof);
     setRoles(rolesData ?? []);
