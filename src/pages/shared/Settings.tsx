@@ -168,7 +168,7 @@ const Settings = () => {
         <TabsList className="w-full justify-start flex-wrap h-auto gap-1">
           <TabsTrigger value="account">Account</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
-          {isStaff && <TabsTrigger value="statuses">Statuses</TabsTrigger>}
+          {isAdmin && <TabsTrigger value="statuses">Statuses</TabsTrigger>}
           {isAdmin && <TabsTrigger value="branding">Branding</TabsTrigger>}
           {isAdmin && <TabsTrigger value="localization">Localization</TabsTrigger>}
           {isAdmin && <TabsTrigger value="registration">Registration</TabsTrigger>}
