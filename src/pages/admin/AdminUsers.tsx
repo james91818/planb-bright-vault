@@ -75,12 +75,17 @@ const AdminUsers = () => {
   };
 
   const handleCreateUser = async () => {
+    const fullName = `${newUser.first_name} ${newUser.last_name}`.trim();
+    if (!newUser.email || !newUser.password || !fullName) {
+      toast.error("Email, password, and name are required");
+      return;
+    }
     const { data, error } = await supabase.auth.signUp({
       email: newUser.email,
       password: newUser.password,
       options: {
         data: {
-          full_name: newUser.full_name,
+          full_name: fullName,
           phone: newUser.phone,
           country: newUser.country,
         },
@@ -90,9 +95,15 @@ const AdminUsers = () => {
       toast.error(error.message);
       return;
     }
+    // Update profile with extra fields
+    if (data.user) {
+      await supabase.from("profiles").update({
+        funnel: newUser.funnel || null,
+      }).eq("id", data.user.id);
+    }
     toast.success("User created successfully");
     setCreateOpen(false);
-    setNewUser({ email: "", password: "", full_name: "", phone: "", country: "" });
+    setNewUser({ email: "", password: "", first_name: "", last_name: "", phone: "", country: "", date_of_birth: "", address: "", city: "", postal_code: "", funnel: "" });
     setTimeout(fetchData, 1000);
   };
 
