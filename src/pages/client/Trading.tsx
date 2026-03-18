@@ -782,7 +782,7 @@ const Trading = () => {
                     </Button>
                   ))}
                 </div>
-                <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+                <div className="flex items-center gap-1 bg-muted rounded-lg p-1 shrink-0">
                   <Button size="sm" variant={chartType === "candle" ? "default" : "ghost"}
                     onClick={() => setChartType("candle")} className="h-8 w-8 p-0">
                     <CandlestickChart className="h-4 w-4" />
