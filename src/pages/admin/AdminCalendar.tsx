@@ -100,6 +100,29 @@ const AdminCalendar = () => {
     fetchClients();
   }, [canViewOthers]);
 
+  // Auto-open create dialog when coming from user detail with ?client=...
+  useEffect(() => {
+    if (autoOpenDone.current) return;
+    const clientId = searchParams.get("client");
+    const clientName = searchParams.get("clientName");
+    if (clientId && user) {
+      autoOpenDone.current = true;
+      setSelectedDate(new Date());
+      setEditing(null);
+      setForm({
+        title: clientName ? `Meeting with ${clientName}` : "",
+        description: "",
+        start_time: "09:00",
+        end_time: "10:00",
+        color: "#3b82f6",
+        client_id: clientId,
+      });
+      setDialogOpen(true);
+      // Clean URL params
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, user]);
+
   const fetchAppointments = async () => {
     const start = startOfWeek(startOfMonth(currentMonth), { weekStartsOn: 1 });
     const end = endOfWeek(endOfMonth(currentMonth), { weekStartsOn: 1 });
