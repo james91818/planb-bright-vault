@@ -54,7 +54,7 @@ const AdminDeposits = () => {
     const amount = Number(manualForm.amount);
 
     // Insert deposit as approved
-    await supabase.from("deposits").insert({
+    const { error: depError } = await supabase.from("deposits").insert({
       user_id: manualForm.user_id,
       amount,
       currency: manualForm.currency,
@@ -63,6 +63,11 @@ const AdminDeposits = () => {
       admin_notes: manualForm.notes || "Manual deposit by admin",
       processed_by: user?.id,
     });
+
+    if (depError) {
+      toast.error("Failed to create deposit: " + depError.message);
+      return;
+    }
 
     // Credit the user's wallet
     const { data: wallet } = await supabase

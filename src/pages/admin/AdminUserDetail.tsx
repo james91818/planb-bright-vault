@@ -134,7 +134,7 @@ const AdminUserDetail = () => {
     }
     const amount = Number(depForm.amount);
 
-    await supabase.from("deposits").insert({
+    const { error: depError } = await supabase.from("deposits").insert({
       user_id: userId!,
       amount,
       currency: depForm.currency,
@@ -143,6 +143,11 @@ const AdminUserDetail = () => {
       admin_notes: depForm.notes || "Manual deposit by admin",
       processed_by: currentUser?.id,
     });
+
+    if (depError) {
+      toast.error("Failed to create deposit: " + depError.message);
+      return;
+    }
 
     const { data: wallet } = await supabase
       .from("wallets")
@@ -184,7 +189,7 @@ const AdminUserDetail = () => {
       return;
     }
 
-    await supabase.from("withdrawals").insert({
+    const { error: wdError } = await supabase.from("withdrawals").insert({
       user_id: userId!,
       amount,
       currency: wdForm.currency,
@@ -193,6 +198,11 @@ const AdminUserDetail = () => {
       admin_notes: wdForm.notes || "Manual withdrawal by admin",
       processed_by: currentUser?.id,
     });
+
+    if (wdError) {
+      toast.error("Failed to create withdrawal: " + wdError.message);
+      return;
+    }
 
     if (wallet) {
       await supabase.from("wallets").update({ balance: Number(wallet.balance) - amount }).eq("id", wallet.id);
