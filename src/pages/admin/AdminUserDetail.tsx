@@ -69,6 +69,7 @@ const AdminUserDetail = () => {
   const [reportLastSent, setReportLastSent] = useState<string | null>(null);
   const [savingReport, setSavingReport] = useState(false);
   const [sendingReport, setSendingReport] = useState(false);
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null);
 
   const fetchAll = async () => {
     if (!userId) return;
@@ -1168,6 +1169,26 @@ const AdminUserDetail = () => {
                 >
                   <Send className="h-4 w-4 mr-1" /> Send to Client Email
                 </Button>
+
+                <Button
+                  disabled={sendingReport}
+                  variant="outline"
+                  onClick={async () => {
+                    setSendingReport(true);
+                    try {
+                      const { data, error } = await supabase.functions.invoke("generate-client-report", {
+                        body: { user_id: userId, sections: reportSections, action: "download" },
+                      });
+                      if (error) throw error;
+                      setPreviewHtml(typeof data === "string" ? data : JSON.stringify(data));
+                    } catch (err: any) {
+                      toast.error(err.message || "Failed to generate preview");
+                    }
+                    setSendingReport(false);
+                  }}
+                >
+                  <Eye className="h-4 w-4 mr-1" /> Preview Report
+                </Button>
               </div>
               {!profile.email && <p className="text-xs text-destructive">No email address on file.</p>}
             </CardContent>
@@ -1385,6 +1406,24 @@ const AdminUserDetail = () => {
             <Button variant="outline" onClick={() => setEditStake(null)}>Cancel</Button>
             <Button onClick={saveStakeOverride}>Save Changes</Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Report Preview Dialog */}
+      <Dialog open={!!previewHtml} onOpenChange={() => setPreviewHtml(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden">
+          <DialogHeader className="px-6 pt-6 pb-2">
+            <DialogTitle>Report Preview</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-auto px-2 pb-2" style={{ maxHeight: "calc(90vh - 80px)" }}>
+            <iframe
+              srcDoc={previewHtml || ""}
+              className="w-full border rounded-lg"
+              style={{ minHeight: "600px", height: "100%" }}
+              title="Report Preview"
+              sandbox=""
+            />
+          </div>
         </DialogContent>
       </Dialog>
     </div>
