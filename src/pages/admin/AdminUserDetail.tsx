@@ -1052,9 +1052,31 @@ const AdminUserDetail = () => {
               <CardTitle className="text-base flex items-center gap-2"><FileText className="h-4 w-4" /> Client Report Settings</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Report Type Selector */}
+              <div>
+                <Label className="text-sm font-semibold mb-3 block">Report Type</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {Object.entries(reportTemplates).map(([key, tpl]) => (
+                    <button
+                      key={key}
+                      onClick={() => {
+                        setReportType(key);
+                        if (key !== "custom") {
+                          setReportSections(tpl.sections);
+                        }
+                      }}
+                      className={`text-left p-3 rounded-lg border-2 transition-colors ${reportType === key ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/30"}`}
+                    >
+                      <p className="text-sm font-semibold">{tpl.label}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{tpl.description}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Section toggles */}
               <div>
-                <Label className="text-sm font-semibold mb-3 block">Report Sections</Label>
+                <Label className="text-sm font-semibold mb-3 block">Report Sections {reportType !== "custom" && <span className="text-xs text-muted-foreground font-normal ml-1">(preset by template — switch to Custom to edit)</span>}</Label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   {[
                     { key: "wallets", label: "Wallets / Portfolio" },
@@ -1064,11 +1086,16 @@ const AdminUserDetail = () => {
                     { key: "withdrawals", label: "Withdrawals" },
                     { key: "staking", label: "Staking" },
                   ].map((s) => (
-                    <label key={s.key} className="flex items-center gap-2 p-3 rounded-lg border cursor-pointer hover:bg-muted/50 transition-colors">
+                    <label key={s.key} className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-colors ${reportType !== "custom" ? "opacity-60" : "hover:bg-muted/50"}`}>
                       <input
                         type="checkbox"
                         checked={reportSections[s.key] ?? true}
-                        onChange={() => setReportSections(prev => ({ ...prev, [s.key]: !prev[s.key] }))}
+                        onChange={() => {
+                          if (reportType !== "custom") {
+                            setReportType("custom");
+                          }
+                          setReportSections(prev => ({ ...prev, [s.key]: !prev[s.key] }));
+                        }}
                         className="rounded border-input"
                       />
                       <span className="text-sm font-medium">{s.label}</span>
