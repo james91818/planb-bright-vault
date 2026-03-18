@@ -121,49 +121,66 @@ function PriceChart({ candles, chartType }: { candles: ReturnType<typeof generat
   const allHigh = Math.max(...candles.map(c => c.h));
   const allLow = Math.min(...candles.map(c => c.l));
   const range = allHigh - allLow || 1;
-  const W = 900, H = 340, padY = 20;
-  const yScale = (v: number) => padY + ((allHigh - v) / range) * (H - padY * 2);
-  const candleW = Math.max(2, (W - 40) / candles.length - 1);
+  const W = 960, H = 380, padTop = 24, padBot = 24, padLeft = 12, padRight = 80;
+  const chartW = W - padLeft - padRight;
+  const chartH = H - padTop - padBot;
+  const yScale = (v: number) => padTop + ((allHigh - v) / range) * chartH;
+  const candleW = Math.max(2, chartW / candles.length - 1);
+
+  // Price label formatting
+  const fmtPrice = (p: number) => {
+    if (p >= 10000) return p.toLocaleString(undefined, { maximumFractionDigits: 0 });
+    if (p >= 100) return p.toFixed(1);
+    if (p >= 1) return p.toFixed(2);
+    return p.toFixed(4);
+  };
+
+  // Grid lines at 0%, 25%, 50%, 75%, 100%
+  const gridLines = [0, 0.25, 0.5, 0.75, 1].map(f => ({
+    y: padTop + f * chartH,
+    price: allHigh - f * range,
+  }));
+
+  const renderGrid = () => gridLines.map((g, i) => (
+    <g key={i}>
+      <line x1={padLeft} y1={g.y} x2={padLeft + chartW} y2={g.y} stroke="hsl(var(--border))" strokeWidth="0.5" strokeDasharray="4 3" />
+      <text x={W - 6} y={g.y + 4} fill="hsl(var(--muted-foreground))" fontSize="11" fontFamily="Inter, sans-serif" textAnchor="end">{fmtPrice(g.price)}</text>
+    </g>
+  ));
+
+  // Current price line
+  const lastPrice = candles[candles.length - 1].c;
+  const lastY = yScale(lastPrice);
+  const priceLineColor = candles[candles.length - 1].c >= candles[0].o ? "hsl(var(--success))" : "hsl(var(--destructive))";
 
   if (chartType === "line") {
     const pts = candles.map((c, i) => {
-      const x = 20 + i * ((W - 40) / candles.length);
+      const x = padLeft + i * (chartW / candles.length) + (chartW / candles.length) / 2;
       return `${x},${yScale(c.c)}`;
     }).join(" ");
-    const fillPts = `${20},${H - padY} ${pts} ${20 + (candles.length - 1) * ((W - 40) / candles.length)},${H - padY}`;
+    const firstX = padLeft + (chartW / candles.length) / 2;
+    const lastX = padLeft + (candles.length - 1) * (chartW / candles.length) + (chartW / candles.length) / 2;
+    const fillPts = `${firstX},${padTop + chartH} ${pts} ${lastX},${padTop + chartH}`;
     return (
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full" preserveAspectRatio="none">
-        {[0.25, 0.5, 0.75].map(f => {
-          const y = padY + f * (H - padY * 2);
-          const price = allHigh - f * range;
-          return (
-            <g key={f}>
-              <line x1={20} y1={y} x2={W - 20} y2={y} stroke="hsl(var(--border))" strokeWidth="0.5" strokeDasharray="4" />
-              <text x={W - 18} y={y + 4} fill="hsl(var(--muted-foreground))" fontSize="10" textAnchor="start">{price.toFixed(2)}</text>
-            </g>
-          );
-        })}
-        <polygon points={fillPts} fill="hsl(var(--primary) / 0.08)" />
-        <polyline points={pts} fill="none" stroke="hsl(var(--primary))" strokeWidth="2" />
-        <circle cx={20 + (candles.length - 1) * ((W - 40) / candles.length)} cy={yScale(candles[candles.length - 1].c)} r="4" fill="hsl(var(--primary))" />
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full" preserveAspectRatio="xMidYMid meet">
+        {renderGrid()}
+        <polygon points={fillPts} fill="hsl(var(--primary) / 0.06)" />
+        <polyline points={pts} fill="none" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinejoin="round" />
+        {/* Current price dashed line */}
+        <line x1={padLeft} y1={lastY} x2={padLeft + chartW} y2={lastY} stroke={priceLineColor} strokeWidth="1" strokeDasharray="3 2" opacity="0.6" />
+        <circle cx={lastX} cy={yScale(lastPrice)} r="4" fill="hsl(var(--primary))" />
+        {/* Price tag */}
+        <rect x={padLeft + chartW + 4} y={lastY - 10} width={padRight - 10} height={20} rx="4" fill={priceLineColor} />
+        <text x={padLeft + chartW + padRight / 2} y={lastY + 4} fill="white" fontSize="10" fontFamily="Inter, sans-serif" textAnchor="middle" fontWeight="600">{fmtPrice(lastPrice)}</text>
       </svg>
     );
   }
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full">
-      {[0.25, 0.5, 0.75].map(f => {
-        const y = padY + f * (H - padY * 2);
-        const price = allHigh - f * range;
-        return (
-          <g key={f}>
-            <line x1={20} y1={y} x2={W - 50} y2={y} stroke="hsl(var(--border))" strokeWidth="0.5" strokeDasharray="4" />
-            <text x={W - 4} y={y + 4} fill="hsl(var(--muted-foreground))" fontSize="10" textAnchor="end">{price.toFixed(2)}</text>
-          </g>
-        );
-      })}
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full" preserveAspectRatio="xMidYMid meet">
+      {renderGrid()}
       {candles.map((c, i) => {
-        const x = 20 + i * ((W - 40) / candles.length) + candleW / 2;
+        const x = padLeft + i * (chartW / candles.length) + (chartW / candles.length) / 2;
         const bullish = c.c >= c.o;
         const color = bullish ? "hsl(var(--success))" : "hsl(var(--destructive))";
         const bodyTop = yScale(Math.max(c.o, c.c));
@@ -172,10 +189,14 @@ function PriceChart({ candles, chartType }: { candles: ReturnType<typeof generat
           <g key={i}>
             <line x1={x} y1={yScale(c.h)} x2={x} y2={yScale(c.l)} stroke={color} strokeWidth="1" />
             <rect x={x - candleW / 2} y={bodyTop} width={candleW} height={Math.max(1, bodyBot - bodyTop)}
-              fill={color} stroke={color} strokeWidth="0.5" rx="0.5" />
+              fill={color} rx="0.5" />
           </g>
         );
       })}
+      {/* Current price dashed line + tag */}
+      <line x1={padLeft} y1={lastY} x2={padLeft + chartW} y2={lastY} stroke={priceLineColor} strokeWidth="1" strokeDasharray="3 2" opacity="0.6" />
+      <rect x={padLeft + chartW + 4} y={lastY - 10} width={padRight - 10} height={20} rx="4" fill={priceLineColor} />
+      <text x={padLeft + chartW + padRight / 2} y={lastY + 4} fill="white" fontSize="10" fontFamily="Inter, sans-serif" textAnchor="middle" fontWeight="600">{fmtPrice(lastPrice)}</text>
     </svg>
   );
 }
@@ -686,8 +707,8 @@ const Trading = () => {
 
           {/* Chart */}
           <Card>
-            <CardContent className="p-3 md:p-4">
-              <div className="h-[calc(70vh-320px)] min-h-[250px]">
+             <CardContent className="p-2 md:p-3">
+              <div className="h-[340px] md:h-[400px]">
                 <PriceChart candles={candles} chartType={chartType} />
               </div>
             </CardContent>
