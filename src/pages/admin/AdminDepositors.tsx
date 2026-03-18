@@ -31,6 +31,10 @@ const AdminDepositors = () => {
   const [agents, setAgents] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [countryFilter, setCountryFilter] = useState("all");
+  const [agentFilter, setAgentFilter] = useState("all");
+  const [affiliateFilter, setAffiliateFilter] = useState("all");
+  const [funnelFilter, setFunnelFilter] = useState("all");
   const [notesMap, setNotesMap] = useState<Record<string, { content: string; created_at: string; count: number }>>({});
   const [pwDialogOpen, setPwDialogOpen] = useState(false);
   const [pwUserId, setPwUserId] = useState("");
@@ -193,10 +197,20 @@ const AdminDepositors = () => {
     }
   };
 
-  const filtered = depositors.filter(u =>
-    (u.full_name ?? "").toLowerCase().includes(search.toLowerCase()) ||
-    (u.email ?? "").toLowerCase().includes(search.toLowerCase())
-  );
+  const uniqueCountries = [...new Set(depositors.map(u => u.country).filter(Boolean))].sort();
+  const uniqueAffiliates = [...new Set(depositors.map(u => u.affiliate).filter(Boolean))].sort();
+  const uniqueFunnels = [...new Set(depositors.map(u => u.funnel).filter(Boolean))].sort();
+
+  const filtered = depositors.filter(u => {
+    const matchesSearch =
+      (u.full_name ?? "").toLowerCase().includes(search.toLowerCase()) ||
+      (u.email ?? "").toLowerCase().includes(search.toLowerCase());
+    const matchesCountry = countryFilter === "all" || u.country === countryFilter;
+    const matchesAgent = agentFilter === "all" || (agentFilter === "none" ? !u.assigned_agent : u.assigned_agent === agentFilter);
+    const matchesAffiliate = affiliateFilter === "all" || (affiliateFilter === "none" ? !u.affiliate : u.affiliate === affiliateFilter);
+    const matchesFunnel = funnelFilter === "all" || (funnelFilter === "none" ? !u.funnel : u.funnel === funnelFilter);
+    return matchesSearch && matchesCountry && matchesAgent && matchesAffiliate && matchesFunnel;
+  });
 
   const totalDeposited = depositors.reduce((sum, d) => sum + d.total_deposited, 0);
 
@@ -247,9 +261,42 @@ const AdminDepositors = () => {
         </Card>
       </div>
 
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Search depositors..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+      <div className="flex flex-wrap gap-3">
+        <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Search depositors..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+        </div>
+        <Select value={countryFilter} onValueChange={setCountryFilter}>
+          <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Countries</SelectItem>
+            {uniqueCountries.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={agentFilter} onValueChange={setAgentFilter}>
+          <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Agents</SelectItem>
+            <SelectItem value="none">Unassigned</SelectItem>
+            {agents.map(a => <SelectItem key={a.id} value={a.id}>{a.full_name || a.email}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={affiliateFilter} onValueChange={setAffiliateFilter}>
+          <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Affiliates</SelectItem>
+            <SelectItem value="none">No Affiliate</SelectItem>
+            {uniqueAffiliates.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={funnelFilter} onValueChange={setFunnelFilter}>
+          <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Funnels</SelectItem>
+            <SelectItem value="none">No Funnel</SelectItem>
+            {uniqueFunnels.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+          </SelectContent>
+        </Select>
       </div>
 
       <Card>
