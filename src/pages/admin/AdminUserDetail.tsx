@@ -40,6 +40,9 @@ const AdminUserDetail = () => {
   const [depForm, setDepForm] = useState({ amount: "", currency: "EUR", method: "manual", notes: "", crypto_asset: "BTC" });
   const [manualWithdrawOpen, setManualWithdrawOpen] = useState(false);
   const [wdForm, setWdForm] = useState({ amount: "", currency: "EUR", method: "manual", notes: "" });
+  const [newPassword, setNewPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
 
   const fetchAll = async () => {
     if (!userId) return;
