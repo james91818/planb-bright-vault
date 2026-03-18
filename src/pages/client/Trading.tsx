@@ -821,143 +821,139 @@ const Trading = () => {
         </div>
       </div>
 
-      {/* ─── POSITIONS & HISTORY ─── */}
-      <Tabs defaultValue="positions">
-        <TabsList className="h-11">
-          <TabsTrigger value="positions" className="text-sm px-4">
-            Open Positions {openTrades.length > 0 && <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5">{openTrades.length}</Badge>}
-          </TabsTrigger>
-          <TabsTrigger value="history" className="text-sm px-4">Trade History</TabsTrigger>
-        </TabsList>
+      {/* ─── OPEN POSITIONS ─── */}
+      <div>
+        <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
+          Open Positions {openTrades.length > 0 && <Badge variant="secondary" className="text-[10px] px-1.5">{openTrades.length}</Badge>}
+        </h3>
+        <Card>
+          <CardContent className="p-0">
+            {openTrades.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                <Clock className="h-10 w-10 mb-3 opacity-30" />
+                <p className="text-base font-medium">No open positions</p>
+                <p className="text-sm mt-1">Select an asset and place your first trade</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b bg-muted/40">
+                      {["Asset", "Direction", "Size", "Entry", "Current", "Leverage", "P&L", ""].map(h => (
+                        <th key={h} className={`p-3.5 font-medium text-muted-foreground text-xs uppercase tracking-wider ${h === "" ? "text-right" : "text-left"}`}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {openTrades.map(t => {
+                      const pnl = Number(t.pnl ?? 0);
+                      const tradeIcon = t.assets ? getAssetIcon(t.assets.symbol, null) : null;
+                      return (
+                        <tr key={t.id} className="border-b last:border-0 hover:bg-muted/20 transition-colors">
+                          <td className="p-3.5">
+                            <div className="flex items-center gap-2.5">
+                              {tradeIcon ? (
+                                <img src={tradeIcon} alt="" className="h-6 w-6 rounded-full object-contain" />
+                              ) : (
+                                <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[9px] font-bold">
+                                  {t.assets?.symbol?.slice(0, 2)}
+                                </div>
+                              )}
+                              <span className="font-semibold">{t.assets?.symbol}</span>
+                            </div>
+                          </td>
+                          <td className="p-3.5">
+                            <Badge className={`capitalize text-xs ${t.direction === "buy" ? "bg-success/10 text-success border-success/20" : "bg-destructive/10 text-destructive border-destructive/20"}`}>
+                              {t.direction === "buy" ? <ArrowUpRight className="h-3 w-3 mr-0.5" /> : <ArrowDownRight className="h-3 w-3 mr-0.5" />}
+                              {t.direction}
+                            </Badge>
+                          </td>
+                          <td className="p-3.5 font-medium">€{Number(t.size).toLocaleString()}</td>
+                          <td className="p-3.5 text-muted-foreground">€{Number(t.entry_price).toFixed(2)}</td>
+                          <td className="p-3.5">€{Number(t.current_price ?? t.entry_price).toFixed(2)}</td>
+                          <td className="p-3.5">{t.leverage}×</td>
+                          <td className={`p-3.5 font-bold ${pnl >= 0 ? "text-success" : "text-destructive"}`}>
+                            {pnl >= 0 ? "+" : ""}€{pnl.toFixed(2)}
+                          </td>
+                          <td className="p-3.5 text-right">
+                            <Button size="sm" variant="outline" className="text-destructive border-destructive/30 hover:bg-destructive/10 text-xs h-8 px-3"
+                              onClick={() => closeTrade(t)}>
+                              <X className="h-3.5 w-3.5 mr-1" /> Close
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
-        <TabsContent value="positions">
-          <Card>
-            <CardContent className="p-0">
-              {openTrades.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                  <Clock className="h-10 w-10 mb-3 opacity-30" />
-                  <p className="text-base font-medium">No open positions</p>
-                  <p className="text-sm mt-1">Select an asset and place your first trade</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b bg-muted/40">
-                        {["Asset", "Direction", "Size", "Entry", "Current", "Leverage", "P&L", ""].map(h => (
-                          <th key={h} className={`p-3.5 font-medium text-muted-foreground text-xs uppercase tracking-wider ${h === "" ? "text-right" : "text-left"}`}>{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {openTrades.map(t => {
-                        const pnl = Number(t.pnl ?? 0);
-                        const tradeIcon = t.assets ? getAssetIcon(t.assets.symbol, null) : null;
-                        return (
-                          <tr key={t.id} className="border-b last:border-0 hover:bg-muted/20 transition-colors">
-                            <td className="p-3.5">
-                              <div className="flex items-center gap-2.5">
-                                {tradeIcon ? (
-                                  <img src={tradeIcon} alt="" className="h-6 w-6 rounded-full object-contain" />
-                                ) : (
-                                  <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[9px] font-bold">
-                                    {t.assets?.symbol?.slice(0, 2)}
-                                  </div>
-                                )}
-                                <span className="font-semibold">{t.assets?.symbol}</span>
-                              </div>
-                            </td>
-                            <td className="p-3.5">
-                              <Badge className={`capitalize text-xs ${t.direction === "buy" ? "bg-success/10 text-success border-success/20" : "bg-destructive/10 text-destructive border-destructive/20"}`}>
-                                {t.direction === "buy" ? <ArrowUpRight className="h-3 w-3 mr-0.5" /> : <ArrowDownRight className="h-3 w-3 mr-0.5" />}
-                                {t.direction}
-                              </Badge>
-                            </td>
-                            <td className="p-3.5 font-medium">€{Number(t.size).toLocaleString()}</td>
-                            <td className="p-3.5 text-muted-foreground">€{Number(t.entry_price).toFixed(2)}</td>
-                            <td className="p-3.5">€{Number(t.current_price ?? t.entry_price).toFixed(2)}</td>
-                            <td className="p-3.5">{t.leverage}×</td>
-                            <td className={`p-3.5 font-bold ${pnl >= 0 ? "text-success" : "text-destructive"}`}>
-                              {pnl >= 0 ? "+" : ""}€{pnl.toFixed(2)}
-                            </td>
-                            <td className="p-3.5 text-right">
-                              <Button size="sm" variant="outline" className="text-destructive border-destructive/30 hover:bg-destructive/10 text-xs h-8 px-3"
-                                onClick={() => closeTrade(t)}>
-                                <X className="h-3.5 w-3.5 mr-1" /> Close
-                              </Button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="history">
-          <Card>
-            <CardContent className="p-0">
-              {closedTrades.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                  <Clock className="h-10 w-10 mb-3 opacity-30" />
-                  <p className="text-base font-medium">No trade history yet</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b bg-muted/40">
-                        {["Asset", "Direction", "Size", "Entry", "Leverage", "P&L", "Closed"].map(h => (
-                          <th key={h} className="p-3.5 font-medium text-muted-foreground text-xs uppercase tracking-wider text-left">{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {closedTrades.map(t => {
-                        const pnl = Number(t.pnl ?? 0);
-                        const tradeIcon = t.assets ? getAssetIcon(t.assets.symbol, null) : null;
-                        return (
-                          <tr key={t.id} className="border-b last:border-0 hover:bg-muted/20 transition-colors">
-                            <td className="p-3.5">
-                              <div className="flex items-center gap-2.5">
-                                {tradeIcon ? (
-                                  <img src={tradeIcon} alt="" className="h-6 w-6 rounded-full object-contain" />
-                                ) : (
-                                  <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[9px] font-bold">
-                                    {t.assets?.symbol?.slice(0, 2)}
-                                  </div>
-                                )}
-                                <span className="font-semibold">{t.assets?.symbol}</span>
-                              </div>
-                            </td>
-                            <td className="p-3.5">
-                              <Badge className={`capitalize text-xs ${t.direction === "buy" ? "bg-success/10 text-success border-success/20" : "bg-destructive/10 text-destructive border-destructive/20"}`}>
-                                {t.direction}
-                              </Badge>
-                            </td>
-                            <td className="p-3.5 font-medium">€{Number(t.size).toLocaleString()}</td>
-                            <td className="p-3.5 text-muted-foreground">€{Number(t.entry_price).toFixed(2)}</td>
-                            <td className="p-3.5">{t.leverage}×</td>
-                            <td className={`p-3.5 font-bold ${pnl >= 0 ? "text-success" : "text-destructive"}`}>
-                              {pnl >= 0 ? "+" : ""}€{pnl.toFixed(2)}
-                            </td>
-                            <td className="p-3.5 text-muted-foreground text-xs">
-                              {t.closed_at ? new Date(t.closed_at).toLocaleDateString("de-DE", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "—"}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      {/* ─── TRADE HISTORY ─── */}
+      <div>
+        <h3 className="text-sm font-semibold mb-2">Trade History</h3>
+        <Card>
+          <CardContent className="p-0">
+            {closedTrades.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                <Clock className="h-10 w-10 mb-3 opacity-30" />
+                <p className="text-base font-medium">No trade history yet</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b bg-muted/40">
+                      {["Asset", "Direction", "Size", "Entry", "Leverage", "P&L", "Closed"].map(h => (
+                        <th key={h} className="p-3.5 font-medium text-muted-foreground text-xs uppercase tracking-wider text-left">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {closedTrades.map(t => {
+                      const pnl = Number(t.pnl ?? 0);
+                      const tradeIcon = t.assets ? getAssetIcon(t.assets.symbol, null) : null;
+                      return (
+                        <tr key={t.id} className="border-b last:border-0 hover:bg-muted/20 transition-colors">
+                          <td className="p-3.5">
+                            <div className="flex items-center gap-2.5">
+                              {tradeIcon ? (
+                                <img src={tradeIcon} alt="" className="h-6 w-6 rounded-full object-contain" />
+                              ) : (
+                                <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[9px] font-bold">
+                                  {t.assets?.symbol?.slice(0, 2)}
+                                </div>
+                              )}
+                              <span className="font-semibold">{t.assets?.symbol}</span>
+                            </div>
+                          </td>
+                          <td className="p-3.5">
+                            <Badge className={`capitalize text-xs ${t.direction === "buy" ? "bg-success/10 text-success border-success/20" : "bg-destructive/10 text-destructive border-destructive/20"}`}>
+                              {t.direction}
+                            </Badge>
+                          </td>
+                          <td className="p-3.5 font-medium">€{Number(t.size).toLocaleString()}</td>
+                          <td className="p-3.5 text-muted-foreground">€{Number(t.entry_price).toFixed(2)}</td>
+                          <td className="p-3.5">{t.leverage}×</td>
+                          <td className={`p-3.5 font-bold ${pnl >= 0 ? "text-success" : "text-destructive"}`}>
+                            {pnl >= 0 ? "+" : ""}€{pnl.toFixed(2)}
+                          </td>
+                          <td className="p-3.5 text-muted-foreground text-xs">
+                            {t.closed_at ? new Date(t.closed_at).toLocaleDateString("de-DE", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "—"}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
