@@ -433,6 +433,271 @@ const AdminUserDetail = () => {
     return <div className="flex items-center justify-center h-64 text-muted-foreground">User not found</div>;
   }
 
+  const isStaff = userRoleId !== "none";
+  const staffRoleName = isStaff ? (roles.find(r => r.id === userRoleId)?.name ?? "Staff") : "";
+
+  // ─── STAFF MEMBER VIEW ────────────────────────────────────────
+  if (isStaff) {
+    return (
+      <div className="space-y-6">
+        {/* Staff Header */}
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div className="flex-1">
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-display font-bold">{profile.full_name || profile.email}</h1>
+              <Badge className="bg-primary/10 text-primary border-primary/20 text-xs">
+                <ShieldCheck className="h-3 w-3 mr-1" /> {staffRoleName}
+              </Badge>
+            </div>
+            <p className="text-sm text-muted-foreground">{profile.email}</p>
+          </div>
+          <span className={`text-xs px-3 py-1.5 rounded-full font-medium ${statusColors[profile.status] ?? "bg-muted text-muted-foreground"}`}>
+            {profile.status}
+          </span>
+        </div>
+
+        {/* Staff Info Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <ShieldCheck className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Role</p>
+                <p className="text-lg font-display font-bold">{staffRoleName}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-success/10 flex items-center justify-center">
+                <Activity className="h-5 w-5 text-success" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Status</p>
+                <p className="text-lg font-display font-bold capitalize">{profile.status}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
+                <CalendarDays className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Joined</p>
+                <p className="text-lg font-display font-bold">{new Date(profile.created_at).toLocaleDateString()}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
+                <Lock className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">2FA</p>
+                <p className="text-lg font-display font-bold">{profile.two_factor_enabled ? "Enabled" : "Disabled"}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Tabs defaultValue="profile" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="profile">Profile</TabsTrigger>
+            <TabsTrigger value="role">Role & Permissions</TabsTrigger>
+            <TabsTrigger value="notes">Notes ({adminNotes.length})</TabsTrigger>
+          </TabsList>
+
+          {/* Staff Profile Tab */}
+          <TabsContent value="profile">
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader><CardTitle className="text-base flex items-center gap-2"><Users className="h-4 w-4" /> Edit Staff Profile</CardTitle></CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-1">
+                    <Label>Full Name</Label>
+                    <Input value={editProfile.full_name} onChange={e => setEditProfile({ ...editProfile, full_name: e.target.value })} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label>Phone</Label>
+                    <Input value={editProfile.phone} onChange={e => setEditProfile({ ...editProfile, phone: e.target.value })} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label>Country</Label>
+                    <Input value={editProfile.country} onChange={e => setEditProfile({ ...editProfile, country: e.target.value })} />
+                  </div>
+                  <Button onClick={handleSaveProfile} disabled={saving} className="w-full">
+                    <Save className="h-4 w-4 mr-2" /> Save Changes
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader><CardTitle className="text-base flex items-center gap-2"><KeyRound className="h-4 w-4" /> Security</CardTitle></CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Reset Password</Label>
+                      <div className="relative">
+                        <Input
+                          type={showNewPassword ? "text" : "password"}
+                          placeholder="New password (min 6 chars)"
+                          value={newPassword}
+                          onChange={e => setNewPassword(e.target.value)}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                      <Button onClick={handleChangePassword} disabled={changingPassword || !newPassword} variant="outline" className="w-full">
+                        <KeyRound className="h-4 w-4 mr-2" /> {changingPassword ? "Updating..." : "Update Password"}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader><CardTitle className="text-base">Account Actions</CardTitle></CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex gap-2">
+                      <Button variant="outline" className="flex-1 text-success border-success/30 hover:bg-success/10" onClick={() => updateStatus("active")}>
+                        <CheckCircle className="h-4 w-4 mr-2" /> Activate
+                      </Button>
+                      <Button variant="outline" className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/10" onClick={() => updateStatus("suspended")}>
+                        <Ban className="h-4 w-4 mr-2" /> Suspend
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Role & Permissions Tab */}
+          <TabsContent value="role">
+            <Card>
+              <CardHeader><CardTitle className="text-base flex items-center gap-2"><Shield className="h-4 w-4" /> Role Assignment</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Assigned Role</Label>
+                  <Select value={userRoleId} onValueChange={assignRole}>
+                    <SelectTrigger className="w-64">
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No Role (Remove Staff Access)</SelectItem>
+                      {roles.map(r => (
+                        <SelectItem key={r.id} value={r.id}>
+                          {r.name} {r.is_system && "(System)"}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {roles.find(r => r.id === userRoleId)?.description && (
+                    <p className="text-xs text-muted-foreground">{roles.find(r => r.id === userRoleId)?.description}</p>
+                  )}
+                </div>
+                <div className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">
+                  <p className="font-medium text-foreground mb-2">About Roles</p>
+                  <ul className="space-y-1 list-disc list-inside">
+                    <li><strong>Admin</strong> — Full access to all platform features</li>
+                    <li><strong>Manager</strong> — Can manage team leads and agents</li>
+                    <li><strong>Agent</strong> — Can manage own leads and clients</li>
+                  </ul>
+                  <p className="mt-2 text-xs">Changing the role takes effect immediately. The staff member's permissions will update on their next page load.</p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Staff Notes Tab */}
+          <TabsContent value="notes">
+            <Card>
+              <CardHeader><CardTitle className="text-base flex items-center gap-2"><MessageSquare className="h-4 w-4" /> Internal Notes</CardTitle></CardHeader>
+              <CardContent>
+                <div className="flex gap-2 mb-4">
+                  <div className="flex-1 space-y-2">
+                    <Textarea
+                      placeholder="Add a note about this staff member..."
+                      value={newNote}
+                      onChange={e => setNewNote(e.target.value)}
+                      rows={2}
+                    />
+                    <div className="flex items-center gap-2">
+                      <label className="cursor-pointer">
+                        <input
+                          type="file"
+                          multiple
+                          className="hidden"
+                          onChange={e => {
+                            if (e.target.files) setCommentFiles(prev => [...prev, ...Array.from(e.target.files!)]);
+                          }}
+                        />
+                        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+                          <Paperclip className="h-3.5 w-3.5" /> Attach files
+                        </span>
+                      </label>
+                      {commentFiles.length > 0 && (
+                        <div className="flex gap-1 flex-wrap">
+                          {commentFiles.map((f, i) => (
+                            <span key={i} className="inline-flex items-center gap-1 text-xs bg-muted px-2 py-0.5 rounded">
+                              {f.name}
+                              <button onClick={() => setCommentFiles(prev => prev.filter((_, idx) => idx !== i))} className="text-muted-foreground hover:text-foreground"><X className="h-3 w-3" /></button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <Button onClick={submitNote} disabled={uploadingComment || (!newNote.trim() && commentFiles.length === 0)} size="icon" className="self-end">
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {adminNotes.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">No notes yet</p>
+                  ) : adminNotes.map(n => (
+                    <div key={n.id} className="border rounded-lg p-3 text-sm">
+                      <p className="text-xs text-muted-foreground mb-1">{new Date(n.created_at).toLocaleString()}</p>
+                      <p>{n.content}</p>
+                      {n.attachments?.length > 0 && (
+                        <div className="flex gap-2 mt-2 flex-wrap">
+                          {n.attachments.map((url: string, i: number) => {
+                            const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
+                            return isImage ? (
+                              <a key={i} href={url} target="_blank" rel="noreferrer" className="block">
+                                <img src={url} alt="" className="h-16 w-16 rounded object-cover border hover:opacity-80 transition-opacity" />
+                              </a>
+                            ) : (
+                              <a key={i} href={url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs bg-muted px-2 py-1 rounded hover:bg-muted/80">
+                                <File className="h-3.5 w-3.5" /> Attachment {i + 1}
+                              </a>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    );
+  }
+
+  // ─── CLIENT / LEAD VIEW ────────────────────────────────────────
   return (
     <div className="space-y-6">
       {/* Header */}
