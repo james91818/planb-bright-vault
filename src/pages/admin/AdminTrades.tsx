@@ -330,7 +330,7 @@ const AdminTrades = () => {
 
   const tableHeaders = (
     <tr className="border-b bg-muted/50">
-      {["Client", "Asset", "Direction", "Size", "Entry", "Leverage", "P&L", "Override", ""].map(h => (
+      {["Client", "Asset", "Direction", "Size", "Entry", "Close Price", "Leverage", "P&L", "Override", ""].map(h => (
         <th key={h} className={`p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider ${h === "" ? "text-right" : "text-left"}`}>{h || "Actions"}</th>
       ))}
     </tr>
