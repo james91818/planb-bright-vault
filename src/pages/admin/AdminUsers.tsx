@@ -79,6 +79,63 @@ const AdminUsers = () => {
     fetchData();
   };
 
+  const openPasswordDialog = (userId: string, name: string) => {
+    setPwUserId(userId);
+    setPwUserName(name);
+    setNewPassword("");
+    setPwDialogOpen(true);
+  };
+
+  const handleChangePassword = async () => {
+    if (!newPassword || newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+    setPwLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-user-actions", {
+        body: { action: "change_password", user_id: pwUserId, password: newPassword },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success("Password changed successfully");
+      setPwDialogOpen(false);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to change password");
+    } finally {
+      setPwLoading(false);
+    }
+  };
+
+  const handleSendResetLink = async (userId: string, email: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-user-actions", {
+        body: { action: "send_reset_link", user_id: userId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(`Password reset link sent to ${email}`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send reset link");
+    }
+  };
+
+  const handleLoginAsClient = async (userId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-user-actions", {
+        body: { action: "login_as_client", user_id: userId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (data?.url) {
+        window.open(data.url, "_blank");
+        toast.success("Opening client session in new tab");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to login as client");
+    }
+  };
+
   const handleCreateUser = async () => {
     const fullName = `${newUser.first_name} ${newUser.last_name}`.trim();
     if (!newUser.email || !newUser.password || !fullName) {
