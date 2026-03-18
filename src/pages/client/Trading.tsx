@@ -315,7 +315,7 @@ const Trading = () => {
   // Refresh prices every 30 seconds
   useEffect(() => {
     if (!assets.length) return;
-    const interval = setInterval(() => refreshPrices(assets), 15000);
+    const interval = setInterval(() => refreshPrices(assets), 10000);
     return () => clearInterval(interval);
   }, [assets, refreshPrices]);
 
