@@ -22,6 +22,7 @@ import {
   Newspaper,
   Globe,
   Handshake,
+  Copy,
 } from "lucide-react";
 import {
   Sidebar,
@@ -47,6 +48,7 @@ const clientNav = [
   { title: "Trading", icon: TrendingUp, path: "/trading" },
   { title: "Wallet", icon: Wallet, path: "/wallet" },
   { title: "Staking", icon: Landmark, path: "/staking" },
+  { title: "Copy Trading", icon: Copy, path: "/copy-trading" },
   { title: "Watchlist", icon: LineChart, path: "/watchlist" },
 ];
 
@@ -61,6 +63,7 @@ const adminNav = [
   { title: "Withdrawals", icon: ArrowDownRight, path: "/admin/withdrawals" },
   { title: "Trades", icon: TrendingUp, path: "/admin/trades" },
   { title: "Staking", icon: Landmark, path: "/admin/staking" },
+  { title: "Copy Trading", icon: Copy, path: "/admin/copy-trading" },
   
   { title: "News", icon: Newspaper, path: "/admin/news" },
   

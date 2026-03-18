@@ -39,12 +39,14 @@ import AdminAgents from "./pages/admin/AdminAgents";
 import AdminAffiliates from "./pages/admin/AdminAffiliates";
 import AdminStaking from "./pages/admin/AdminStaking";
 import AdminBalance from "./pages/admin/AdminBalance";
+import AdminCopyTrading from "./pages/admin/AdminCopyTrading";
 
 // Client pages
 import Trading from "./pages/client/Trading";
 import WalletPage from "./pages/client/Wallet";
 import Staking from "./pages/client/Staking";
 import Watchlist from "./pages/client/Watchlist";
+import CopyTrading from "./pages/client/CopyTrading";
 
 // Shared pages
 import Notifications from "./pages/shared/Notifications";
@@ -85,6 +87,7 @@ const App = () => (
             <Route path="/wallet" element={<WalletPage />} />
             <Route path="/staking" element={<Staking />} />
             <Route path="/watchlist" element={<Watchlist />} />
+            <Route path="/copy-trading" element={<CopyTrading />} />
             {/* Admin routes */}
             <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/admin/users/:userId" element={<AdminUserDetail />} />
@@ -98,6 +101,7 @@ const App = () => (
             <Route path="/admin/agents" element={<AdminAgents />} />
             <Route path="/admin/affiliates" element={<AdminAffiliates />} />
             <Route path="/admin/news" element={<AdminNews />} />
+            <Route path="/admin/copy-trading" element={<AdminCopyTrading />} />
             <Route path="/admin/roles" element={<AdminRoles />} />
             {/* Shared routes */}
             <Route path="/notifications" element={<Notifications />} />

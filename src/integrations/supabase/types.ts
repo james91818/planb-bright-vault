@@ -178,6 +178,141 @@ export type Database = {
         }
         Relationships: []
       }
+      copied_trades: {
+        Row: {
+          created_at: string | null
+          id: string
+          source_trade_id: string | null
+          status: string | null
+          subscription_id: string
+          trade_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          source_trade_id?: string | null
+          status?: string | null
+          subscription_id: string
+          trade_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          source_trade_id?: string | null
+          status?: string | null
+          subscription_id?: string
+          trade_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "copied_trades_source_trade_id_fkey"
+            columns: ["source_trade_id"]
+            isOneToOne: false
+            referencedRelation: "trades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "copied_trades_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "copy_subscriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "copied_trades_trade_id_fkey"
+            columns: ["trade_id"]
+            isOneToOne: false
+            referencedRelation: "trades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      copy_subscriptions: {
+        Row: {
+          created_at: string | null
+          fixed_amount: number | null
+          id: string
+          is_active: boolean | null
+          mode: string
+          trader_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          fixed_amount?: number | null
+          id?: string
+          is_active?: boolean | null
+          mode?: string
+          trader_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          fixed_amount?: number | null
+          id?: string
+          is_active?: boolean | null
+          mode?: string
+          trader_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "copy_subscriptions_trader_id_fkey"
+            columns: ["trader_id"]
+            isOneToOne: false
+            referencedRelation: "copy_traders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      copy_traders: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          description: string | null
+          display_name: string
+          followers_count: number | null
+          id: string
+          is_admin_managed: boolean | null
+          is_visible: boolean | null
+          total_pnl: number | null
+          total_trades: number | null
+          user_id: string | null
+          win_rate: number | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          display_name: string
+          followers_count?: number | null
+          id?: string
+          is_admin_managed?: boolean | null
+          is_visible?: boolean | null
+          total_pnl?: number | null
+          total_trades?: number | null
+          user_id?: string | null
+          win_rate?: number | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          display_name?: string
+          followers_count?: number | null
+          id?: string
+          is_admin_managed?: boolean | null
+          is_visible?: boolean | null
+          total_pnl?: number | null
+          total_trades?: number | null
+          user_id?: string | null
+          win_rate?: number | null
+        }
+        Relationships: []
+      }
       deposits: {
         Row: {
           admin_notes: string | null
