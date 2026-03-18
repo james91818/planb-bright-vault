@@ -640,27 +640,28 @@ const Landing = () => {
 
       {/* ===== GET STARTED IN 3 STEPS ===== */}
       <section className="container mx-auto px-4 py-16 md:py-24">
-        <div className="text-center mb-12">
+        <AnimatedSection className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-display font-bold">Start Trading with PlanB Trading</h2>
           <p className="text-muted-foreground mt-2">Quick account opening in 3 simple steps</p>
-        </div>
-        <div className="grid gap-6 md:grid-cols-3 max-w-4xl mx-auto">
+        </AnimatedSection>
+        <StaggerContainer className="grid gap-6 md:grid-cols-3 max-w-4xl mx-auto">
           {steps.map((step) => (
-            <Card key={step.num} className="relative overflow-hidden group hover:shadow-lg transition-shadow">
-              <CardContent className="pt-8 pb-16 px-6 space-y-3">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="h-10 w-10 rounded-full bg-primary text-primary-foreground font-display font-bold text-lg flex items-center justify-center">
-                    {step.num}
+            <StaggerItem key={step.num}>
+              <Card className="relative overflow-hidden group hover:shadow-lg hover:-translate-y-2 transition-all duration-300">
+                <CardContent className="pt-8 pb-16 px-6 space-y-3">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="h-10 w-10 rounded-full bg-primary text-primary-foreground font-display font-bold text-lg flex items-center justify-center">
+                      {step.num}
+                    </div>
+                    <h3 className="font-display font-bold text-xl">{step.title}</h3>
                   </div>
-                  <h3 className="font-display font-bold text-xl">{step.title}</h3>
-                </div>
-                <p className="text-sm text-muted-foreground leading-relaxed">{step.description}</p>
-                {/* Background icon */}
-                <step.icon className="absolute bottom-4 right-4 h-16 w-16 text-muted/60 opacity-30" />
-              </CardContent>
-            </Card>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{step.description}</p>
+                  <step.icon className="absolute bottom-4 right-4 h-16 w-16 text-muted/60 opacity-30" />
+                </CardContent>
+              </Card>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerContainer>
         <div className="text-center mt-10">
           <Button size="lg" asChild className="rounded-full px-8 text-base">
             <Link to="/signup">
