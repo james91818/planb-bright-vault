@@ -333,7 +333,7 @@ const Trading = () => {
 
   // Update live price when livePrices map changes and we have a selected asset
   // Only generate chart on first load; afterwards just update the last candle
-  const chartInitialized = React.useRef(false);
+  const chartInitialized = useRef(false);
   useEffect(() => {
     if (!selectedAsset || !livePrices[selectedAsset.symbol]) return;
     const realPrice = livePrices[selectedAsset.symbol];
