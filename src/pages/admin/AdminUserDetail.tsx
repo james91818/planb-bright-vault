@@ -368,6 +368,27 @@ const AdminUserDetail = () => {
                 <Button onClick={handleSaveProfile} disabled={saving} className="w-full">
                   <Save className="h-4 w-4 mr-2" /> Save Changes
                 </Button>
+                <div className="border-t pt-4 mt-4 space-y-2">
+                  <Label className="flex items-center gap-2"><KeyRound className="h-4 w-4" /> Change Password</Label>
+                  <div className="relative">
+                    <Input
+                      type={showNewPassword ? "text" : "password"}
+                      placeholder="New password (min 6 chars)"
+                      value={newPassword}
+                      onChange={e => setNewPassword(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  <Button onClick={handleChangePassword} disabled={changingPassword || !newPassword} variant="outline" className="w-full">
+                    <KeyRound className="h-4 w-4 mr-2" /> {changingPassword ? "Updating..." : "Update Password"}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
