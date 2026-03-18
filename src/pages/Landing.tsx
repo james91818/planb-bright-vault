@@ -397,7 +397,7 @@ const Landing = () => {
                       <p className={`font-display font-bold text-lg ${s.color}`}>{s.value}</p>
                     </div>
                   ))}
-          </AnimatedSection>
+                </div>
 
                 {/* Recent AI trades */}
                 <div className="space-y-2">
@@ -427,7 +427,7 @@ const Landing = () => {
               <div className="absolute -bottom-10 -right-10 w-40 h-40 rounded-full bg-primary/20 blur-3xl" />
               <div className="absolute -top-5 -left-5 w-24 h-24 rounded-full bg-primary/10 blur-2xl" />
             </div>
-          </div>
+          </AnimatedSection>
         </div>
       </section>
 
