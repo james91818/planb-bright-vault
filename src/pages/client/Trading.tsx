@@ -480,7 +480,8 @@ const Trading = () => {
     const { error } = await supabase.from("trades").insert({
       user_id: user.id, asset_id: selectedAsset.id, direction, size: sizeNum,
       entry_price: livePrice, leverage, order_type: orderType,
-      stop_loss: stopLoss ? Number(stopLoss) : null, take_profit: takeProfit ? Number(takeProfit) : null,
+      stop_loss: stopLoss ? (slMode === "pct" ? +(livePrice * (1 - Number(stopLoss) / 100)).toFixed(2) : Number(stopLoss)) : null,
+      take_profit: takeProfit ? (tpMode === "pct" ? +(livePrice * (1 + Number(takeProfit) / 100)).toFixed(2) : Number(takeProfit)) : null,
     });
     if (error) toast.error("Failed to place order");
     else {
