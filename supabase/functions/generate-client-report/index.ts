@@ -14,6 +14,61 @@ interface ReportData {
   withdrawals: any[];
   stakes: any[];
   sections: Record<string, boolean>;
+  dateRangeLabel: string;
+}
+
+function getDateRange(range: string): { from: string | null; to: string } {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const to = new Date(now.getTime() + 86400000).toISOString(); // tomorrow
+
+  switch (range) {
+    case "today":
+      return { from: today.toISOString(), to };
+    case "yesterday": {
+      const y = new Date(today.getTime() - 86400000);
+      return { from: y.toISOString(), to: today.toISOString() };
+    }
+    case "this_week": {
+      const day = today.getDay();
+      const mon = new Date(today.getTime() - ((day === 0 ? 6 : day - 1) * 86400000));
+      return { from: mon.toISOString(), to };
+    }
+    case "last_week": {
+      const day = today.getDay();
+      const thisMon = new Date(today.getTime() - ((day === 0 ? 6 : day - 1) * 86400000));
+      const lastMon = new Date(thisMon.getTime() - 7 * 86400000);
+      return { from: lastMon.toISOString(), to: thisMon.toISOString() };
+    }
+    case "this_month":
+      return { from: new Date(now.getFullYear(), now.getMonth(), 1).toISOString(), to };
+    case "last_month": {
+      const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const end = new Date(now.getFullYear(), now.getMonth(), 1);
+      return { from: start.toISOString(), to: end.toISOString() };
+    }
+    case "last_90_days":
+      return { from: new Date(now.getTime() - 90 * 86400000).toISOString(), to };
+    case "this_year":
+      return { from: new Date(now.getFullYear(), 0, 1).toISOString(), to };
+    default:
+      return { from: null, to };
+  }
+}
+
+function dateRangeLabel(range: string): string {
+  const labels: Record<string, string> = {
+    today: "Today",
+    yesterday: "Yesterday",
+    this_week: "This Week",
+    last_week: "Last Week",
+    this_month: "This Month",
+    last_month: "Last Month",
+    last_90_days: "Last 90 Days",
+    this_year: "This Year",
+    all: "All Time",
+  };
+  return labels[range] || "All Time";
 }
 
 function formatCurrency(n: number, currency = "EUR"): string {
