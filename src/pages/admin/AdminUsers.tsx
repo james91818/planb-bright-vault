@@ -44,10 +44,15 @@ const AdminUsers = () => {
   const fetchData = async () => {
     const [{ data: profiles }, { data: urData }] = await Promise.all([
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
-      supabase.from("user_roles").select("user_id"),
+      supabase.from("user_roles").select("user_id, role_id, roles(name)"),
     ]);
     const staffIds = new Set((urData ?? []).map((ur: any) => ur.user_id));
     setStaffUserIds(staffIds);
+
+    // Build agents list from staff profiles
+    const agentProfiles = (profiles ?? []).filter(p => staffIds.has(p.id));
+    setAgents(agentProfiles);
+
     const clientProfiles = (profiles ?? []).filter(p => !staffIds.has(p.id) && p.is_lead !== false);
     setUsers(clientProfiles);
 
