@@ -30,7 +30,7 @@ const WalletPage = () => {
   const [loading, setLoading] = useState(true);
   const [depositOpen, setDepositOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
-  const [form, setForm] = useState({ amount: "", currency: "EUR", method: "crypto", wallet_address: "", destination: "" });
+  const [form, setForm] = useState({ amount: "", currency: "EUR", method: "bank_wire", wallet_address: "", destination: "", bank_name: "", iban: "", swift: "" });
   const [cryptoPricesEur, setCryptoPricesEur] = useState<Record<string, number>>({});
 
   const fetchData = async () => {
@@ -77,25 +77,84 @@ const WalletPage = () => {
 
   const submitWithdrawal = async () => {
     if (!user || !form.amount) return;
+    const isCrypto = form.method === "crypto";
+    if (isCrypto && !form.destination.trim()) {
+      toast.error("Please enter your wallet address");
+      return;
+    }
+    if (!isCrypto && (!form.bank_name.trim() || !form.iban.trim())) {
+      toast.error("Please enter your bank details (bank name and IBAN)");
+      return;
+    }
     const wallet = wallets.find(w => w.currency === form.currency);
     if (!wallet || Number(wallet.balance) < Number(form.amount)) {
       toast.error("Insufficient balance");
       return;
     }
-    await supabase.from("withdrawals").insert({
+    const destination = isCrypto
+      ? form.destination.trim()
+      : `Bank: ${form.bank_name.trim()}, IBAN: ${form.iban.trim()}${form.swift.trim() ? `, SWIFT: ${form.swift.trim()}` : ""}`;
+
+    const { data: insertedWd } = await supabase.from("withdrawals").insert({
       user_id: user.id,
       amount: Number(form.amount),
       currency: form.currency,
       method: form.method,
-      destination: form.destination || null,
-    });
+      destination,
+    }).select("id").single();
+
+    // Send notifications to assigned agent, admins, and managers
+    try {
+      // Get the user's profile to find assigned agent
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("assigned_agent, full_name, email")
+        .eq("id", user.id)
+        .single();
+
+      // Get all admin and manager user IDs
+      const { data: staffRoles } = await supabase
+        .from("roles")
+        .select("id, name")
+        .in("name", ["Admin", "Manager"]);
+
+      const staffRoleIds = (staffRoles ?? []).map(r => r.id);
+      const { data: staffMembers } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .in("role_id", staffRoleIds);
+
+      const recipientIds = new Set<string>();
+      // Add assigned agent
+      if (profile?.assigned_agent) recipientIds.add(profile.assigned_agent);
+      // Add admins and managers
+      (staffMembers ?? []).forEach(sm => recipientIds.add(sm.user_id));
+      // Don't notify self
+      recipientIds.delete(user.id);
+
+      const clientName = profile?.full_name || profile?.email || "A client";
+      const notifications = Array.from(recipientIds).map(uid => ({
+        user_id: uid,
+        title: "New Withdrawal Request",
+        message: `${clientName} requested a ${form.currency} ${Number(form.amount).toLocaleString()} withdrawal via ${form.method === "crypto" ? "crypto" : "bank wire"}.`,
+        type: "withdrawal",
+      }));
+
+      if (notifications.length > 0) {
+        await supabase.from("notifications").insert(notifications);
+      }
+    } catch (e) {
+      // Non-critical — don't block the withdrawal
+      console.error("Failed to send notifications:", e);
+    }
+
     toast.success("Withdrawal request submitted. Awaiting approval.");
     setWithdrawOpen(false);
     resetForm();
     fetchData();
   };
 
-  const resetForm = () => setForm({ amount: "", currency: "EUR", method: "crypto", wallet_address: "", destination: "" });
+  const resetForm = () => setForm({ amount: "", currency: "EUR", method: "bank_wire", wallet_address: "", destination: "", bank_name: "", iban: "", swift: "" });
 
   const fiatWallets = wallets.filter(w => FIAT_CURRENCIES.includes(w.currency));
   const cryptoWallets = wallets.filter(w => CRYPTO_CURRENCIES.includes(w.currency) && Number(w.balance) > 0);
@@ -315,10 +374,15 @@ const WalletPage = () => {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label>Currency</Label>
-                <Select value={form.currency} onValueChange={(v) => setForm({ ...form, currency: v })}>
+                <Select value={form.currency} onValueChange={(v) => {
+                  const isCrypto = CRYPTO_CURRENCIES.includes(v);
+                  setForm({ ...form, currency: v, method: isCrypto ? "crypto" : "bank_wire" });
+                }}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {allCurrencies.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    {wallets.filter(w => Number(w.balance) > 0).map(w => (
+                      <SelectItem key={w.currency} value={w.currency}>{w.currency} ({Number(w.balance).toLocaleString()})</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -327,16 +391,33 @@ const WalletPage = () => {
                 <Select value={form.method} onValueChange={(v) => setForm({ ...form, method: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="crypto">Crypto</SelectItem>
-                    <SelectItem value="bank_wire">Bank Wire</SelectItem>
+                    {CRYPTO_CURRENCIES.includes(form.currency) && <SelectItem value="crypto">Crypto Wallet</SelectItem>}
+                    {FIAT_CURRENCIES.includes(form.currency) && <SelectItem value="bank_wire">Bank Wire</SelectItem>}
                   </SelectContent>
                 </Select>
               </div>
             </div>
-            <div className="space-y-1">
-              <Label>Destination ({form.method === "crypto" ? "Wallet Address" : "Bank Details"})</Label>
-              <Input value={form.destination} onChange={(e) => setForm({ ...form, destination: e.target.value })} />
-            </div>
+            {form.method === "crypto" ? (
+              <div className="space-y-1">
+                <Label>Destination Wallet Address *</Label>
+                <Input value={form.destination} onChange={(e) => setForm({ ...form, destination: e.target.value })} placeholder="e.g. 0x1a2b3c... or bc1q..." />
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <Label>Bank Name *</Label>
+                  <Input value={form.bank_name} onChange={(e) => setForm({ ...form, bank_name: e.target.value })} placeholder="e.g. Deutsche Bank" />
+                </div>
+                <div className="space-y-1">
+                  <Label>IBAN *</Label>
+                  <Input value={form.iban} onChange={(e) => setForm({ ...form, iban: e.target.value })} placeholder="e.g. DE89370400440532013000" />
+                </div>
+                <div className="space-y-1">
+                  <Label>SWIFT/BIC (optional)</Label>
+                  <Input value={form.swift} onChange={(e) => setForm({ ...form, swift: e.target.value })} placeholder="e.g. DEUTDEDB" />
+                </div>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setWithdrawOpen(false)}>Cancel</Button>
