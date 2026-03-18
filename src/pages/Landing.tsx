@@ -200,22 +200,43 @@ const Landing = () => {
         </div>
 
         <div className="container mx-auto px-4 py-20 md:py-28 relative z-10">
-          <div className="max-w-xl space-y-6">
-            <h1 className="text-4xl md:text-5xl lg:text-[3.5rem] font-display font-bold text-foreground leading-[1.15]">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="max-w-xl space-y-6"
+          >
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+              className="text-4xl md:text-5xl lg:text-[3.5rem] font-display font-bold text-foreground leading-[1.15]"
+            >
               Integrity<br />
               Reliability<br />
               Transparency
-            </h1>
-            <p className="text-muted-foreground text-lg">
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.4 }}
+              className="text-muted-foreground text-lg"
+            >
               Trade on global markets with PlanB Trading — your trusted partner for crypto, stocks, and forex investments.
-            </p>
-            <Button size="lg" asChild className="rounded-full px-8 text-base bg-primary hover:bg-primary/90">
-              <Link to="/signup">
-                <TrendingUp className="mr-2 h-5 w-5" />
-                Start Trading Now
-              </Link>
-            </Button>
-          </div>
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.6 }}
+            >
+              <Button size="lg" asChild className="rounded-full px-8 text-base bg-primary hover:bg-primary/90">
+                <Link to="/signup">
+                  <TrendingUp className="mr-2 h-5 w-5" />
+                  Start Trading Now
+                </Link>
+              </Button>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
