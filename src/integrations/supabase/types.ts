@@ -417,6 +417,7 @@ export type Database = {
       profiles: {
         Row: {
           affiliate: string | null
+          assigned_agent: string | null
           avatar_url: string | null
           country: string | null
           created_at: string
@@ -434,6 +435,7 @@ export type Database = {
         }
         Insert: {
           affiliate?: string | null
+          assigned_agent?: string | null
           avatar_url?: string | null
           country?: string | null
           created_at?: string
@@ -451,6 +453,7 @@ export type Database = {
         }
         Update: {
           affiliate?: string | null
+          assigned_agent?: string | null
           avatar_url?: string | null
           country?: string | null
           created_at?: string
