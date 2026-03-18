@@ -301,6 +301,14 @@ const Trading = () => {
   const [balance, setBalance] = useState(0);
   const [livePrices, setLivePrices] = useState<Record<string, number>>({});
   const [realApiPrices, setRealApiPrices] = useState<Record<string, number>>({});
+  const openTradeSnapshots = useMemo(() => Object.fromEntries(openTrades.map((trade) => {
+    const symbol = trade.assets?.symbol ?? "";
+    const snapshotPrice = trade.current_price ? Number(trade.current_price) : (livePrices[symbol] || undefined);
+    const displayPrice = trade.current_price ? Number(trade.current_price) : (livePrices[symbol] || Number(trade.entry_price));
+    const displayPnl = computeLivePnl(trade, snapshotPrice);
+
+    return [trade.id, { displayPrice, displayPnl }];
+  })), [openTrades, livePrices]);
 
   // Trading mode: "manual" or "ai"
   const [tradingMode, setTradingMode] = useState<"manual" | "ai">("manual");
