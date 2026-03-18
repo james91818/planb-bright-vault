@@ -280,14 +280,31 @@ const AdminUserDetail = () => {
   };
 
   const submitNote = async () => {
-    if (!currentUser || !userId || !newNote.trim()) return;
+    if (!currentUser || !userId || (!newNote.trim() && commentFiles.length === 0)) return;
+    setUploadingComment(true);
+
+    // Upload files first
+    const uploadedUrls: string[] = [];
+    for (const file of commentFiles) {
+      const ext = file.name.split(".").pop();
+      const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error: uploadErr } = await supabase.storage.from("comment-attachments").upload(path, file);
+      if (!uploadErr) {
+        const { data: urlData } = supabase.storage.from("comment-attachments").getPublicUrl(path);
+        uploadedUrls.push(urlData.publicUrl);
+      }
+    }
+
     await (supabase as any).from("admin_notes").insert({
       user_id: userId,
       author_id: currentUser.id,
       content: newNote.trim(),
+      attachments: uploadedUrls,
     });
     setNewNote("");
-    toast.success("Note added");
+    setCommentFiles([]);
+    setUploadingComment(false);
+    toast.success("Comment added");
     fetchAll();
   };
 
