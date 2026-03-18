@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { computeLivePnl } from "@/lib/tradePnl";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -418,7 +419,8 @@ const Trading = () => {
   };
 
   const closeTrade = async (trade: Trade) => {
-    const pnl = Number(trade.pnl ?? 0);
+    const symbol = trade.assets?.symbol ?? "";
+    const pnl = computeLivePnl(trade, livePrices[symbol] || undefined);
     await supabase.from("trades").update({ status: "closed", closed_at: new Date().toISOString() }).eq("id", trade.id);
     const { data: wallet } = await supabase.from("wallets").select("id, balance").eq("user_id", user!.id).eq("currency", "EUR").maybeSingle();
     if (wallet) await supabase.from("wallets").update({ balance: Number(wallet.balance) + Number(trade.size) + pnl }).eq("id", wallet.id);
@@ -846,7 +848,8 @@ const Trading = () => {
                   </thead>
                   <tbody>
                     {openTrades.map(t => {
-                      const pnl = Number(t.pnl ?? 0);
+                      const symbol = t.assets?.symbol;
+                      const pnl = computeLivePnl(t, livePrices[symbol ?? ""] || undefined);
                       const tradeIcon = t.assets ? getAssetIcon(t.assets.symbol, null) : null;
                       return (
                         <tr key={t.id} className="border-b last:border-0 hover:bg-muted/20 transition-colors">

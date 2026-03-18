@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { fetchLivePrices, computeLivePnl } from "@/lib/tradePnl";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +20,7 @@ const AdminTrades = () => {
   const [overrideOpen, setOverrideOpen] = useState<any>(null);
   const [overrideMode, setOverrideMode] = useState("none");
   const [targetValue, setTargetValue] = useState("");
+  const [livePrices, setLivePrices] = useState<Record<string, number>>({});
 
   const fetchTrades = async () => {
     const { data } = await supabase
@@ -31,6 +33,22 @@ const AdminTrades = () => {
   };
 
   useEffect(() => { fetchTrades(); }, []);
+
+  // Fetch live prices for P&L
+  const refreshPrices = useCallback(async () => {
+    const symbols = [...new Set(trades.map((t: any) => t.assets?.symbol).filter(Boolean))] as string[];
+    if (symbols.length) {
+      const prices = await fetchLivePrices(symbols);
+      if (Object.keys(prices).length) setLivePrices(prices);
+    }
+  }, [trades]);
+
+  useEffect(() => { refreshPrices(); }, [refreshPrices]);
+  useEffect(() => {
+    if (!trades.length) return;
+    const interval = setInterval(refreshPrices, 30000);
+    return () => clearInterval(interval);
+  }, [trades, refreshPrices]);
 
   const closeTrade = async (trade: any, pnl: number) => {
     await supabase.from("trades").update({
@@ -114,12 +132,14 @@ const AdminTrades = () => {
                 ) : (
                   trades.map((t) => {
                     const override = t.trade_overrides?.[0];
+                    const symbol = (t as any).assets?.symbol;
+                    const pnl = computeLivePnl(t, livePrices[symbol]);
                     return (
                       <tr key={t.id} className="border-b last:border-0 hover:bg-muted/30">
                         <td className="p-3">
                           <p className="font-medium text-xs">{(t as any).profiles?.full_name || "—"}</p>
                         </td>
-                        <td className="p-3 font-medium">{(t as any).assets?.symbol ?? "—"}</td>
+                        <td className="p-3 font-medium">{symbol ?? "—"}</td>
                         <td className="p-3">
                           <Badge variant={t.direction === "buy" ? "default" : "destructive"} className="text-xs capitalize">
                             {t.direction}
@@ -128,8 +148,8 @@ const AdminTrades = () => {
                         <td className="p-3">€{Number(t.size).toLocaleString()}</td>
                         <td className="p-3">€{Number(t.entry_price).toFixed(2)}</td>
                         <td className="p-3">{t.leverage}×</td>
-                        <td className={`p-3 font-semibold ${Number(t.pnl) >= 0 ? "text-success" : "text-destructive"}`}>
-                          {Number(t.pnl) >= 0 ? "+" : ""}€{Number(t.pnl ?? 0).toFixed(2)}
+                        <td className={`p-3 font-semibold ${pnl >= 0 ? "text-success" : "text-destructive"}`}>
+                          {pnl >= 0 ? "+" : ""}€{pnl.toFixed(2)}
                         </td>
                         <td className="p-3">
                           <Badge variant="outline" className="capitalize text-xs">{t.status}</Badge>
@@ -153,7 +173,7 @@ const AdminTrades = () => {
                               }}>
                                 Override
                               </Button>
-                              <Button size="sm" variant="destructive" className="text-xs h-7" onClick={() => closeTrade(t, Number(t.pnl ?? 0))}>
+                              <Button size="sm" variant="destructive" className="text-xs h-7" onClick={() => closeTrade(t, pnl)}>
                                 Close
                               </Button>
                             </>

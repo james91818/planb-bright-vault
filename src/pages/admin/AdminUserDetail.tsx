@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { fetchLivePrices, computeLivePnl } from "@/lib/tradePnl";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,6 +45,7 @@ const AdminUserDetail = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
   const [cryptoPricesEur, setCryptoPricesEur] = useState<Record<string, number>>({});
+  const [livePrices, setLivePrices] = useState<Record<string, number>>({});
 
   const fetchAll = async () => {
     if (!userId) return;
@@ -102,6 +104,23 @@ const AdminUserDetail = () => {
       })
       .catch(() => {});
   }, []);
+
+  // Fetch live asset prices for trade P&L
+  const refreshLivePrices = useCallback(async () => {
+    if (!trades.length) return;
+    const symbols = [...new Set(trades.map((t: any) => t.assets?.symbol).filter(Boolean))] as string[];
+    if (symbols.length) {
+      const prices = await fetchLivePrices(symbols);
+      if (Object.keys(prices).length) setLivePrices(prices);
+    }
+  }, [trades]);
+
+  useEffect(() => { refreshLivePrices(); }, [refreshLivePrices]);
+  useEffect(() => {
+    if (!trades.length) return;
+    const interval = setInterval(refreshLivePrices, 30000);
+    return () => clearInterval(interval);
+  }, [trades, refreshLivePrices]);
 
   const handleSaveProfile = async () => {
     setSaving(true);
@@ -632,23 +651,27 @@ const AdminUserDetail = () => {
                   <tbody>
                     {trades.length === 0 ? (
                       <tr><td colSpan={7} className="p-6 text-center text-muted-foreground">No trades</td></tr>
-                    ) : trades.map(t => (
-                      <tr key={t.id} className="border-b last:border-0">
-                        <td className="p-3 font-medium">{(t.assets as any)?.symbol ?? "—"}</td>
-                        <td className="p-3">
-                          <Badge variant="outline" className={`text-xs capitalize ${t.direction === "buy" ? "text-success" : "text-destructive"}`}>
-                            {t.direction}
-                          </Badge>
-                        </td>
-                        <td className="p-3">€{Number(t.size).toLocaleString()}</td>
-                        <td className="p-3">{Number(t.entry_price).toLocaleString()}</td>
-                        <td className={`p-3 font-semibold ${Number(t.pnl ?? 0) >= 0 ? "text-success" : "text-destructive"}`}>
-                          €{Number(t.pnl ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                        </td>
-                        <td className="p-3"><Badge variant="outline" className="text-xs capitalize">{t.status}</Badge></td>
-                        <td className="p-3 text-muted-foreground text-xs">{new Date(t.opened_at).toLocaleDateString()}</td>
-                      </tr>
-                    ))}
+                    ) : trades.map(t => {
+                      const symbol = (t.assets as any)?.symbol;
+                      const pnl = computeLivePnl(t, livePrices[symbol]);
+                      return (
+                        <tr key={t.id} className="border-b last:border-0">
+                          <td className="p-3 font-medium">{symbol ?? "—"}</td>
+                          <td className="p-3">
+                            <Badge variant="outline" className={`text-xs capitalize ${t.direction === "buy" ? "text-success" : "text-destructive"}`}>
+                              {t.direction}
+                            </Badge>
+                          </td>
+                          <td className="p-3">€{Number(t.size).toLocaleString()}</td>
+                          <td className="p-3">{Number(t.entry_price).toLocaleString()}</td>
+                          <td className={`p-3 font-semibold ${pnl >= 0 ? "text-success" : "text-destructive"}`}>
+                            {pnl >= 0 ? "+" : ""}€{pnl.toFixed(2)}
+                          </td>
+                          <td className="p-3"><Badge variant="outline" className="text-xs capitalize">{t.status}</Badge></td>
+                          <td className="p-3 text-muted-foreground text-xs">{new Date(t.opened_at).toLocaleDateString()}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
