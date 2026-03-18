@@ -154,7 +154,7 @@ const WalletPage = () => {
     fetchData();
   };
 
-  const resetForm = () => setForm({ amount: "", currency: "EUR", method: "crypto", wallet_address: "", destination: "" });
+  const resetForm = () => setForm({ amount: "", currency: "EUR", method: "bank_wire", wallet_address: "", destination: "", bank_name: "", iban: "", swift: "" });
 
   const fiatWallets = wallets.filter(w => FIAT_CURRENCIES.includes(w.currency));
   const cryptoWallets = wallets.filter(w => CRYPTO_CURRENCIES.includes(w.currency) && Number(w.balance) > 0);
