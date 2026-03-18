@@ -1,4 +1,5 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useRole } from "@/hooks/useRole";
@@ -47,6 +48,8 @@ const AdminCalendar = () => {
   const { user } = useAuth();
   const { roleName } = useRole();
   const canViewOthers = roleName === "Admin" || roleName === "Manager";
+  const [searchParams, setSearchParams] = useSearchParams();
+  const autoOpenDone = useRef(false);
 
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -96,6 +99,29 @@ const AdminCalendar = () => {
     };
     fetchClients();
   }, [canViewOthers]);
+
+  // Auto-open create dialog when coming from user detail with ?client=...
+  useEffect(() => {
+    if (autoOpenDone.current) return;
+    const clientId = searchParams.get("client");
+    const clientName = searchParams.get("clientName");
+    if (clientId && user) {
+      autoOpenDone.current = true;
+      setSelectedDate(new Date());
+      setEditing(null);
+      setForm({
+        title: clientName ? `Meeting with ${clientName}` : "",
+        description: "",
+        start_time: "09:00",
+        end_time: "10:00",
+        color: "#3b82f6",
+        client_id: clientId,
+      });
+      setDialogOpen(true);
+      // Clean URL params
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, user]);
 
   const fetchAppointments = async () => {
     const start = startOfWeek(startOfMonth(currentMonth), { weekStartsOn: 1 });

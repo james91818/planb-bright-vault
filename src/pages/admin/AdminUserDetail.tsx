@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { ArrowLeft, Save, Ban, CheckCircle, DollarSign, TrendingUp, Wallet, Shield, MessageSquare, Send, Plus, Eye, EyeOff, KeyRound, Landmark, Lock, Clock, TrendingDown } from "lucide-react";
+import { ArrowLeft, Save, Ban, CheckCircle, DollarSign, TrendingUp, Wallet, Shield, MessageSquare, Send, Plus, Eye, EyeOff, KeyRound, Landmark, Lock, Clock, TrendingDown, CalendarDays } from "lucide-react";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
@@ -347,6 +347,9 @@ const AdminUserDetail = () => {
         <span className={`text-xs px-3 py-1.5 rounded-full font-medium ${statusColors[profile.status] ?? "bg-muted text-muted-foreground"}`}>
           {profile.status}
         </span>
+        <Button variant="outline" size="sm" onClick={() => navigate(`/admin/calendar?client=${userId}&clientName=${encodeURIComponent(profile.full_name || profile.email)}`)}>
+          <CalendarDays className="h-4 w-4 mr-1" /> Schedule Appointment
+        </Button>
         <Badge variant={profile.is_lead ? "secondary" : "default"} className="text-xs">
           {profile.is_lead ? "Lead" : "Depositor"}
         </Badge>
