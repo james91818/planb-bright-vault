@@ -220,16 +220,16 @@ const WalletPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-display font-bold">Wallet</h1>
           <p className="text-muted-foreground text-sm">Manage your funds</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => { resetForm(); setDepositOpen(true); }}>
+          <Button onClick={() => { resetForm(); setDepositOpen(true); }} className="flex-1 sm:flex-none">
             <ArrowUpRight className="h-4 w-4 mr-1" /> Deposit
           </Button>
-          <Button variant="outline" onClick={() => { resetForm(); setWithdrawOpen(true); }}>
+          <Button variant="outline" onClick={() => { resetForm(); setWithdrawOpen(true); }} className="flex-1 sm:flex-none">
             <ArrowDownRight className="h-4 w-4 mr-1" /> Withdraw
           </Button>
         </div>
@@ -311,7 +311,8 @@ const WalletPage = () => {
             <TabsContent value="deposits">
               <Card>
                 <CardContent className="p-0">
-                  <table className="w-full text-sm">
+              <div className="overflow-x-auto">
+                  <table className="w-full text-sm min-w-[400px]">
                     <thead>
                       <tr className="border-b bg-muted/50">
                         <th className="text-left p-3 font-medium text-muted-foreground">Amount</th>
@@ -325,21 +326,23 @@ const WalletPage = () => {
                         <tr><td colSpan={4} className="p-8 text-center text-muted-foreground">No deposits yet</td></tr>
                       ) : deposits.map((d) => (
                         <tr key={d.id} className="border-b last:border-0">
-                          <td className="p-3 font-semibold">{d.currency} {Number(d.amount).toLocaleString()}</td>
+                          <td className="p-3 font-semibold whitespace-nowrap">{d.currency} {Number(d.amount).toLocaleString()}</td>
                           <td className="p-3 capitalize text-muted-foreground">{d.method}</td>
                           <td className="p-3"><span className={`text-xs px-2 py-1 rounded-full font-medium ${statusColors[d.status] ?? "bg-muted"}`}>{d.status}</span></td>
-                          <td className="p-3 text-muted-foreground text-xs">{new Date(d.created_at).toLocaleDateString()}</td>
+                          <td className="p-3 text-muted-foreground text-xs whitespace-nowrap">{new Date(d.created_at).toLocaleDateString()}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
+                </div>
                 </CardContent>
               </Card>
             </TabsContent>
             <TabsContent value="withdrawals">
               <Card>
                 <CardContent className="p-0">
-                  <table className="w-full text-sm">
+              <div className="overflow-x-auto">
+                  <table className="w-full text-sm min-w-[400px]">
                     <thead>
                       <tr className="border-b bg-muted/50">
                         <th className="text-left p-3 font-medium text-muted-foreground">Amount</th>
@@ -353,14 +356,15 @@ const WalletPage = () => {
                         <tr><td colSpan={4} className="p-8 text-center text-muted-foreground">No withdrawals yet</td></tr>
                       ) : withdrawals.map((w) => (
                         <tr key={w.id} className="border-b last:border-0">
-                          <td className="p-3 font-semibold">{w.currency} {Number(w.amount).toLocaleString()}</td>
+                          <td className="p-3 font-semibold whitespace-nowrap">{w.currency} {Number(w.amount).toLocaleString()}</td>
                           <td className="p-3 capitalize text-muted-foreground">{w.method}</td>
                           <td className="p-3"><span className={`text-xs px-2 py-1 rounded-full font-medium ${statusColors[w.status] ?? "bg-muted"}`}>{w.status}</span></td>
-                          <td className="p-3 text-muted-foreground text-xs">{new Date(w.created_at).toLocaleDateString()}</td>
+                          <td className="p-3 text-muted-foreground text-xs whitespace-nowrap">{new Date(w.created_at).toLocaleDateString()}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
+                </div>
                 </CardContent>
               </Card>
             </TabsContent>

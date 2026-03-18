@@ -102,7 +102,8 @@ const Staking = () => {
         <Card>
           <CardContent className="p-0">
             <div className="p-4 border-b"><h3 className="font-display font-semibold">Your Stakes</h3></div>
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[550px]">
               <thead>
                 <tr className="border-b bg-muted/50">
                   <th className="text-left p-3 font-medium text-muted-foreground">Plan</th>
@@ -140,6 +141,7 @@ const Staking = () => {
                 })}
               </tbody>
             </table>
+            </div>
           </CardContent>
         </Card>
       )}

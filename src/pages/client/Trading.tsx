@@ -669,7 +669,7 @@ const Trading = () => {
         <div className="flex-1 flex flex-col space-y-3">
           {/* Asset header */}
           <Card>
-            <CardContent className="p-4 flex items-center justify-between flex-wrap gap-3">
+            <CardContent className="p-3 sm:p-4 flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-4">
                 {/* Asset selector */}
                 <div className="relative">
@@ -693,7 +693,7 @@ const Trading = () => {
 
                   {/* Dropdown */}
                   {showAssetList && (
-                    <Card className="absolute top-full left-0 mt-2 z-50 w-80 max-h-[420px] overflow-hidden shadow-2xl border">
+                    <Card className="absolute top-full left-0 mt-2 z-50 w-[calc(100vw-3rem)] sm:w-80 max-h-[420px] overflow-hidden shadow-2xl border">
                       <CardContent className="p-3 space-y-2">
                         <div className="relative">
                           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -763,8 +763,8 @@ const Trading = () => {
               </div>
 
               {/* Chart type + Timeframe toggles */}
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-0.5 bg-muted rounded-lg p-1">
+              <div className="flex items-center gap-2 overflow-x-auto">
+                <div className="flex items-center gap-0.5 bg-muted rounded-lg p-1 shrink-0">
                   {(Object.keys(TIMEFRAME_CONFIG) as Timeframe[]).map(tf => (
                     <Button key={tf} size="sm" variant={timeframe === tf ? "default" : "ghost"}
                       onClick={() => {
@@ -782,7 +782,7 @@ const Trading = () => {
                     </Button>
                   ))}
                 </div>
-                <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+                <div className="flex items-center gap-1 bg-muted rounded-lg p-1 shrink-0">
                   <Button size="sm" variant={chartType === "candle" ? "default" : "ghost"}
                     onClick={() => setChartType("candle")} className="h-8 w-8 p-0">
                     <CandlestickChart className="h-4 w-4" />
