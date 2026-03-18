@@ -122,6 +122,15 @@ const AdminUserDetail = () => {
     const { data: cryptoData } = await (supabase as any).from("client_crypto_addresses").select("*").eq("user_id", userId).order("currency");
     setCryptoAddresses(cryptoData ?? []);
 
+    // Fetch report settings
+    const { data: reportData } = await (supabase as any).from("report_settings").select("*").eq("user_id", userId).maybeSingle();
+    if (reportData) {
+      setReportSections(reportData.sections ?? { wallets: true, trades: true, deposits: true, withdrawals: true, staking: true, pnl: true });
+      setReportFrequency(reportData.frequency ?? "manual");
+      setReportEnabled(reportData.enabled ?? false);
+      setReportLastSent(reportData.last_sent_at ?? null);
+    }
+
     if (prof) {
       setEditProfile({
         full_name: prof.full_name ?? "",
