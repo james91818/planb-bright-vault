@@ -48,6 +48,7 @@ const clientNav = [
   { title: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
   { title: "Trading", icon: TrendingUp, path: "/trading" },
   { title: "Wallet", icon: Wallet, path: "/wallet" },
+  { title: "P&L Summary", icon: LineChart, path: "/pnl" },
   { title: "Staking", icon: Landmark, path: "/staking" },
   { title: "Copy Trading", icon: Copy, path: "/copy-trading" },
   { title: "Watchlist", icon: LineChart, path: "/watchlist" },
