@@ -155,9 +155,6 @@ const AdminUsers = () => {
           <p className="text-muted-foreground text-sm">{users.length} total leads</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setDepositOpen(true)}>
-            <Plus className="h-4 w-4 mr-1" /> Manual Deposit
-          </Button>
           <Button onClick={() => setCreateOpen(true)}>
             <UserPlus className="h-4 w-4 mr-2" /> Create User
           </Button>
