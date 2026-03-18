@@ -45,8 +45,8 @@ const COLORS = [
 
 const AdminCalendar = () => {
   const { user } = useAuth();
-  const { isAdmin, isManager } = useRole();
-  const canViewOthers = isAdmin || isManager;
+  const { roleName } = useRole();
+  const canViewOthers = roleName === "Admin" || roleName === "Manager";
 
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [appointments, setAppointments] = useState<Appointment[]>([]);
