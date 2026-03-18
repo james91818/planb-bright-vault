@@ -607,6 +607,264 @@ const Settings = () => {
           </TabsContent>
         )}
 
+        {/* AUTO ASSIGN TAB — Admin */}
+        {isAdmin && (
+          <TabsContent value="auto-assign" className="space-y-4 mt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base font-display flex items-center gap-2">
+                  <Users className="h-4 w-4" /> Auto Assign Settings
+                </CardTitle>
+                <CardDescription>Configure how new leads are automatically assigned to agents</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Default assignment mode */}
+                <div className="space-y-2">
+                  <Label>Default Assignment Mode</Label>
+                  <Select
+                    value={platformSettings.auto_assign?.mode ?? "none"}
+                    onValueChange={(v) => updateSettingField("auto_assign", "mode", v)}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No Auto Assign</SelectItem>
+                      <SelectItem value="round_robin">Round Robin (rotate between agents)</SelectItem>
+                      <SelectItem value="fixed">Fixed Agent (all leads to one agent)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">How leads without affiliate mapping are assigned</p>
+                </div>
+
+                {/* Fixed agent selection */}
+                {platformSettings.auto_assign?.mode === "fixed" && (
+                  <div className="space-y-2">
+                    <Label>Default Agent</Label>
+                    <Select
+                      value={platformSettings.auto_assign?.default_agent ?? ""}
+                      onValueChange={(v) => updateSettingField("auto_assign", "default_agent", v)}
+                    >
+                      <SelectTrigger><SelectValue placeholder="Select agent" /></SelectTrigger>
+                      <SelectContent>
+                        {agents.map(a => (
+                          <SelectItem key={a.id} value={a.id}>{a.full_name || a.email}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {/* Round robin agent pool */}
+                {platformSettings.auto_assign?.mode === "round_robin" && (
+                  <div className="space-y-2">
+                    <Label>Agent Pool</Label>
+                    <p className="text-xs text-muted-foreground">Select which agents participate in round-robin assignment</p>
+                    <div className="space-y-2 border rounded-lg p-3">
+                      {agents.map(a => {
+                        const pool: string[] = platformSettings.auto_assign?.agent_pool ?? [];
+                        const isInPool = pool.includes(a.id);
+                        return (
+                          <div key={a.id} className="flex items-center justify-between">
+                            <span className="text-sm">{a.full_name || a.email}</span>
+                            <Switch
+                              checked={isInPool}
+                              onCheckedChange={(checked) => {
+                                const newPool = checked
+                                  ? [...pool, a.id]
+                                  : pool.filter((id: string) => id !== a.id);
+                                updateSettingField("auto_assign", "agent_pool", newPool);
+                              }}
+                            />
+                          </div>
+                        );
+                      })}
+                      {agents.length === 0 && <p className="text-sm text-muted-foreground">No agents found</p>}
+                    </div>
+                  </div>
+                )}
+
+                <Separator />
+
+                {/* Affiliate → Agent mapping */}
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-sm font-semibold">Affiliate → Agent Mapping</Label>
+                    <p className="text-xs text-muted-foreground">Assign a specific agent for leads coming from each affiliate</p>
+                  </div>
+                  {affiliates.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No active affiliates</p>
+                  ) : (
+                    <div className="space-y-3 border rounded-lg p-3">
+                      {affiliates.map(aff => {
+                        const mapping: Record<string, string> = platformSettings.auto_assign?.affiliate_mapping ?? {};
+                        return (
+                          <div key={aff.id} className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <Badge variant="outline" className="text-xs shrink-0">{aff.name}</Badge>
+                            </div>
+                            <Select
+                              value={mapping[aff.id] ?? "default"}
+                              onValueChange={(v) => {
+                                const newMapping = { ...mapping };
+                                if (v === "default") delete newMapping[aff.id];
+                                else newMapping[aff.id] = v;
+                                updateSettingField("auto_assign", "affiliate_mapping", newMapping);
+                              }}
+                            >
+                              <SelectTrigger className="w-[180px] h-8 text-xs">
+                                <SelectValue placeholder="Use default" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="default">Use Default</SelectItem>
+                                {agents.map(a => (
+                                  <SelectItem key={a.id} value={a.id}>{a.full_name || a.email}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                <Separator />
+
+                {/* Funnel → Agent mapping */}
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-sm font-semibold">Funnel → Agent Mapping</Label>
+                    <p className="text-xs text-muted-foreground">Assign agents based on registration funnel source</p>
+                  </div>
+                  <div className="space-y-2">
+                    {(platformSettings.auto_assign?.funnel_rules ?? []).map((rule: any, idx: number) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <Input
+                          className="h-8 text-xs flex-1"
+                          placeholder="Funnel name"
+                          value={rule.funnel ?? ""}
+                          onChange={(e) => {
+                            const rules = [...(platformSettings.auto_assign?.funnel_rules ?? [])];
+                            rules[idx] = { ...rules[idx], funnel: e.target.value };
+                            updateSettingField("auto_assign", "funnel_rules", rules);
+                          }}
+                        />
+                        <Select
+                          value={rule.agent_id ?? ""}
+                          onValueChange={(v) => {
+                            const rules = [...(platformSettings.auto_assign?.funnel_rules ?? [])];
+                            rules[idx] = { ...rules[idx], agent_id: v };
+                            updateSettingField("auto_assign", "funnel_rules", rules);
+                          }}
+                        >
+                          <SelectTrigger className="w-[180px] h-8 text-xs">
+                            <SelectValue placeholder="Select agent" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {agents.map(a => (
+                              <SelectItem key={a.id} value={a.id}>{a.full_name || a.email}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive shrink-0"
+                          onClick={() => {
+                            const rules = (platformSettings.auto_assign?.funnel_rules ?? []).filter((_: any, i: number) => i !== idx);
+                            updateSettingField("auto_assign", "funnel_rules", rules);
+                          }}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs"
+                      onClick={() => {
+                        const rules = [...(platformSettings.auto_assign?.funnel_rules ?? []), { funnel: "", agent_id: "" }];
+                        updateSettingField("auto_assign", "funnel_rules", rules);
+                      }}
+                    >
+                      <Plus className="h-3.5 w-3.5 mr-1" /> Add Funnel Rule
+                    </Button>
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Country → Agent mapping */}
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-sm font-semibold">Country → Agent Mapping</Label>
+                    <p className="text-xs text-muted-foreground">Assign agents based on the lead's country</p>
+                  </div>
+                  <div className="space-y-2">
+                    {(platformSettings.auto_assign?.country_rules ?? []).map((rule: any, idx: number) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <Input
+                          className="h-8 text-xs flex-1"
+                          placeholder="Country (e.g. Germany)"
+                          value={rule.country ?? ""}
+                          onChange={(e) => {
+                            const rules = [...(platformSettings.auto_assign?.country_rules ?? [])];
+                            rules[idx] = { ...rules[idx], country: e.target.value };
+                            updateSettingField("auto_assign", "country_rules", rules);
+                          }}
+                        />
+                        <Select
+                          value={rule.agent_id ?? ""}
+                          onValueChange={(v) => {
+                            const rules = [...(platformSettings.auto_assign?.country_rules ?? [])];
+                            rules[idx] = { ...rules[idx], agent_id: v };
+                            updateSettingField("auto_assign", "country_rules", rules);
+                          }}
+                        >
+                          <SelectTrigger className="w-[180px] h-8 text-xs">
+                            <SelectValue placeholder="Select agent" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {agents.map(a => (
+                              <SelectItem key={a.id} value={a.id}>{a.full_name || a.email}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive shrink-0"
+                          onClick={() => {
+                            const rules = (platformSettings.auto_assign?.country_rules ?? []).filter((_: any, i: number) => i !== idx);
+                            updateSettingField("auto_assign", "country_rules", rules);
+                          }}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs"
+                      onClick={() => {
+                        const rules = [...(platformSettings.auto_assign?.country_rules ?? []), { country: "", agent_id: "" }];
+                        updateSettingField("auto_assign", "country_rules", rules);
+                      }}
+                    >
+                      <Plus className="h-3.5 w-3.5 mr-1" /> Add Country Rule
+                    </Button>
+                  </div>
+                </div>
+
+                <Button onClick={() => savePlatformSetting("auto_assign", platformSettings.auto_assign)} disabled={settingsLoading}>
+                  Save Auto Assign Settings
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
+
         {/* ROLES TAB — Admin */}
         {isAdmin && (
           <TabsContent value="roles" className="mt-4">
