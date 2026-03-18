@@ -588,6 +588,13 @@ const Settings = () => {
             </Card>
           </TabsContent>
         )}
+
+        {/* ROLES TAB — Admin */}
+        {isAdmin && (
+          <TabsContent value="roles" className="mt-4">
+            <RolesManager />
+          </TabsContent>
+        )}
       </Tabs>
 
       {/* Status Create/Edit Dialog */}
