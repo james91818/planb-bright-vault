@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import oxBg from "@/assets/ox-bg.svg";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -117,6 +118,14 @@ const indices = [
 ];
 
 const Landing = () => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
+
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Top utility bar */}
@@ -158,12 +167,25 @@ const Landing = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Button size="sm" asChild className="rounded-md px-5">
-              <Link to="/signup">Open Account</Link>
-            </Button>
-            <Button variant="outline" size="sm" asChild className="rounded-md border-primary text-primary hover:bg-primary/10 bg-transparent">
-              <Link to="/login">Client Login</Link>
-            </Button>
+            {user ? (
+              <>
+                <Button size="sm" asChild className="rounded-md px-5">
+                  <Link to="/dashboard">Dashboard</Link>
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleSignOut} className="rounded-md border-primary text-primary hover:bg-primary/10 bg-transparent">
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button size="sm" asChild className="rounded-md px-5">
+                  <Link to="/signup">Open Account</Link>
+                </Button>
+                <Button variant="outline" size="sm" asChild className="rounded-md border-primary text-primary hover:bg-primary/10 bg-transparent">
+                  <Link to="/login">Client Login</Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </nav>
