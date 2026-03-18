@@ -220,16 +220,16 @@ const WalletPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-display font-bold">Wallet</h1>
           <p className="text-muted-foreground text-sm">Manage your funds</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => { resetForm(); setDepositOpen(true); }}>
+          <Button onClick={() => { resetForm(); setDepositOpen(true); }} className="flex-1 sm:flex-none">
             <ArrowUpRight className="h-4 w-4 mr-1" /> Deposit
           </Button>
-          <Button variant="outline" onClick={() => { resetForm(); setWithdrawOpen(true); }}>
+          <Button variant="outline" onClick={() => { resetForm(); setWithdrawOpen(true); }} className="flex-1 sm:flex-none">
             <ArrowDownRight className="h-4 w-4 mr-1" /> Withdraw
           </Button>
         </div>
