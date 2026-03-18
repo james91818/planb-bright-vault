@@ -20,6 +20,7 @@ const AdminTrades = () => {
   const [overrideOpen, setOverrideOpen] = useState<any>(null);
   const [overrideMode, setOverrideMode] = useState("none");
   const [targetValue, setTargetValue] = useState("");
+  const [livePrices, setLivePrices] = useState<Record<string, number>>({});
 
   const fetchTrades = async () => {
     const { data } = await supabase
