@@ -26,6 +26,7 @@ const AdminUsers = () => {
   const navigate = useNavigate();
   const [users, setUsers] = useState<any[]>([]);
   const [staffUserIds, setStaffUserIds] = useState<Set<string>>(new Set());
+  const [agents, setAgents] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(true);
