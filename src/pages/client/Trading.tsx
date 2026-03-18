@@ -544,9 +544,15 @@ const Trading = () => {
   };
 
   const closeTrade = async (trade: Trade) => {
+    // If admin has set a target P&L on the open trade (pnl != 0 for open trades = admin override),
+    // use that value instead of the displayed snapshot to preserve admin intent
+    const adminTargetPnl = trade.pnl && Number(trade.pnl) !== 0 ? Number(trade.pnl) : null;
+    
     const snapshot = openTradeSnapshots[trade.id];
     const finalPrice = snapshot?.displayPrice ?? (trade.current_price ? Number(trade.current_price) : Number(trade.entry_price));
-    const finalPnl = Number((snapshot?.displayPnl ?? trade.pnl ?? 0).toFixed(2));
+    const finalPnl = adminTargetPnl !== null 
+      ? Number(adminTargetPnl.toFixed(2))
+      : Number((snapshot?.displayPnl ?? 0).toFixed(2));
 
     await supabase.from("trades").update({
       status: "closed",
