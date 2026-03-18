@@ -24,6 +24,7 @@ import TradingHours from "./pages/TradingHours";
 import InstrumentsPage from "./pages/Instruments";
 import Dashboard from "./pages/Dashboard";
 import AppLayout from "./components/layout/AppLayout";
+import ProtectedRoute from "./components/layout/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 
 // Admin pages
