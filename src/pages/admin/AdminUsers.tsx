@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, UserPlus, MoreHorizontal, Plus, Phone, Shuffle } from "lucide-react";
+import { Search, UserPlus, MoreHorizontal, Plus, Phone, Shuffle, Eye, Mail, KeyRound, Send, Ban, LogIn } from "lucide-react";
 import StatusChanger, { useLeadStatuses } from "@/components/admin/StatusChanger";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -34,6 +34,11 @@ const AdminUsers = () => {
   const [depositOpen, setDepositOpen] = useState(false);
   const [depositForm, setDepositForm] = useState({ user_id: "", amount: "", currency: "EUR", method: "manual", notes: "" });
   const [notesMap, setNotesMap] = useState<Record<string, { content: string; created_at: string; count: number }>>({});
+  const [pwDialogOpen, setPwDialogOpen] = useState(false);
+  const [pwUserId, setPwUserId] = useState("");
+  const [pwUserName, setPwUserName] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [pwLoading, setPwLoading] = useState(false);
 
   const fetchData = async () => {
     const [{ data: profiles }, { data: urData }] = await Promise.all([
@@ -72,6 +77,63 @@ const AdminUsers = () => {
     await supabase.from("profiles").update({ status }).eq("id", userId);
     toast.success(`User status updated to ${status}`);
     fetchData();
+  };
+
+  const openPasswordDialog = (userId: string, name: string) => {
+    setPwUserId(userId);
+    setPwUserName(name);
+    setNewPassword("");
+    setPwDialogOpen(true);
+  };
+
+  const handleChangePassword = async () => {
+    if (!newPassword || newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+    setPwLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-user-actions", {
+        body: { action: "change_password", user_id: pwUserId, password: newPassword },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success("Password changed successfully");
+      setPwDialogOpen(false);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to change password");
+    } finally {
+      setPwLoading(false);
+    }
+  };
+
+  const handleSendResetLink = async (userId: string, email: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-user-actions", {
+        body: { action: "send_reset_link", user_id: userId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(`Password reset link sent to ${email}`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send reset link");
+    }
+  };
+
+  const handleLoginAsClient = async (userId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-user-actions", {
+        body: { action: "login_as_client", user_id: userId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (data?.url) {
+        window.open(data.url, "_blank");
+        toast.success("Opening client session in new tab");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to login as client");
+    }
   };
 
   const handleCreateUser = async () => {
@@ -201,6 +263,8 @@ const AdminUsers = () => {
                   <th className="text-left p-3 font-medium text-muted-foreground">Email</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Country</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Registration</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Affiliate</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Funnel</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Status</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Last Note</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">#Notes</th>
@@ -209,9 +273,9 @@ const AdminUsers = () => {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={9} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
+                  <tr><td colSpan={11} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
                 ) : filtered.length === 0 ? (
-                  <tr><td colSpan={9} className="p-8 text-center text-muted-foreground">No leads found</td></tr>
+                  <tr><td colSpan={11} className="p-8 text-center text-muted-foreground">No leads found</td></tr>
                 ) : (
                   filtered.map((u) => {
                     const note = notesMap[u.id];
@@ -243,6 +307,8 @@ const AdminUsers = () => {
                         <td className="p-3 text-muted-foreground text-xs whitespace-nowrap">
                           {new Date(u.created_at).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" })}
                         </td>
+                        <td className="p-3 text-muted-foreground whitespace-nowrap">{u.affiliate || "—"}</td>
+                        <td className="p-3 text-muted-foreground whitespace-nowrap">{u.funnel || "—"}</td>
                         <td className="p-3">
                           <StatusChanger userId={u.id} currentStatus={u.status} onStatusChanged={fetchData} />
                         </td>
@@ -261,9 +327,39 @@ const AdminUsers = () => {
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); updateStatus(u.id, "active"); }}>Set Active</DropdownMenuItem>
-                              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); updateStatus(u.id, "suspended"); }}>Suspend</DropdownMenuItem>
+                            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                              <DropdownMenuItem onClick={() => navigate(`/admin/users/${u.id}`)}>
+                                <Eye className="h-4 w-4 mr-2" /> View Profile
+                              </DropdownMenuItem>
+                              {u.email && (
+                                <DropdownMenuItem onClick={() => window.open(`mailto:${u.email}`)}>
+                                  <Mail className="h-4 w-4 mr-2" /> Send Email
+                                </DropdownMenuItem>
+                              )}
+                              {u.phone && (
+                                <DropdownMenuItem onClick={() => window.open(`tel:${u.phone}`, "_self")}>
+                                  <Phone className="h-4 w-4 mr-2" /> Call
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => openPasswordDialog(u.id, u.full_name || u.email)}>
+                                <KeyRound className="h-4 w-4 mr-2" /> Change Password
+                              </DropdownMenuItem>
+                              {u.email && (
+                                <DropdownMenuItem onClick={() => handleSendResetLink(u.id, u.email)}>
+                                  <Send className="h-4 w-4 mr-2" /> Send Reset Link
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuItem onClick={() => handleLoginAsClient(u.id)}>
+                                <LogIn className="h-4 w-4 mr-2" /> Login as Client
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => updateStatus(u.id, "active")}>
+                                Set Active
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => updateStatus(u.id, "suspended")} className="text-destructive">
+                                <Ban className="h-4 w-4 mr-2" /> Suspend
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </td>
@@ -456,6 +552,32 @@ const AdminUsers = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setDepositOpen(false)}>Cancel</Button>
             <Button onClick={submitManualDeposit}>Create & Credit</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Change Password Dialog */}
+      <Dialog open={pwDialogOpen} onOpenChange={setPwDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Change Password — {pwUserName}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label>New Password</Label>
+              <Input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Min. 6 characters"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPwDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleChangePassword} disabled={pwLoading}>
+              {pwLoading ? "Changing..." : "Change Password"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
