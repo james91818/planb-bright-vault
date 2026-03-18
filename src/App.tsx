@@ -45,6 +45,7 @@ import Trading from "./pages/client/Trading";
 import WalletPage from "./pages/client/Wallet";
 import Staking from "./pages/client/Staking";
 import Watchlist from "./pages/client/Watchlist";
+import CopyTrading from "./pages/client/CopyTrading";
 
 // Shared pages
 import Notifications from "./pages/shared/Notifications";
