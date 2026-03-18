@@ -23,12 +23,29 @@ const AdminTrades = () => {
   const [livePrices, setLivePrices] = useState<Record<string, number>>({});
 
   const fetchTrades = async () => {
-    const { data } = await supabase
+    const { data: tradesData } = await supabase
       .from("trades")
-      .select("*, assets(symbol, name), profiles(full_name, email), trade_overrides(*)")
+      .select("*, assets(symbol, name), trade_overrides(*)")
       .order("opened_at", { ascending: false })
       .limit(100);
-    setTrades(data ?? []);
+
+    if (tradesData && tradesData.length > 0) {
+      // Fetch profiles for all unique user_ids
+      const userIds = [...new Set(tradesData.map((t) => t.user_id))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .in("id", userIds);
+
+      const profileMap = Object.fromEntries((profiles ?? []).map((p) => [p.id, p]));
+      const enriched = tradesData.map((t) => ({
+        ...t,
+        profiles: profileMap[t.user_id] || null,
+      }));
+      setTrades(enriched);
+    } else {
+      setTrades(tradesData ?? []);
+    }
     setLoading(false);
   };
 
