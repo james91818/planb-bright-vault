@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, UserPlus, MoreHorizontal, Plus, Phone } from "lucide-react";
+import { Search, UserPlus, MoreHorizontal, Plus, Phone, Shuffle } from "lucide-react";
 import StatusChanger, { useLeadStatuses } from "@/components/admin/StatusChanger";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -346,9 +346,58 @@ const AdminUsers = () => {
               <Input value={newUser.funnel} onChange={(e) => setNewUser({ ...newUser, funnel: e.target.value })} placeholder="e.g. Google Ads, Referral, Direct" />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
-            <Button onClick={handleCreateUser}>Create User</Button>
+          <DialogFooter className="sm:justify-between">
+            <Button type="button" variant="secondary" onClick={() => {
+              const firstNames = ["James","Emma","Liam","Sophia","Noah","Olivia","Lucas","Mia","Alexander","Isabella","Maximilian","Charlotte","Elias","Amelia","Felix","Hannah","Leon","Laura","Matteo","Anna","Oscar","Lea","Erik","Marie","Sebastian","Julia","David","Sarah","Daniel","Elena"];
+              const lastNames = ["Müller","Schmidt","Schneider","Fischer","Weber","Meyer","Wagner","Becker","Schulz","Hoffmann","Schäfer","Koch","Bauer","Richter","Klein","Wolf","Schröder","Neumann","Schwarz","Zimmermann","Braun","Krüger","Hofmann","Hartmann","Lange"];
+              const countries = ["Germany","Austria","Switzerland","United Kingdom","France","Netherlands","Belgium","Italy","Spain","Sweden","Norway","Denmark","Poland","Ireland","Luxembourg"];
+              const citiesByCountry: Record<string, string[]> = {
+                Germany: ["Berlin","Munich","Hamburg","Frankfurt","Cologne","Stuttgart","Düsseldorf","Leipzig"],
+                Austria: ["Vienna","Salzburg","Graz","Innsbruck","Linz"],
+                Switzerland: ["Zurich","Geneva","Basel","Bern","Lausanne"],
+                "United Kingdom": ["London","Manchester","Birmingham","Edinburgh","Bristol"],
+                France: ["Paris","Lyon","Marseille","Toulouse","Nice"],
+                Netherlands: ["Amsterdam","Rotterdam","Utrecht","The Hague"],
+                Belgium: ["Brussels","Antwerp","Ghent","Bruges"],
+                Italy: ["Rome","Milan","Florence","Naples","Turin"],
+                Spain: ["Madrid","Barcelona","Valencia","Seville"],
+                Sweden: ["Stockholm","Gothenburg","Malmö"],
+                Norway: ["Oslo","Bergen","Trondheim"],
+                Denmark: ["Copenhagen","Aarhus","Odense"],
+                Poland: ["Warsaw","Krakow","Wroclaw","Gdansk"],
+                Ireland: ["Dublin","Cork","Galway"],
+                Luxembourg: ["Luxembourg City","Esch-sur-Alzette"],
+              };
+              const streets = ["Hauptstraße","Bahnhofstraße","Kirchstraße","Gartenstraße","Schulstraße","Ringstraße","Bergstraße","Lindenstraße","Waldstraße","Rosenstraße"];
+              const fn = firstNames[Math.floor(Math.random() * firstNames.length)];
+              const ln = lastNames[Math.floor(Math.random() * lastNames.length)];
+              const country = countries[Math.floor(Math.random() * countries.length)];
+              const cities = citiesByCountry[country] || ["Capital"];
+              const city = cities[Math.floor(Math.random() * cities.length)];
+              const year = 1970 + Math.floor(Math.random() * 30);
+              const month = String(1 + Math.floor(Math.random() * 12)).padStart(2, "0");
+              const day = String(1 + Math.floor(Math.random() * 28)).padStart(2, "0");
+              const rand4 = Math.floor(1000 + Math.random() * 9000);
+              setNewUser({
+                first_name: fn,
+                last_name: ln,
+                email: `${fn.toLowerCase()}.${ln.toLowerCase().replace(/[äöüß]/g, c => ({ä:"ae",ö:"oe",ü:"ue",ß:"ss"}[c] || c))}${rand4}@gmail.com`,
+                password: `Pass${rand4}!x`,
+                phone: `+49 ${Math.floor(100 + Math.random() * 900)} ${Math.floor(1000000 + Math.random() * 9000000)}`,
+                country,
+                city,
+                date_of_birth: `${year}-${month}-${day}`,
+                address: `${streets[Math.floor(Math.random() * streets.length)]} ${Math.floor(1 + Math.random() * 120)}`,
+                postal_code: String(10000 + Math.floor(Math.random() * 90000)),
+                funnel: ["Google Ads", "Facebook", "Referral", "Direct", "Instagram", "TikTok", "Affiliate"][Math.floor(Math.random() * 7)],
+              });
+            }}>
+              <Shuffle className="h-4 w-4 mr-1" /> Random
+            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
+              <Button onClick={handleCreateUser}>Create User</Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
