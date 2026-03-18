@@ -118,6 +118,14 @@ const indices = [
 ];
 
 const Landing = () => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
+
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Top utility bar */}
