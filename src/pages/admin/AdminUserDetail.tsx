@@ -532,6 +532,12 @@ const AdminUserDetail = () => {
                     </div>
                   )}
                 </div>
+                {depForm.method === "crypto" && depForm.amount && cryptoPricesEur[depForm.crypto_asset] ? (
+                  <p className="text-sm text-muted-foreground">
+                    ≈ €{(Number(depForm.amount) * cryptoPricesEur[depForm.crypto_asset]).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} EUR
+                    <span className="text-xs ml-1">(1 {depForm.crypto_asset} = €{cryptoPricesEur[depForm.crypto_asset].toLocaleString()})</span>
+                  </p>
+                ) : null}
                 <div className="space-y-1">
                   <Label>Notes (optional)</Label>
                   <Textarea value={depForm.notes} onChange={(e) => setDepForm({ ...depForm, notes: e.target.value })} placeholder="Reason for manual deposit..." />
