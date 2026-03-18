@@ -401,6 +401,24 @@ const WalletPage = () => {
                 <Input value={form.wallet_address} onChange={(e) => setForm({ ...form, wallet_address: e.target.value })} />
               </div>
             )}
+            {form.method === "bank_wire" && clientBankDetails && clientBankDetails.bank_name && (
+              <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
+                <p className="text-sm font-semibold flex items-center gap-2"><Landmark className="h-4 w-4 text-primary" /> Bank Transfer Details</p>
+                <p className="text-xs text-muted-foreground">Please transfer the funds to the following bank account:</p>
+                <div className="space-y-1.5 text-sm">
+                  <div className="flex justify-between"><span className="text-muted-foreground">Bank</span><span className="font-medium">{clientBankDetails.bank_name}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Account Holder</span><span className="font-medium">{clientBankDetails.account_holder}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">IBAN</span><span className="font-mono font-medium text-xs">{clientBankDetails.iban}</span></div>
+                  {clientBankDetails.swift_bic && <div className="flex justify-between"><span className="text-muted-foreground">SWIFT/BIC</span><span className="font-mono font-medium text-xs">{clientBankDetails.swift_bic}</span></div>}
+                  {clientBankDetails.reference && <div className="flex justify-between"><span className="text-muted-foreground">Reference</span><span className="font-medium text-primary">{clientBankDetails.reference}</span></div>}
+                </div>
+              </div>
+            )}
+            {form.method === "bank_wire" && (!clientBankDetails || !clientBankDetails.bank_name) && (
+              <p className="text-sm text-muted-foreground bg-muted/30 p-3 rounded-lg">
+                Bank transfer details have not been assigned yet. Please contact support for deposit instructions.
+              </p>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDepositOpen(false)}>Cancel</Button>
