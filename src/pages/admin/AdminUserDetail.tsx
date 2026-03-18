@@ -60,6 +60,13 @@ const AdminUserDetail = () => {
   const [cryptoAddresses, setCryptoAddresses] = useState<any[]>([]);
   const [cryptoForm, setCryptoForm] = useState({ currency: "BTC", address: "", network: "", label: "" });
   const [savingCrypto, setSavingCrypto] = useState(false);
+  // Report settings
+  const [reportSections, setReportSections] = useState<Record<string, boolean>>({ wallets: true, trades: true, deposits: true, withdrawals: true, staking: true, pnl: true });
+  const [reportFrequency, setReportFrequency] = useState("manual");
+  const [reportEnabled, setReportEnabled] = useState(false);
+  const [reportLastSent, setReportLastSent] = useState<string | null>(null);
+  const [savingReport, setSavingReport] = useState(false);
+  const [sendingReport, setSendingReport] = useState(false);
 
   const fetchAll = async () => {
     if (!userId) return;
