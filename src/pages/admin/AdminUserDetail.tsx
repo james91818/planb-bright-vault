@@ -310,7 +310,7 @@ const AdminUserDetail = () => {
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Total Deposited</p>
-              <p className="text-lg font-display font-bold">€{totalDeposited.toLocaleString()}</p>
+              <p className="text-lg font-display font-bold">€{totalDeposited.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
             </div>
           </CardContent>
         </Card>
