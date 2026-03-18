@@ -315,6 +315,7 @@ const AdminDepositors = () => {
         handleSendResetLink={handleSendResetLink}
         handleLoginAsClient={handleLoginAsClient}
         updateStatus={updateStatus}
+        canAssignAgent={canAssignAgent}
       />
 
       {/* Change Password Dialog */}
