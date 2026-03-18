@@ -200,9 +200,7 @@ const AdminDepositors = () => {
                         <td className="p-3 font-semibold text-success whitespace-nowrap">€{u.total_deposited.toLocaleString()}</td>
                         <td className="p-3 whitespace-nowrap">€{u.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                         <td className="p-3">
-                          <span className={`text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap ${statusColors[u.status] ?? "bg-muted text-muted-foreground"}`}>
-                            {u.status}
-                          </span>
+                          <StatusChanger userId={u.id} currentStatus={u.status} onStatusChanged={fetchData} />
                         </td>
                         <td className="p-3">
                           <p className="text-xs text-muted-foreground max-w-[160px] truncate">
