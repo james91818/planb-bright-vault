@@ -397,7 +397,7 @@ const Landing = () => {
                       <p className={`font-display font-bold text-lg ${s.color}`}>{s.value}</p>
                     </div>
                   ))}
-                </div>
+          </AnimatedSection>
 
                 {/* Recent AI trades */}
                 <div className="space-y-2">
