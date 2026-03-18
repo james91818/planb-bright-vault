@@ -23,6 +23,7 @@ import {
   Globe,
   Handshake,
   Copy,
+  CalendarDays,
 } from "lucide-react";
 import {
   Sidebar,
