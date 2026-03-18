@@ -1007,7 +1007,7 @@ const AdminUserDetail = () => {
 
               {/* Add new address */}
               <div className="border-t pt-4 space-y-3 max-w-lg">
-                <Label className="font-semibold">Add / Update Address</Label>
+                <Label className="font-semibold">Add New Address</Label>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <Label>Currency</Label>
