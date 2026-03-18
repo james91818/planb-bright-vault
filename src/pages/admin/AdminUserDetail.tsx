@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { ArrowLeft, Save, Ban, CheckCircle, DollarSign, TrendingUp, Wallet, Shield, MessageSquare, Send, Plus, Eye, EyeOff, KeyRound, Landmark, Lock, Clock, TrendingDown, CalendarDays, Phone } from "lucide-react";
+import { ArrowLeft, Save, Ban, CheckCircle, DollarSign, TrendingUp, Wallet, Shield, MessageSquare, Send, Plus, Eye, EyeOff, KeyRound, Landmark, Lock, Clock, TrendingDown, CalendarDays, Phone, FileText, Download } from "lucide-react";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
@@ -60,6 +60,13 @@ const AdminUserDetail = () => {
   const [cryptoAddresses, setCryptoAddresses] = useState<any[]>([]);
   const [cryptoForm, setCryptoForm] = useState({ currency: "BTC", address: "", network: "", label: "" });
   const [savingCrypto, setSavingCrypto] = useState(false);
+  // Report settings
+  const [reportSections, setReportSections] = useState<Record<string, boolean>>({ wallets: true, trades: true, deposits: true, withdrawals: true, staking: true, pnl: true });
+  const [reportFrequency, setReportFrequency] = useState("manual");
+  const [reportEnabled, setReportEnabled] = useState(false);
+  const [reportLastSent, setReportLastSent] = useState<string | null>(null);
+  const [savingReport, setSavingReport] = useState(false);
+  const [sendingReport, setSendingReport] = useState(false);
 
   const fetchAll = async () => {
     if (!userId) return;
@@ -114,6 +121,15 @@ const AdminUserDetail = () => {
     // Fetch crypto addresses
     const { data: cryptoData } = await (supabase as any).from("client_crypto_addresses").select("*").eq("user_id", userId).order("currency");
     setCryptoAddresses(cryptoData ?? []);
+
+    // Fetch report settings
+    const { data: reportData } = await (supabase as any).from("report_settings").select("*").eq("user_id", userId).maybeSingle();
+    if (reportData) {
+      setReportSections(reportData.sections ?? { wallets: true, trades: true, deposits: true, withdrawals: true, staking: true, pnl: true });
+      setReportFrequency(reportData.frequency ?? "manual");
+      setReportEnabled(reportData.enabled ?? false);
+      setReportLastSent(reportData.last_sent_at ?? null);
+    }
 
     if (prof) {
       setEditProfile({
@@ -486,6 +502,7 @@ const AdminUserDetail = () => {
           <TabsTrigger value="stakes">Stakes ({stakes.length})</TabsTrigger>
           <TabsTrigger value="bank">Bank</TabsTrigger>
           <TabsTrigger value="crypto">Crypto</TabsTrigger>
+          <TabsTrigger value="report">Report</TabsTrigger>
           <TabsTrigger value="notes">Notes ({adminNotes.length})</TabsTrigger>
         </TabsList>
 
@@ -994,6 +1011,146 @@ const AdminUserDetail = () => {
                   <Plus className="h-4 w-4 mr-2" /> {savingCrypto ? "Saving..." : "Save Address"}
                 </Button>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Report Tab */}
+        <TabsContent value="report">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2"><FileText className="h-4 w-4" /> Client Report Settings</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Section toggles */}
+              <div>
+                <Label className="text-sm font-semibold mb-3 block">Report Sections</Label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {[
+                    { key: "wallets", label: "Wallets / Portfolio" },
+                    { key: "pnl", label: "Profit & Loss" },
+                    { key: "trades", label: "Trades" },
+                    { key: "deposits", label: "Deposits" },
+                    { key: "withdrawals", label: "Withdrawals" },
+                    { key: "staking", label: "Staking" },
+                  ].map((s) => (
+                    <label key={s.key} className="flex items-center gap-2 p-3 rounded-lg border cursor-pointer hover:bg-muted/50 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={reportSections[s.key] ?? true}
+                        onChange={() => setReportSections(prev => ({ ...prev, [s.key]: !prev[s.key] }))}
+                        className="rounded border-input"
+                      />
+                      <span className="text-sm font-medium">{s.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Frequency */}
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Auto-Send Frequency</Label>
+                  <Select value={reportFrequency} onValueChange={setReportFrequency}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="manual">Manual Only</SelectItem>
+                      <SelectItem value="daily">Daily</SelectItem>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Auto-Send Enabled</Label>
+                  <div className="flex items-center gap-3 pt-1">
+                    <input
+                      type="checkbox"
+                      checked={reportEnabled}
+                      onChange={() => setReportEnabled(!reportEnabled)}
+                      className="rounded border-input h-4 w-4"
+                    />
+                    <span className="text-sm text-muted-foreground">{reportEnabled ? "Active" : "Inactive"}</span>
+                  </div>
+                </div>
+              </div>
+
+              {reportLastSent && (
+                <p className="text-xs text-muted-foreground">Last sent: {new Date(reportLastSent).toLocaleString()}</p>
+              )}
+
+              {/* Action buttons */}
+              <div className="flex flex-wrap gap-3 pt-2">
+                <Button
+                  disabled={savingReport}
+                  variant="outline"
+                  onClick={async () => {
+                    setSavingReport(true);
+                    const { error } = await (supabase as any).from("report_settings").upsert({
+                      user_id: userId,
+                      sections: reportSections,
+                      frequency: reportFrequency,
+                      enabled: reportEnabled,
+                    }, { onConflict: "user_id" });
+                    setSavingReport(false);
+                    if (error) { toast.error("Failed to save settings"); return; }
+                    toast.success("Report settings saved");
+                  }}
+                >
+                  <Save className="h-4 w-4 mr-1" /> Save Settings
+                </Button>
+
+                <Button
+                  disabled={sendingReport}
+                  variant="outline"
+                  onClick={async () => {
+                    setSendingReport(true);
+                    try {
+                      const { data, error } = await supabase.functions.invoke("generate-client-report", {
+                        body: { user_id: userId, sections: reportSections, action: "download" },
+                      });
+                      if (error) throw error;
+                      // data is the HTML string
+                      const blob = new Blob([data], { type: "text/html" });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = `report-${profile.full_name || "client"}-${new Date().toISOString().slice(0, 10)}.html`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                      toast.success("Report downloaded");
+                    } catch (err: any) {
+                      toast.error(err.message || "Failed to generate report");
+                    }
+                    setSendingReport(false);
+                  }}
+                >
+                  <Download className="h-4 w-4 mr-1" /> Download Report
+                </Button>
+
+                <Button
+                  disabled={sendingReport || !profile.email}
+                  onClick={async () => {
+                    setSendingReport(true);
+                    try {
+                      const { data, error } = await supabase.functions.invoke("generate-client-report", {
+                        body: { user_id: userId, sections: reportSections, action: "email" },
+                      });
+                      if (error) throw error;
+                      const result = typeof data === "string" ? JSON.parse(data) : data;
+                      if (result.success) {
+                        setReportLastSent(new Date().toISOString());
+                        toast.success(`Report generated for ${profile.email}`);
+                      }
+                    } catch (err: any) {
+                      toast.error(err.message || "Failed to send report");
+                    }
+                    setSendingReport(false);
+                  }}
+                >
+                  <Send className="h-4 w-4 mr-1" /> Send to Client Email
+                </Button>
+              </div>
+              {!profile.email && <p className="text-xs text-destructive">No email address on file.</p>}
             </CardContent>
           </Card>
         </TabsContent>
