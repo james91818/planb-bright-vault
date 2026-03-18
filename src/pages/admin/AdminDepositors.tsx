@@ -17,6 +17,13 @@ import {
 import { Label } from "@/components/ui/label";
 
 
+const FIAT_CURRENCIES = ["EUR", "USD", "GBP", "CHF", "AUD", "CAD"];
+const CRYPTO_IDS: Record<string, string> = {
+  BTC: "bitcoin", ETH: "ethereum", SOL: "solana", XRP: "ripple",
+  BNB: "binancecoin", ADA: "cardano", DOGE: "dogecoin", DOT: "polkadot",
+  LINK: "chainlink", AVAX: "avalanche-2",
+};
+
 const AdminDepositors = () => {
   const navigate = useNavigate();
   const [depositors, setDepositors] = useState<any[]>([]);
@@ -28,6 +35,22 @@ const AdminDepositors = () => {
   const [pwUserName, setPwUserName] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [pwLoading, setPwLoading] = useState(false);
+  const [cryptoPricesEur, setCryptoPricesEur] = useState<Record<string, number>>({});
+
+  // Fetch live crypto prices
+  useEffect(() => {
+    const ids = Object.values(CRYPTO_IDS).join(",");
+    fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=eur`)
+      .then(r => r.json())
+      .then(data => {
+        const map: Record<string, number> = {};
+        for (const [symbol, cgId] of Object.entries(CRYPTO_IDS)) {
+          if (data[cgId]?.eur) map[symbol] = data[cgId].eur;
+        }
+        setCryptoPricesEur(map);
+      })
+      .catch(() => {});
+  }, []);
 
   const fetchData = async () => {
     const { data: profiles } = await supabase
@@ -45,7 +68,7 @@ const AdminDepositors = () => {
     const userIds = profiles.map(p => p.id);
 
     const [{ data: deposits }, { data: wallets }, { data: notes }] = await Promise.all([
-      supabase.from("deposits").select("user_id, amount, status").eq("status", "approved").in("user_id", userIds),
+      supabase.from("deposits").select("user_id, amount, status, currency").eq("status", "approved").in("user_id", userIds),
       supabase.from("wallets").select("user_id, balance, currency").eq("currency", "EUR").in("user_id", userIds),
       supabase.from("admin_notes").select("user_id, content, created_at").in("user_id", userIds).order("created_at", { ascending: false }),
     ]);
@@ -53,7 +76,13 @@ const AdminDepositors = () => {
     const depositTotals: Record<string, number> = {};
     const depositCounts: Record<string, number> = {};
     (deposits ?? []).forEach((d: any) => {
-      depositTotals[d.user_id] = (depositTotals[d.user_id] ?? 0) + Number(d.amount);
+      const amt = Number(d.amount);
+      let eurValue = amt;
+      if (!FIAT_CURRENCIES.includes(d.currency)) {
+        const price = cryptoPricesEur[d.currency];
+        eurValue = price ? amt * price : amt;
+      }
+      depositTotals[d.user_id] = (depositTotals[d.user_id] ?? 0) + eurValue;
       depositCounts[d.user_id] = (depositCounts[d.user_id] ?? 0) + 1;
     });
 
@@ -80,7 +109,7 @@ const AdminDepositors = () => {
     setLoading(false);
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchData(); }, [cryptoPricesEur]);
 
   const updateStatus = async (userId: string, status: string) => {
     await supabase.from("profiles").update({ status }).eq("id", userId);
