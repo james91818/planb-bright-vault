@@ -436,10 +436,10 @@ const Trading = () => {
   }, [openTrades, selectedAsset?.symbol, realApiPrices]);
 
   const selectAsset = (asset: Asset, pricesMap?: Record<string, number>) => {
+    chartInitialized.current = false; // Reset so chart regenerates for new asset
     setSelectedAsset(asset);
     setShowAssetList(false);
     const prices = pricesMap ?? livePrices;
-    // Use real price if available, otherwise fallback
     const fallbackPrices: Record<string, number> = {
       BTC: 62500, ETH: 3400, SOL: 145, XRP: 0.52, BNB: 580,
       DOGE: 0.12, ADA: 0.45, DOT: 7.2, LINK: 14.5, AVAX: 35,
@@ -453,10 +453,10 @@ const Trading = () => {
     const tf = TIMEFRAME_CONFIG[timeframe];
     const data = generateCandles(tf.count, base, tf.intervalMs);
     setCandles(data);
-    const last = data[data.length - 1];
-    setLivePrice(last.c);
-    setPriceChange(+((last.c - data[0].o) / data[0].o * 100).toFixed(2));
+    setLivePrice(base);
+    setPriceChange(+((data[data.length - 1].c - data[0].o) / data[0].o * 100).toFixed(2));
     setOrderSize(""); setLeverage(1); setStopLoss(""); setTakeProfit("");
+    chartInitialized.current = true;
   };
 
   const placeTrade = async () => {
