@@ -20,6 +20,7 @@ import {
   Shield,
   Newspaper,
   Globe,
+  Handshake,
 } from "lucide-react";
 import {
   Sidebar,
