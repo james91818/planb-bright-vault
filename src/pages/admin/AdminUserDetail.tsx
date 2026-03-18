@@ -1106,7 +1106,25 @@ const AdminUserDetail = () => {
               </div>
 
               {/* Frequency */}
-              <div className="grid md:grid-cols-2 gap-4">
+              {/* Date Range & Frequency */}
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Date Range</Label>
+                  <Select value={reportDateRange} onValueChange={setReportDateRange}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="today">Today</SelectItem>
+                      <SelectItem value="yesterday">Yesterday</SelectItem>
+                      <SelectItem value="this_week">This Week</SelectItem>
+                      <SelectItem value="last_week">Last Week</SelectItem>
+                      <SelectItem value="this_month">This Month</SelectItem>
+                      <SelectItem value="last_month">Last Month</SelectItem>
+                      <SelectItem value="last_90_days">Last 90 Days</SelectItem>
+                      <SelectItem value="this_year">This Year</SelectItem>
+                      <SelectItem value="all">All Time</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="space-y-2">
                   <Label>Auto-Send Frequency</Label>
                   <Select value={reportFrequency} onValueChange={setReportFrequency}>
