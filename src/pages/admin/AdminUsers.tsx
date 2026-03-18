@@ -19,11 +19,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
 
-const statusColors: Record<string, string> = {
-  active: "bg-success/10 text-success",
-  suspended: "bg-destructive/10 text-destructive",
-  pending: "bg-yellow-500/10 text-yellow-600",
-};
 
 const AdminUsers = () => {
   const { user: authUser } = useAuth();
