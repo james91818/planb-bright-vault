@@ -23,6 +23,14 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
 
+    // Persist or use session-only storage based on remember me
+    if (!rememberMe) {
+      // Clear persisted session on sign out by marking session-only
+      localStorage.setItem("planb-session-only", "true");
+    } else {
+      localStorage.removeItem("planb-session-only");
+    }
+
     const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
