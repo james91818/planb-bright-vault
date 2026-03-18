@@ -307,88 +307,19 @@ const AdminUsers = () => {
         </Select>
       </div>
 
-      <Card>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b bg-muted/50">
-                  <th className="text-left p-3 font-medium text-muted-foreground">Name</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">Phone</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">Email</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">Country</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">Registration</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">Affiliate</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">Funnel</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">Agent</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">Status</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">Last Note</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">#Notes</th>
-                  <th className="text-right p-3 font-medium text-muted-foreground">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr><td colSpan={12} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
-                ) : filtered.length === 0 ? (
-                  <tr><td colSpan={12} className="p-8 text-center text-muted-foreground">No leads found</td></tr>
-                ) : (
-                  filtered.map((u) => {
-                    const note = notesMap[u.id];
-                    return (
-                      <tr key={u.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => navigate(`/admin/users/${u.id}`)}>
-                        <td className="p-3">
-                          <p className="font-medium whitespace-nowrap">{u.full_name || "—"}</p>
-                        </td>
-                        <td className="p-3">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-muted-foreground whitespace-nowrap">{u.phone || "—"}</span>
-                            {u.phone && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7 shrink-0"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  window.open(`tel:${u.phone}`, "_self");
-                                }}
-                              >
-                                <Phone className="h-3.5 w-3.5 text-primary" />
-                              </Button>
-                            )}
-                          </div>
-                        </td>
-                        <td className="p-3 text-muted-foreground">{u.email || "—"}</td>
-                        <td className="p-3 text-muted-foreground">{u.country || "—"}</td>
-                        <td className="p-3 text-muted-foreground text-xs whitespace-nowrap">
-                          {new Date(u.created_at).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" })}
-                        </td>
-                        <td className="p-3 text-muted-foreground whitespace-nowrap">{u.affiliate || "—"}</td>
-                        <td className="p-3 text-muted-foreground whitespace-nowrap">{u.funnel || "—"}</td>
-                        <td className="p-3" onClick={(e) => e.stopPropagation()}>
-                          <Select value={u.assigned_agent || "none"} onValueChange={(v) => assignAgent(u.id, v === "none" ? null : v)}>
-                            <SelectTrigger className="h-8 w-[140px] text-xs">
-                              <SelectValue placeholder="Unassigned" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="none">Unassigned</SelectItem>
-                              {agents.map(a => (
-                                <SelectItem key={a.id} value={a.id}>{a.full_name || a.email}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </td>
-                        <td className="p-3">
-                          <StatusChanger userId={u.id} currentStatus={u.status} onStatusChanged={fetchData} />
-                        </td>
-                        <td className="p-3">
-                          <p className="text-xs text-muted-foreground max-w-[160px] truncate">
-                            {note?.content || "—"}
-                          </p>
-                        </td>
-                        <td className="p-3 text-center">
-                          <Badge variant="outline" className="text-xs">{note?.count ?? 0}</Badge>
-                        </td>
+      <LeadsTable
+        loading={loading}
+        filtered={filtered}
+        notesMap={notesMap}
+        agents={agents}
+        navigate={navigate}
+        assignAgent={assignAgent}
+        fetchData={fetchData}
+        openPasswordDialog={openPasswordDialog}
+        handleSendResetLink={handleSendResetLink}
+        handleLoginAsClient={handleLoginAsClient}
+        updateStatus={updateStatus}
+      />
                         <td className="p-3 text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
