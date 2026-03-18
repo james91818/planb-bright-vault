@@ -826,6 +826,52 @@ const AdminUserDetail = () => {
           </Card>
         </TabsContent>
 
+        {/* Bank Tab */}
+        <TabsContent value="bank">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Landmark className="h-4 w-4" /> Bank Details for Deposits
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 max-w-lg">
+              <p className="text-sm text-muted-foreground">
+                These bank details will be shown to the client when they choose to deposit via bank wire.
+              </p>
+              <div className="space-y-1">
+                <Label>Bank Name</Label>
+                <Input value={bankForm.bank_name} onChange={e => setBankForm({ ...bankForm, bank_name: e.target.value })} placeholder="Deutsche Bank AG" />
+              </div>
+              <div className="space-y-1">
+                <Label>Account Holder</Label>
+                <Input value={bankForm.account_holder} onChange={e => setBankForm({ ...bankForm, account_holder: e.target.value })} placeholder="PlanB Trading Ltd." />
+              </div>
+              <div className="space-y-1">
+                <Label>IBAN</Label>
+                <Input value={bankForm.iban} onChange={e => setBankForm({ ...bankForm, iban: e.target.value })} placeholder="DE89 3704 0044 0532 0130 00" />
+              </div>
+              <div className="space-y-1">
+                <Label>SWIFT / BIC</Label>
+                <Input value={bankForm.swift_bic} onChange={e => setBankForm({ ...bankForm, swift_bic: e.target.value })} placeholder="COBADEFFXXX" />
+              </div>
+              <div className="space-y-1">
+                <Label>Reference / Note for Client</Label>
+                <Input value={bankForm.reference} onChange={e => setBankForm({ ...bankForm, reference: e.target.value })} placeholder="Use your account ID as reference" />
+              </div>
+              <div className="space-y-1">
+                <Label>Internal Notes (not shown to client)</Label>
+                <Textarea value={bankForm.notes} onChange={e => setBankForm({ ...bankForm, notes: e.target.value })} placeholder="Internal notes..." rows={2} />
+              </div>
+              <Button onClick={saveBankDetails} disabled={savingBank} className="w-full">
+                <Save className="h-4 w-4 mr-2" /> {savingBank ? "Saving..." : bankDetails ? "Update Bank Details" : "Save Bank Details"}
+              </Button>
+              {bankDetails && (
+                <p className="text-xs text-muted-foreground">Last updated: {new Date(bankDetails.updated_at).toLocaleString()}</p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* Notes Tab */}
         <TabsContent value="notes">
           <Card>
