@@ -597,6 +597,13 @@ const Settings = () => {
             <RolesManager />
           </TabsContent>
         )}
+
+        {/* ASSETS TAB — Admin */}
+        {isAdmin && (
+          <TabsContent value="assets" className="mt-4">
+            <AssetsManager />
+          </TabsContent>
+        )}
       </Tabs>
 
       {/* Status Create/Edit Dialog */}
