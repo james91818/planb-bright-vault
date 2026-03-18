@@ -41,6 +41,8 @@ const Settings = () => {
   // Platform settings (admin only)
   const [platformSettings, setPlatformSettings] = useState<Record<string, any>>({});
   const [settingsLoading, setSettingsLoading] = useState(false);
+  const [agents, setAgents] = useState<any[]>([]);
+  const [affiliates, setAffiliates] = useState<any[]>([]);
 
   const colorOptions = [
     { label: "Green", value: "bg-success/10 text-success" },
