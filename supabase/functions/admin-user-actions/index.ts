@@ -39,7 +39,41 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { action, user_id, password } = await req.json();
+    const body = await req.json();
+    const { action, user_id, password } = body;
+
+    if (action === "create_user") {
+      const { email, full_name, role_id } = body;
+      if (!email || !password || !role_id) {
+        return new Response(JSON.stringify({ error: "email, password, and role_id required" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const { data: newUser, error: createErr } = await adminClient.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: { full_name: full_name || "" },
+      });
+      if (createErr) {
+        return new Response(JSON.stringify({ error: createErr.message }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      // Assign role
+      const { error: roleErr } = await adminClient.from("user_roles").insert({
+        user_id: newUser.user.id,
+        role_id,
+      });
+      if (roleErr) {
+        return new Response(JSON.stringify({ error: roleErr.message }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      return new Response(JSON.stringify({ success: true, user_id: newUser.user.id }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     if (action === "confirm_email") {
       if (!user_id) {
