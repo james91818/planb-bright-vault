@@ -45,6 +45,7 @@ const AdminUserDetail = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
   const [cryptoPricesEur, setCryptoPricesEur] = useState<Record<string, number>>({});
+  const [livePrices, setLivePrices] = useState<Record<string, number>>({});
 
   const fetchAll = async () => {
     if (!userId) return;
