@@ -596,6 +596,7 @@ export type Database = {
           country: string | null
           created_at: string
           email: string | null
+          email_notifications: boolean | null
           first_deposit_at: string | null
           full_name: string | null
           funnel: string | null
@@ -614,6 +615,7 @@ export type Database = {
           country?: string | null
           created_at?: string
           email?: string | null
+          email_notifications?: boolean | null
           first_deposit_at?: string | null
           full_name?: string | null
           funnel?: string | null
@@ -632,6 +634,7 @@ export type Database = {
           country?: string | null
           created_at?: string
           email?: string | null
+          email_notifications?: boolean | null
           first_deposit_at?: string | null
           full_name?: string | null
           funnel?: string | null
