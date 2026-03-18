@@ -64,6 +64,7 @@ const AdminUserDetail = () => {
   const [savingCrypto, setSavingCrypto] = useState(false);
   // Report settings
   const [reportType, setReportType] = useState("custom");
+  const [reportDateRange, setReportDateRange] = useState("all");
   const [reportSections, setReportSections] = useState<Record<string, boolean>>({ wallets: true, trades: true, deposits: true, withdrawals: true, staking: true, pnl: true });
   const [reportFrequency, setReportFrequency] = useState("manual");
   const [reportEnabled, setReportEnabled] = useState(false);
