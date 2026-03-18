@@ -243,7 +243,7 @@ const Settings = () => {
         </TabsContent>
 
         {/* STATUSES TAB — Staff */}
-        {isStaff && (
+        {isAdmin && (
           <TabsContent value="statuses" className="space-y-4 mt-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
