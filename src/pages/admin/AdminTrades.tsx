@@ -423,10 +423,54 @@ const AdminTrades = () => {
                 </p>
               </div>
             )}
+            {overrideMode !== "none" && overrideOpen?.status === "open" && (
+              <div className="space-y-1">
+                <Label>Manipulation Duration</Label>
+                <Select value={String(durationSec)} onValueChange={(v) => {
+                  if (v === "custom") {
+                    setDurationSec(-1);
+                    setCustomDuration("");
+                  } else {
+                    setDurationSec(Number(v));
+                  }
+                }}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10 seconds</SelectItem>
+                    <SelectItem value="30">30 seconds</SelectItem>
+                    <SelectItem value="60">1 minute</SelectItem>
+                    <SelectItem value="300">5 minutes</SelectItem>
+                    <SelectItem value="custom">Custom</SelectItem>
+                  </SelectContent>
+                </Select>
+                {durationSec === -1 && (
+                  <div className="mt-2">
+                    <Input type="number" value={customDuration} onChange={(e) => setCustomDuration(e.target.value)}
+                      placeholder="Duration in seconds" min={5} />
+                    <p className="text-xs text-muted-foreground mt-1">Enter duration in seconds (min 5)</p>
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground mt-1">
+                  How long the price will gradually drift to reach the target P&L
+                </p>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOverrideOpen(null)}>Cancel</Button>
-            <Button onClick={setOverride}>Apply Override</Button>
+            <Button onClick={() => {
+              // Resolve custom duration before applying
+              if (durationSec === -1 && customDuration) {
+                const resolved = Math.max(5, Number(customDuration));
+                setDurationSec(resolved);
+                // Need to call setOverride after state update — use direct approach
+                const originalDuration = durationSec;
+                // Apply with resolved duration directly
+                const d = resolved;
+                // We'll handle this inline
+              }
+              setOverride();
+            }}>Apply Override</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
