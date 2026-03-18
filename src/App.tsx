@@ -38,6 +38,7 @@ import AdminDepositors from "./pages/admin/AdminDepositors";
 import AdminAgents from "./pages/admin/AdminAgents";
 import AdminAffiliates from "./pages/admin/AdminAffiliates";
 import AdminStaking from "./pages/admin/AdminStaking";
+import AdminBalance from "./pages/admin/AdminBalance";
 
 // Client pages
 import Trading from "./pages/client/Trading";
