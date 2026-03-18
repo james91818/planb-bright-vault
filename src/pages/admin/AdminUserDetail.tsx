@@ -189,7 +189,7 @@ const AdminUserDetail = () => {
       return;
     }
 
-    await supabase.from("withdrawals").insert({
+    const { error: wdError } = await supabase.from("withdrawals").insert({
       user_id: userId!,
       amount,
       currency: wdForm.currency,
@@ -198,6 +198,11 @@ const AdminUserDetail = () => {
       admin_notes: wdForm.notes || "Manual withdrawal by admin",
       processed_by: currentUser?.id,
     });
+
+    if (wdError) {
+      toast.error("Failed to create withdrawal: " + wdError.message);
+      return;
+    }
 
     if (wallet) {
       await supabase.from("wallets").update({ balance: Number(wallet.balance) - amount }).eq("id", wallet.id);
