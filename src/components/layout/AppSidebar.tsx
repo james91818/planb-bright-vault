@@ -182,7 +182,7 @@ const AppSidebar = () => {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {bottomNav.map((item) => (
+              {bottomNav.filter(item => !(item as any).adminOnly || roleName === "Admin").map((item) => (
                 <SidebarMenuItem key={item.path}>
                   <SidebarMenuButton
                     isActive={location.pathname === item.path}
