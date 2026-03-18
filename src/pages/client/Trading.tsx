@@ -1168,6 +1168,46 @@ const Trading = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Trade Confirmation Dialog */}
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {leverage > 1 && <AlertTriangle className="h-5 w-5 text-yellow-500" />}
+              Confirm {direction === "buy" ? "Buy" : "Sell"} Order
+            </DialogTitle>
+            {leverage > 1 && (
+              <DialogDescription className="text-yellow-600 bg-yellow-500/10 p-3 rounded-lg text-xs">
+                ⚠️ <strong>Risk Warning:</strong> You are trading with {leverage}× leverage. Leveraged positions amplify both gains and losses. You may lose more than your initial investment. Only trade with funds you can afford to lose.
+              </DialogDescription>
+            )}
+          </DialogHeader>
+          <div className="space-y-3 text-sm">
+            <div className="flex justify-between"><span className="text-muted-foreground">Asset</span><span className="font-medium">{selectedAsset?.symbol}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Direction</span><span className={`font-medium ${direction === "buy" ? "text-success" : "text-destructive"}`}>{direction.toUpperCase()}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Size</span><span className="font-medium">€{Number(orderSize).toLocaleString()}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Entry Price</span><span className="font-medium">{livePrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Leverage</span><span className="font-medium">{leverage}×</span></div>
+            {stopLoss && <div className="flex justify-between"><span className="text-muted-foreground">Stop Loss</span><span className="font-medium">{slMode === "pct" ? `${stopLoss}%` : stopLoss}</span></div>}
+            {takeProfit && <div className="flex justify-between"><span className="text-muted-foreground">Take Profit</span><span className="font-medium">{tpMode === "pct" ? `${takeProfit}%` : takeProfit}</span></div>}
+            <div className="border-t pt-2 flex justify-between font-semibold">
+              <span>Effective Exposure</span>
+              <span>€{(Number(orderSize) * leverage).toLocaleString()}</span>
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setConfirmOpen(false)}>Cancel</Button>
+            <Button
+              className={direction === "buy" ? "bg-success hover:bg-success/90 text-success-foreground" : "bg-destructive hover:bg-destructive/90 text-destructive-foreground"}
+              onClick={() => { setConfirmOpen(false); placeTrade(); }}
+              disabled={placing}
+            >
+              {placing ? "Placing..." : `Confirm ${direction === "buy" ? "Buy" : "Sell"}`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
