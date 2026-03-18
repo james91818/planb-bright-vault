@@ -63,6 +63,7 @@ const AdminUserDetail = () => {
   const [cryptoForm, setCryptoForm] = useState({ currency: "BTC", address: "", network: "", label: "" });
   const [savingCrypto, setSavingCrypto] = useState(false);
   // Report settings
+  const [reportType, setReportType] = useState("custom");
   const [reportSections, setReportSections] = useState<Record<string, boolean>>({ wallets: true, trades: true, deposits: true, withdrawals: true, staking: true, pnl: true });
   const [reportFrequency, setReportFrequency] = useState("manual");
   const [reportEnabled, setReportEnabled] = useState(false);
@@ -70,6 +71,15 @@ const AdminUserDetail = () => {
   const [savingReport, setSavingReport] = useState(false);
   const [sendingReport, setSendingReport] = useState(false);
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
+
+  const reportTemplates: Record<string, { label: string; description: string; sections: Record<string, boolean> }> = {
+    custom: { label: "Custom Report", description: "Select sections manually", sections: { wallets: true, trades: true, deposits: true, withdrawals: true, staking: true, pnl: true } },
+    pnl_report: { label: "Profit & Loss Report", description: "Portfolio performance, trades and P&L summary", sections: { wallets: true, trades: true, deposits: false, withdrawals: false, staking: false, pnl: true } },
+    account_summary: { label: "Account Summary", description: "Full overview of all account activity", sections: { wallets: true, trades: true, deposits: true, withdrawals: true, staking: true, pnl: true } },
+    deposit_banking: { label: "Deposit & Banking Details", description: "Deposit history and bank information", sections: { wallets: true, trades: false, deposits: true, withdrawals: true, staking: false, pnl: false } },
+    staking_report: { label: "Staking Report", description: "Active stakes, rewards earned and plan details", sections: { wallets: false, trades: false, deposits: false, withdrawals: false, staking: true, pnl: false } },
+    trading_activity: { label: "Trading Activity Report", description: "Detailed trading history with entry/exit prices", sections: { wallets: false, trades: true, deposits: false, withdrawals: false, staking: false, pnl: true } },
+  };
 
   const fetchAll = async () => {
     if (!userId) return;
@@ -1042,9 +1052,31 @@ const AdminUserDetail = () => {
               <CardTitle className="text-base flex items-center gap-2"><FileText className="h-4 w-4" /> Client Report Settings</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Report Type Selector */}
+              <div>
+                <Label className="text-sm font-semibold mb-3 block">Report Type</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {Object.entries(reportTemplates).map(([key, tpl]) => (
+                    <button
+                      key={key}
+                      onClick={() => {
+                        setReportType(key);
+                        if (key !== "custom") {
+                          setReportSections(tpl.sections);
+                        }
+                      }}
+                      className={`text-left p-3 rounded-lg border-2 transition-colors ${reportType === key ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/30"}`}
+                    >
+                      <p className="text-sm font-semibold">{tpl.label}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{tpl.description}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Section toggles */}
               <div>
-                <Label className="text-sm font-semibold mb-3 block">Report Sections</Label>
+                <Label className="text-sm font-semibold mb-3 block">Report Sections {reportType !== "custom" && <span className="text-xs text-muted-foreground font-normal ml-1">(preset by template — switch to Custom to edit)</span>}</Label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   {[
                     { key: "wallets", label: "Wallets / Portfolio" },
@@ -1054,11 +1086,16 @@ const AdminUserDetail = () => {
                     { key: "withdrawals", label: "Withdrawals" },
                     { key: "staking", label: "Staking" },
                   ].map((s) => (
-                    <label key={s.key} className="flex items-center gap-2 p-3 rounded-lg border cursor-pointer hover:bg-muted/50 transition-colors">
+                    <label key={s.key} className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-colors ${reportType !== "custom" ? "opacity-60" : "hover:bg-muted/50"}`}>
                       <input
                         type="checkbox"
                         checked={reportSections[s.key] ?? true}
-                        onChange={() => setReportSections(prev => ({ ...prev, [s.key]: !prev[s.key] }))}
+                        onChange={() => {
+                          if (reportType !== "custom") {
+                            setReportType("custom");
+                          }
+                          setReportSections(prev => ({ ...prev, [s.key]: !prev[s.key] }));
+                        }}
                         className="rounded border-input"
                       />
                       <span className="text-sm font-medium">{s.label}</span>
