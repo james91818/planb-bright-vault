@@ -66,8 +66,8 @@ const Signup = () => {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Check your email to verify your account!");
-      navigate("/login");
+      toast.success("Account created successfully!");
+      navigate("/welcome");
     }
     setLoading(false);
   };

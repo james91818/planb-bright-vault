@@ -12,6 +12,7 @@ import Investments from "./pages/Investments";
 import Impressum from "./pages/Impressum";
 import Signup from "./pages/Signup";
 import ResetPassword from "./pages/ResetPassword";
+import Welcome from "./pages/Welcome";
 import GeneralTerms from "./pages/legal/GeneralTerms";
 import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
 import RiskWarning from "./pages/legal/RiskWarning";
@@ -73,6 +74,7 @@ const App = () => (
           <Route path="/investments" element={<Investments />} />
           <Route path="/impressum" element={<Impressum />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/welcome" element={<Welcome />} />
           <Route path="/general-terms" element={<GeneralTerms />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/risk-warning" element={<RiskWarning />} />
