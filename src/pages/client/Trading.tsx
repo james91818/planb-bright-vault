@@ -537,18 +537,26 @@ const Trading = () => {
 
   const closeTrade = async (trade: Trade) => {
     const symbol = trade.assets?.symbol ?? "";
-    let priceForPnl = trade.current_price ? Number(trade.current_price) : (livePrices[symbol] || undefined);
-
-    if (!priceForPnl && symbol) {
+    
+    // Always fetch a fresh price to ensure accurate P&L on close
+    let currentPrice: number | undefined;
+    if (trade.current_price) {
+      currentPrice = Number(trade.current_price);
+    } else if (symbol) {
       const freshPrices = await fetchLivePrices([symbol]);
-      priceForPnl = freshPrices[symbol] || undefined;
+      currentPrice = freshPrices[symbol] || livePrices[symbol] || undefined;
     }
 
-    const pnl = computeLivePnl(trade, priceForPnl);
-    await supabase.from("trades").update({ status: "closed", closed_at: new Date().toISOString(), pnl }).eq("id", trade.id);
+    const pnl = currentPrice ? computeLivePnl(trade, currentPrice) : 0;
+    await supabase.from("trades").update({ 
+      status: "closed", 
+      closed_at: new Date().toISOString(), 
+      pnl,
+      current_price: currentPrice ?? null,
+    }).eq("id", trade.id);
     const { data: wallet } = await supabase.from("wallets").select("id, balance").eq("user_id", user!.id).eq("currency", "EUR").maybeSingle();
     if (wallet) await supabase.from("wallets").update({ balance: Number(wallet.balance) + Number(trade.size) + pnl }).eq("id", wallet.id);
-    toast.success("Trade closed"); fetchData();
+    toast.success(`Trade closed — P&L: €${pnl.toFixed(2)}`); fetchData();
   };
 
   const sendAIMessage = async () => {
