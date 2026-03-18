@@ -365,11 +365,13 @@ export type Database = {
       }
       profiles: {
         Row: {
+          affiliate: string | null
           avatar_url: string | null
           country: string | null
           created_at: string
           email: string | null
           full_name: string | null
+          funnel: string | null
           id: string
           is_lead: boolean | null
           kyc_status: string | null
@@ -379,11 +381,13 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          affiliate?: string | null
           avatar_url?: string | null
           country?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
+          funnel?: string | null
           id: string
           is_lead?: boolean | null
           kyc_status?: string | null
@@ -393,11 +397,13 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          affiliate?: string | null
           avatar_url?: string | null
           country?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
+          funnel?: string | null
           id?: string
           is_lead?: boolean | null
           kyc_status?: string | null
