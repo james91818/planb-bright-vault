@@ -8,6 +8,36 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+
+import btcIcon from "@/assets/crypto/btc.png";
+import ethIcon from "@/assets/crypto/eth.png";
+import solIcon from "@/assets/crypto/sol.png";
+import xrpIcon from "@/assets/crypto/xrp.png";
+import bnbIcon from "@/assets/crypto/bnb.png";
+import dogeIcon from "@/assets/crypto/doge.png";
+import adaIcon from "@/assets/crypto/ada.png";
+import dotIcon from "@/assets/crypto/dot.png";
+import linkIcon from "@/assets/crypto/link.png";
+import avaxIcon from "@/assets/crypto/avax.png";
+
+const CURRENCY_ICONS: Record<string, { type: "img"; src: string } | { type: "emoji"; src: string }> = {
+  EUR: { type: "emoji", src: "🇪🇺" },
+  USD: { type: "emoji", src: "🇺🇸" },
+  GBP: { type: "emoji", src: "🇬🇧" },
+  CHF: { type: "emoji", src: "🇨🇭" },
+  AUD: { type: "emoji", src: "🇦🇺" },
+  CAD: { type: "emoji", src: "🇨🇦" },
+  BTC: { type: "img", src: btcIcon },
+  ETH: { type: "img", src: ethIcon },
+  SOL: { type: "img", src: solIcon },
+  XRP: { type: "img", src: xrpIcon },
+  BNB: { type: "img", src: bnbIcon },
+  DOGE: { type: "img", src: dogeIcon },
+  ADA: { type: "img", src: adaIcon },
+  DOT: { type: "img", src: dotIcon },
+  LINK: { type: "img", src: linkIcon },
+  AVAX: { type: "img", src: avaxIcon },
+};
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
 const COLORS = [
