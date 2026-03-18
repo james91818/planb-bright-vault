@@ -41,6 +41,25 @@ Deno.serve(async (req) => {
 
     const { action, user_id, password } = await req.json();
 
+    if (action === "confirm_email") {
+      if (!user_id) {
+        return new Response(JSON.stringify({ error: "user_id required" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const { error } = await adminClient.auth.admin.updateUserById(user_id, {
+        email_confirm: true,
+      });
+      if (error) {
+        return new Response(JSON.stringify({ error: error.message }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (action === "change_password") {
       if (!user_id || !password || password.length < 6) {
         return new Response(JSON.stringify({ error: "Password must be at least 6 characters" }), {
