@@ -73,11 +73,13 @@ const AppSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut } = useAuth();
-  const { isStaff } = useRole();
+  const { isStaff, roleName } = useRole();
   const { toggleSidebar, state } = useSidebar();
   const collapsed = state === "collapsed";
   const { theme, toggleTheme } = useTheme();
-  const mainNav = isStaff ? adminNav : clientNav;
+  const mainNav = isStaff
+    ? adminNav.filter(item => !(item as any).adminOnly || roleName === "Admin")
+    : clientNav;
 
   const handleSignOut = async () => {
     await signOut();
