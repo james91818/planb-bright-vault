@@ -25,14 +25,14 @@ let cachePromise: Promise<LeadStatus[]> | null = null;
 const fetchStatuses = async (): Promise<LeadStatus[]> => {
   if (cachedStatuses) return cachedStatuses;
   if (cachePromise) return cachePromise;
-  cachePromise = supabase
-    .from("lead_statuses")
-    .select("*")
-    .order("sort_order")
-    .then(({ data }) => {
-      cachedStatuses = (data as LeadStatus[]) ?? [];
-      return cachedStatuses;
-    });
+  cachePromise = (async () => {
+    const { data } = await supabase
+      .from("lead_statuses")
+      .select("*")
+      .order("sort_order");
+    cachedStatuses = (data as LeadStatus[]) ?? [];
+    return cachedStatuses;
+  })();
   return cachePromise;
 };
 
