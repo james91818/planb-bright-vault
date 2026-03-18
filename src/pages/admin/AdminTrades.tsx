@@ -304,6 +304,8 @@ const AdminTrades = () => {
               setOverrideOpen(t);
               setOverrideMode(override?.override_mode ?? "none");
               setTargetValue(override?.target_value?.toString() ?? "");
+              setDurationSec(60);
+              setCustomDuration("");
             }}>
               Override
             </Button>
