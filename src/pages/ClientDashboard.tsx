@@ -281,14 +281,22 @@ const ClientDashboard = () => {
                   </ResponsiveContainer>
                 </div>
                 <div className="space-y-2 flex-1">
-                  {portfolioData.map((d, i) => (
+                  {portfolioData.map((d, i) => {
+                    const icon = CURRENCY_ICONS[d.name];
+                    return (
                     <div key={d.name} className="flex items-center justify-between text-sm">
                       <div className="flex items-center gap-2">
                         <div className="h-3 w-3 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                        {icon?.type === "img" ? (
+                          <img src={icon.src} alt={d.name} className="h-4 w-4 rounded-full" />
+                        ) : icon?.type === "emoji" ? (
+                          <span className="text-sm leading-none">{icon.src}</span>
+                        ) : null}
                         <span className="font-medium">{d.name}</span>
                       </div>
                       <span className="text-muted-foreground">€{d.value.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
                     </div>
+                    );
                   ))}
                 </div>
               </div>
