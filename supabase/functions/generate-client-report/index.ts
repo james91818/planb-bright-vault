@@ -14,6 +14,61 @@ interface ReportData {
   withdrawals: any[];
   stakes: any[];
   sections: Record<string, boolean>;
+  dateRangeLabel: string;
+}
+
+function getDateRange(range: string): { from: string | null; to: string } {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const to = new Date(now.getTime() + 86400000).toISOString(); // tomorrow
+
+  switch (range) {
+    case "today":
+      return { from: today.toISOString(), to };
+    case "yesterday": {
+      const y = new Date(today.getTime() - 86400000);
+      return { from: y.toISOString(), to: today.toISOString() };
+    }
+    case "this_week": {
+      const day = today.getDay();
+      const mon = new Date(today.getTime() - ((day === 0 ? 6 : day - 1) * 86400000));
+      return { from: mon.toISOString(), to };
+    }
+    case "last_week": {
+      const day = today.getDay();
+      const thisMon = new Date(today.getTime() - ((day === 0 ? 6 : day - 1) * 86400000));
+      const lastMon = new Date(thisMon.getTime() - 7 * 86400000);
+      return { from: lastMon.toISOString(), to: thisMon.toISOString() };
+    }
+    case "this_month":
+      return { from: new Date(now.getFullYear(), now.getMonth(), 1).toISOString(), to };
+    case "last_month": {
+      const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const end = new Date(now.getFullYear(), now.getMonth(), 1);
+      return { from: start.toISOString(), to: end.toISOString() };
+    }
+    case "last_90_days":
+      return { from: new Date(now.getTime() - 90 * 86400000).toISOString(), to };
+    case "this_year":
+      return { from: new Date(now.getFullYear(), 0, 1).toISOString(), to };
+    default:
+      return { from: null, to };
+  }
+}
+
+function dateRangeLabel(range: string): string {
+  const labels: Record<string, string> = {
+    today: "Today",
+    yesterday: "Yesterday",
+    this_week: "This Week",
+    last_week: "Last Week",
+    this_month: "This Month",
+    last_month: "Last Month",
+    last_90_days: "Last 90 Days",
+    this_year: "This Year",
+    all: "All Time",
+  };
+  return labels[range] || "All Time";
 }
 
 function formatCurrency(n: number, currency = "EUR"): string {
@@ -21,7 +76,7 @@ function formatCurrency(n: number, currency = "EUR"): string {
 }
 
 function generateHtmlReport(data: ReportData): string {
-  const { profile, wallets, trades, deposits, withdrawals, stakes, sections } = data;
+  const { profile, wallets, trades, deposits, withdrawals, stakes, sections, dateRangeLabel: drLabel } = data;
   const now = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" });
 
   let html = `
@@ -49,7 +104,7 @@ function generateHtmlReport(data: ReportData): string {
 </head>
 <body>
 <h1>Investment Report</h1>
-<p class="subtitle">Prepared for <strong>${profile.full_name || profile.email}</strong> &mdash; ${now}</p>
+<p class="subtitle">Prepared for <strong>${profile.full_name || profile.email}</strong> &mdash; ${now} &mdash; Period: <strong>${drLabel}</strong></p>
 `;
 
   // Wallets / Portfolio
@@ -192,7 +247,7 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const { user_id, sections, action } = await req.json();
+    const { user_id, sections, action, date_range } = await req.json();
     if (!user_id) {
       return new Response(JSON.stringify({ error: "user_id required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -201,8 +256,24 @@ Deno.serve(async (req: Request) => {
 
     const defaultSections = { wallets: true, trades: true, deposits: true, withdrawals: true, staking: true, pnl: true };
     const activeSections = sections || defaultSections;
+    const range = getDateRange(date_range || "all");
 
-    // Fetch all client data
+    // Fetch all client data with optional date filtering
+    const profilePromise = supabase.from("profiles").select("*").eq("id", user_id).single();
+    const walletsPromise = supabase.from("wallets").select("*").eq("user_id", user_id);
+
+    let tradesQuery = supabase.from("trades").select("*, assets(symbol, name)").eq("user_id", user_id).order("opened_at", { ascending: false }).limit(100);
+    let depsQuery = supabase.from("deposits").select("*").eq("user_id", user_id).order("created_at", { ascending: false }).limit(100);
+    let wdsQuery = supabase.from("withdrawals").select("*").eq("user_id", user_id).order("created_at", { ascending: false }).limit(100);
+    let stakesQuery = supabase.from("user_stakes").select("*, staking_plans(name, asset, apy)").eq("user_id", user_id).order("started_at", { ascending: false });
+
+    if (range.from) {
+      tradesQuery = tradesQuery.gte("opened_at", range.from).lt("opened_at", range.to);
+      depsQuery = depsQuery.gte("created_at", range.from).lt("created_at", range.to);
+      wdsQuery = wdsQuery.gte("created_at", range.from).lt("created_at", range.to);
+      stakesQuery = stakesQuery.gte("started_at", range.from).lt("started_at", range.to);
+    }
+
     const [
       { data: profile },
       { data: wallets },
@@ -211,12 +282,7 @@ Deno.serve(async (req: Request) => {
       { data: wds },
       { data: stakes },
     ] = await Promise.all([
-      supabase.from("profiles").select("*").eq("id", user_id).single(),
-      supabase.from("wallets").select("*").eq("user_id", user_id),
-      supabase.from("trades").select("*, assets(symbol, name)").eq("user_id", user_id).order("opened_at", { ascending: false }).limit(100),
-      supabase.from("deposits").select("*").eq("user_id", user_id).order("created_at", { ascending: false }).limit(100),
-      supabase.from("withdrawals").select("*").eq("user_id", user_id).order("created_at", { ascending: false }).limit(100),
-      supabase.from("user_stakes").select("*, staking_plans(name, asset, apy)").eq("user_id", user_id).order("started_at", { ascending: false }),
+      profilePromise, walletsPromise, tradesQuery, depsQuery, wdsQuery, stakesQuery,
     ]);
 
     if (!profile) {
@@ -233,6 +299,7 @@ Deno.serve(async (req: Request) => {
       withdrawals: wds ?? [],
       stakes: stakes ?? [],
       sections: activeSections,
+      dateRangeLabel: dateRangeLabel(date_range || "all"),
     };
 
     const htmlReport = generateHtmlReport(reportData);

@@ -64,6 +64,7 @@ const AdminUserDetail = () => {
   const [savingCrypto, setSavingCrypto] = useState(false);
   // Report settings
   const [reportType, setReportType] = useState("custom");
+  const [reportDateRange, setReportDateRange] = useState("all");
   const [reportSections, setReportSections] = useState<Record<string, boolean>>({ wallets: true, trades: true, deposits: true, withdrawals: true, staking: true, pnl: true });
   const [reportFrequency, setReportFrequency] = useState("manual");
   const [reportEnabled, setReportEnabled] = useState(false);
@@ -1105,7 +1106,25 @@ const AdminUserDetail = () => {
               </div>
 
               {/* Frequency */}
-              <div className="grid md:grid-cols-2 gap-4">
+              {/* Date Range & Frequency */}
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Date Range</Label>
+                  <Select value={reportDateRange} onValueChange={setReportDateRange}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="today">Today</SelectItem>
+                      <SelectItem value="yesterday">Yesterday</SelectItem>
+                      <SelectItem value="this_week">This Week</SelectItem>
+                      <SelectItem value="last_week">Last Week</SelectItem>
+                      <SelectItem value="this_month">This Month</SelectItem>
+                      <SelectItem value="last_month">Last Month</SelectItem>
+                      <SelectItem value="last_90_days">Last 90 Days</SelectItem>
+                      <SelectItem value="this_year">This Year</SelectItem>
+                      <SelectItem value="all">All Time</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="space-y-2">
                   <Label>Auto-Send Frequency</Label>
                   <Select value={reportFrequency} onValueChange={setReportFrequency}>
@@ -1163,7 +1182,7 @@ const AdminUserDetail = () => {
                     setSendingReport(true);
                     try {
                       const { data, error } = await supabase.functions.invoke("generate-client-report", {
-                        body: { user_id: userId, sections: reportSections, action: "download" },
+                        body: { user_id: userId, sections: reportSections, action: "download", date_range: reportDateRange },
                       });
                       if (error) throw error;
                       // data is the HTML string
@@ -1190,7 +1209,7 @@ const AdminUserDetail = () => {
                     setSendingReport(true);
                     try {
                       const { data, error } = await supabase.functions.invoke("generate-client-report", {
-                        body: { user_id: userId, sections: reportSections, action: "email" },
+                        body: { user_id: userId, sections: reportSections, action: "email", date_range: reportDateRange },
                       });
                       if (error) throw error;
                       const result = typeof data === "string" ? JSON.parse(data) : data;
@@ -1214,7 +1233,7 @@ const AdminUserDetail = () => {
                     setSendingReport(true);
                     try {
                       const { data, error } = await supabase.functions.invoke("generate-client-report", {
-                        body: { user_id: userId, sections: reportSections, action: "download" },
+                        body: { user_id: userId, sections: reportSections, action: "download", date_range: reportDateRange },
                       });
                       if (error) throw error;
                       setPreviewHtml(typeof data === "string" ? data : JSON.stringify(data));
