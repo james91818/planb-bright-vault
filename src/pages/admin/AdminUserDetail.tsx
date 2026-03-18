@@ -273,13 +273,8 @@ const AdminUserDetail = () => {
   const saveCryptoAddress = async () => {
     if (!userId || !cryptoForm.address.trim()) { toast.error("Enter wallet address"); return; }
     setSavingCrypto(true);
-    const existing = cryptoAddresses.find(a => a.currency === cryptoForm.currency);
-    if (existing) {
-      await (supabase as any).from("client_crypto_addresses").update({ address: cryptoForm.address, network: cryptoForm.network, label: cryptoForm.label }).eq("id", existing.id);
-    } else {
-      await (supabase as any).from("client_crypto_addresses").insert({ ...cryptoForm, user_id: userId });
-    }
-    toast.success(`${cryptoForm.currency} address saved`);
+    await (supabase as any).from("client_crypto_addresses").insert({ ...cryptoForm, user_id: userId });
+    toast.success(`${cryptoForm.currency} address added`);
     setCryptoForm({ currency: "BTC", address: "", network: "", label: "" });
     setSavingCrypto(false);
     fetchAll();
@@ -986,7 +981,7 @@ const AdminUserDetail = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               <p className="text-sm text-muted-foreground">
-                Add wallet addresses for each cryptocurrency. Clients will see these when making crypto deposits.
+                Add multiple wallet addresses per cryptocurrency. Clients will see these when making crypto deposits.
               </p>
 
               {/* Existing addresses */}
@@ -1012,7 +1007,7 @@ const AdminUserDetail = () => {
 
               {/* Add new address */}
               <div className="border-t pt-4 space-y-3 max-w-lg">
-                <Label className="font-semibold">Add / Update Address</Label>
+                <Label className="font-semibold">Add New Address</Label>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <Label>Currency</Label>
@@ -1039,7 +1034,7 @@ const AdminUserDetail = () => {
                   <Input value={cryptoForm.label} onChange={e => setCryptoForm({ ...cryptoForm, label: e.target.value })} placeholder="Main deposit address" />
                 </div>
                 <Button onClick={saveCryptoAddress} disabled={savingCrypto} className="w-full">
-                  <Plus className="h-4 w-4 mr-2" /> {savingCrypto ? "Saving..." : "Save Address"}
+                  <Plus className="h-4 w-4 mr-2" /> {savingCrypto ? "Saving..." : "Add Address"}
                 </Button>
               </div>
             </CardContent>
