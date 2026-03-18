@@ -374,10 +374,15 @@ const WalletPage = () => {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label>Currency</Label>
-                <Select value={form.currency} onValueChange={(v) => setForm({ ...form, currency: v })}>
+                <Select value={form.currency} onValueChange={(v) => {
+                  const isCrypto = CRYPTO_CURRENCIES.includes(v);
+                  setForm({ ...form, currency: v, method: isCrypto ? "crypto" : "bank_wire" });
+                }}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {allCurrencies.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    {wallets.filter(w => Number(w.balance) > 0).map(w => (
+                      <SelectItem key={w.currency} value={w.currency}>{w.currency} ({Number(w.balance).toLocaleString()})</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -386,16 +391,33 @@ const WalletPage = () => {
                 <Select value={form.method} onValueChange={(v) => setForm({ ...form, method: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="crypto">Crypto</SelectItem>
-                    <SelectItem value="bank_wire">Bank Wire</SelectItem>
+                    {CRYPTO_CURRENCIES.includes(form.currency) && <SelectItem value="crypto">Crypto Wallet</SelectItem>}
+                    {FIAT_CURRENCIES.includes(form.currency) && <SelectItem value="bank_wire">Bank Wire</SelectItem>}
                   </SelectContent>
                 </Select>
               </div>
             </div>
-            <div className="space-y-1">
-              <Label>Destination ({form.method === "crypto" ? "Wallet Address" : "Bank Details"})</Label>
-              <Input value={form.destination} onChange={(e) => setForm({ ...form, destination: e.target.value })} />
-            </div>
+            {form.method === "crypto" ? (
+              <div className="space-y-1">
+                <Label>Destination Wallet Address *</Label>
+                <Input value={form.destination} onChange={(e) => setForm({ ...form, destination: e.target.value })} placeholder="e.g. 0x1a2b3c... or bc1q..." />
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <Label>Bank Name *</Label>
+                  <Input value={form.bank_name} onChange={(e) => setForm({ ...form, bank_name: e.target.value })} placeholder="e.g. Deutsche Bank" />
+                </div>
+                <div className="space-y-1">
+                  <Label>IBAN *</Label>
+                  <Input value={form.iban} onChange={(e) => setForm({ ...form, iban: e.target.value })} placeholder="e.g. DE89370400440532013000" />
+                </div>
+                <div className="space-y-1">
+                  <Label>SWIFT/BIC (optional)</Label>
+                  <Input value={form.swift} onChange={(e) => setForm({ ...form, swift: e.target.value })} placeholder="e.g. DEUTDEDB" />
+                </div>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setWithdrawOpen(false)}>Cancel</Button>
