@@ -720,6 +720,75 @@ const AdminUserDetail = () => {
           </Card>
         </TabsContent>
 
+        {/* Stakes Tab */}
+        <TabsContent value="stakes">
+          <Card>
+            <CardContent className="p-0">
+              <div className="p-4 border-b">
+                <h3 className="font-display font-semibold flex items-center gap-2">
+                  <Landmark className="h-4 w-4" /> Stakes ({stakes.length})
+                </h3>
+              </div>
+              {stakes.length === 0 ? (
+                <p className="p-8 text-center text-muted-foreground">No stakes</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b bg-muted/50">
+                        <th className="text-left p-3 font-medium text-muted-foreground">Plan</th>
+                        <th className="text-left p-3 font-medium text-muted-foreground">Amount</th>
+                        <th className="text-left p-3 font-medium text-muted-foreground">APY</th>
+                        <th className="text-left p-3 font-medium text-muted-foreground">Rewards</th>
+                        <th className="text-left p-3 font-medium text-muted-foreground">Unlocks</th>
+                        <th className="text-left p-3 font-medium text-muted-foreground">Status</th>
+                        <th className="text-right p-3 font-medium text-muted-foreground">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {stakes.map((s) => {
+                        const unlocked = new Date(s.unlocks_at) <= new Date();
+                        const reward = Number(s.rewards_earned ?? 0);
+                        return (
+                          <tr key={s.id} className="border-b last:border-0 hover:bg-muted/30">
+                            <td className="p-3 font-medium">{(s as any).staking_plans?.name}</td>
+                            <td className="p-3 font-semibold">€{Number(s.amount).toLocaleString()}</td>
+                            <td className="p-3 text-success font-semibold">{(s as any).staking_plans?.apy}%</td>
+                            <td className="p-3">
+                              <span className={reward >= 0 ? "text-success font-semibold" : "text-destructive font-semibold"}>
+                                {reward >= 0 ? "+" : ""}€{reward.toFixed(2)}
+                              </span>
+                            </td>
+                            <td className="p-3 text-xs text-muted-foreground">{new Date(s.unlocks_at).toLocaleDateString()}</td>
+                            <td className="p-3">
+                              {s.claimed ? (
+                                <Badge variant="outline">Claimed</Badge>
+                              ) : unlocked ? (
+                                <Badge className="bg-success/10 text-success border-success/30">Ready</Badge>
+                              ) : (
+                                <Badge variant="outline" className="gap-1"><Clock className="h-3 w-3" /> Locked</Badge>
+                              )}
+                            </td>
+                            <td className="p-3 text-right">
+                              <Button size="sm" variant="outline" onClick={() => {
+                                setEditStake(s);
+                                setRewardsInput(String(s.rewards_earned ?? 0));
+                                setClaimedInput(s.claimed ? "true" : "false");
+                              }}>
+                                <DollarSign className="h-3.5 w-3.5 mr-1" /> Manage
+                              </Button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* Notes Tab */}
         <TabsContent value="notes">
           <Card>
