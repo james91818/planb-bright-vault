@@ -675,32 +675,34 @@ const Landing = () => {
       {/* ===== TESTIMONIALS ===== */}
       <section className="bg-muted/40 py-16 md:py-24">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
+          <AnimatedSection className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-display font-bold">What Our Traders Say</h2>
             <p className="text-muted-foreground mt-2">Trusted by a global community of investors.</p>
-          </div>
-          <div className="grid gap-6 md:grid-cols-3 max-w-5xl mx-auto">
+          </AnimatedSection>
+          <StaggerContainer className="grid gap-6 md:grid-cols-3 max-w-5xl mx-auto">
             {[
               { author: "Michael R.", role: "Crypto Investor", content: "PlanB Trading offers the best combination of security and performance. The leverage options and real-time data are outstanding." },
               { author: "Anna S.", role: "Forex Trader", content: "Professional support team, excellent execution speed, and a platform that feels both powerful and intuitive." },
               { author: "David L.", role: "Portfolio Manager", content: "Managing multiple asset classes from one platform has transformed how I handle my clients' portfolios." },
             ].map((t) => (
-              <Card key={t.author} className="bg-card">
-                <CardContent className="pt-6 space-y-3">
-                  <div className="flex gap-0.5">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-primary text-primary" />
-                    ))}
-                  </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">"{t.content}"</p>
-                  <div>
-                    <p className="text-sm font-semibold">{t.author}</p>
-                    <p className="text-xs text-muted-foreground">{t.role}</p>
-                  </div>
-                </CardContent>
-              </Card>
+              <StaggerItem key={t.author}>
+                <Card className="bg-card hover:-translate-y-1 transition-all duration-300">
+                  <CardContent className="pt-6 space-y-3">
+                    <div className="flex gap-0.5">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star key={i} className="h-4 w-4 fill-primary text-primary" />
+                      ))}
+                    </div>
+                    <p className="text-sm text-muted-foreground leading-relaxed">"{t.content}"</p>
+                    <div>
+                      <p className="text-sm font-semibold">{t.author}</p>
+                      <p className="text-xs text-muted-foreground">{t.role}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         </div>
       </section>
 
