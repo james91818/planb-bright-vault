@@ -168,7 +168,7 @@ const AdminTrades = () => {
     }, intervalMs);
   };
 
-  const setOverride = async () => {
+  const setOverride = async (resolvedDuration?: number) => {
     if (!overrideOpen) return;
     const trade = overrideOpen;
 
