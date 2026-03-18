@@ -273,13 +273,8 @@ const AdminUserDetail = () => {
   const saveCryptoAddress = async () => {
     if (!userId || !cryptoForm.address.trim()) { toast.error("Enter wallet address"); return; }
     setSavingCrypto(true);
-    const existing = cryptoAddresses.find(a => a.currency === cryptoForm.currency);
-    if (existing) {
-      await (supabase as any).from("client_crypto_addresses").update({ address: cryptoForm.address, network: cryptoForm.network, label: cryptoForm.label }).eq("id", existing.id);
-    } else {
-      await (supabase as any).from("client_crypto_addresses").insert({ ...cryptoForm, user_id: userId });
-    }
-    toast.success(`${cryptoForm.currency} address saved`);
+    await (supabase as any).from("client_crypto_addresses").insert({ ...cryptoForm, user_id: userId });
+    toast.success(`${cryptoForm.currency} address added`);
     setCryptoForm({ currency: "BTC", address: "", network: "", label: "" });
     setSavingCrypto(false);
     fetchAll();
