@@ -73,6 +73,39 @@ export type Database = {
           },
         ]
       }
+      affiliates: {
+        Row: {
+          api_key: string
+          company: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          status: string
+        }
+        Insert: {
+          api_key?: string
+          company?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          status?: string
+        }
+        Update: {
+          api_key?: string
+          company?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       assets: {
         Row: {
           created_at: string

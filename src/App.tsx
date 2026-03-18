@@ -36,6 +36,7 @@ import AdminNews from "./pages/admin/AdminNews";
 import AdminRoles from "./pages/admin/AdminRoles";
 import AdminDepositors from "./pages/admin/AdminDepositors";
 import AdminAgents from "./pages/admin/AdminAgents";
+import AdminAffiliates from "./pages/admin/AdminAffiliates";
 import AdminStaking from "./pages/admin/AdminStaking";
 
 // Client pages
@@ -93,6 +94,7 @@ const App = () => (
             <Route path="/admin/staking" element={<AdminStaking />} />
             <Route path="/admin/assets" element={<AdminAssets />} />
             <Route path="/admin/agents" element={<AdminAgents />} />
+            <Route path="/admin/affiliates" element={<AdminAffiliates />} />
             <Route path="/admin/news" element={<AdminNews />} />
             <Route path="/admin/roles" element={<AdminRoles />} />
             {/* Shared routes */}
