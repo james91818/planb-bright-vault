@@ -52,6 +52,7 @@ const adminNav = [
   { title: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
   { title: "Leads", icon: Users, path: "/admin/users" },
   { title: "Depositors", icon: UserCheck, path: "/admin/depositors" },
+  { title: "Balance", icon: Wallet, path: "/admin/balance" },
   { title: "Agents", icon: Shield, path: "/admin/agents" },
   { title: "Affiliates", icon: Handshake, path: "/admin/affiliates", adminOnly: true },
   { title: "Deposits", icon: ArrowUpRight, path: "/admin/deposits" },
