@@ -543,9 +543,10 @@ const Trading = () => {
     setPlacing(false);
   };
 
-  const closeTrade = async (trade: Trade, displayedPrice?: number, displayedPnl?: number) => {
-    const finalPrice = displayedPrice ?? (trade.current_price ? Number(trade.current_price) : null);
-    const finalPnl = Number((displayedPnl ?? trade.pnl ?? 0).toFixed(2));
+  const closeTrade = async (trade: Trade) => {
+    const snapshot = openTradeSnapshots[trade.id];
+    const finalPrice = snapshot?.displayPrice ?? (trade.current_price ? Number(trade.current_price) : Number(trade.entry_price));
+    const finalPnl = Number((snapshot?.displayPnl ?? trade.pnl ?? 0).toFixed(2));
 
     await supabase.from("trades").update({
       status: "closed",
