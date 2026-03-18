@@ -383,9 +383,9 @@ const AdminTrades = () => {
                 <thead>{tableHeaders}</thead>
                 <tbody>
                   {loading ? (
-                    <tr><td colSpan={9} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
+                    <tr><td colSpan={10} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
                   ) : closedTrades.length === 0 ? (
-                    <tr><td colSpan={9} className="p-8 text-center text-muted-foreground">No closed trades</td></tr>
+                    <tr><td colSpan={10} className="p-8 text-center text-muted-foreground">No closed trades</td></tr>
                   ) : (
                     closedTrades.map(t => renderTradeRow(t, true))
                   )}
