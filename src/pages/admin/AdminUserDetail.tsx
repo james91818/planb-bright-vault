@@ -97,7 +97,27 @@ const AdminUserDetail = () => {
     fetchAll();
   };
 
-  const updateStatus = async (status: string) => {
+  const handleChangePassword = async () => {
+    if (!newPassword || newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+    setChangingPassword(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-user-actions", {
+        body: { action: "change_password", user_id: userId, password: newPassword },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success("Password updated successfully");
+      setNewPassword("");
+    } catch (err: any) {
+      toast.error(`Failed to change password: ${err.message}`);
+    }
+    setChangingPassword(false);
+  };
+
+
     await supabase.from("profiles").update({ status }).eq("id", userId);
     toast.success(`User ${status === "suspended" ? "suspended" : "activated"}`);
     fetchAll();
