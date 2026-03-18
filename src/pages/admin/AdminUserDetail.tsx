@@ -52,6 +52,10 @@ const AdminUserDetail = () => {
   const [editStake, setEditStake] = useState<any>(null);
   const [rewardsInput, setRewardsInput] = useState("");
   const [claimedInput, setClaimedInput] = useState("false");
+  // Bank details
+  const [bankDetails, setBankDetails] = useState<any>(null);
+  const [bankForm, setBankForm] = useState({ bank_name: "", account_holder: "", iban: "", swift_bic: "", reference: "", notes: "" });
+  const [savingBank, setSavingBank] = useState(false);
 
   const fetchAll = async () => {
     if (!userId) return;
