@@ -37,6 +37,8 @@ const AdminUserDetail = () => {
   const [editProfile, setEditProfile] = useState({ full_name: "", phone: "", country: "", kyc_status: "" });
   const [adminNotes, setAdminNotes] = useState<any[]>([]);
   const [newNote, setNewNote] = useState("");
+  const [commentFiles, setCommentFiles] = useState<File[]>([]);
+  const [uploadingComment, setUploadingComment] = useState(false);
   const [manualDepositOpen, setManualDepositOpen] = useState(false);
   const [depForm, setDepForm] = useState({ amount: "", currency: "EUR", method: "manual", notes: "", crypto_asset: "BTC" });
   const [manualWithdrawOpen, setManualWithdrawOpen] = useState(false);
