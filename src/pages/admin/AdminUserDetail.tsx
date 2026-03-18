@@ -1174,37 +1174,114 @@ const AdminUserDetail = () => {
           </Card>
         </TabsContent>
 
-        {/* Notes Tab */}
+        {/* Comments Tab */}
         <TabsContent value="notes">
           <Card>
             <CardHeader>
               <CardTitle className="text-base font-display flex items-center gap-2">
-                <MessageSquare className="h-4 w-4" /> Internal Notes
+                <MessageSquare className="h-4 w-4" /> Internal Comments
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Add note */}
-              <div className="flex gap-2">
+              {/* Add comment */}
+              <div className="space-y-2">
                 <Textarea
                   value={newNote}
                   onChange={(e) => setNewNote(e.target.value)}
-                  placeholder="Add an internal note about this user..."
+                  placeholder="Add an internal comment about this user..."
                   rows={2}
-                  className="flex-1"
                 />
-                <Button onClick={submitNote} disabled={!newNote.trim()} className="self-end">
-                  <Send className="h-4 w-4" />
-                </Button>
+                {/* File previews */}
+                {commentFiles.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {commentFiles.map((file, idx) => {
+                      const isImage = file.type.startsWith("image/");
+                      return (
+                        <div key={idx} className="relative group border rounded-lg p-1.5 flex items-center gap-2 bg-muted/30 text-xs">
+                          {isImage ? (
+                            <img src={URL.createObjectURL(file)} alt="" className="h-10 w-10 object-cover rounded" />
+                          ) : (
+                            <File className="h-4 w-4 text-muted-foreground" />
+                          )}
+                          <span className="max-w-[100px] truncate">{file.name}</span>
+                          <button
+                            onClick={() => setCommentFiles(prev => prev.filter((_, i) => i !== idx))}
+                            className="ml-1 text-muted-foreground hover:text-destructive"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                <div className="flex gap-2 items-center">
+                  <label className="cursor-pointer">
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt"
+                      className="hidden"
+                      onChange={(e) => {
+                        if (e.target.files) {
+                          setCommentFiles(prev => [...prev, ...Array.from(e.target.files!)]);
+                        }
+                        e.target.value = "";
+                      }}
+                    />
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 border rounded-md text-sm text-muted-foreground hover:bg-muted/50 transition-colors">
+                      <Paperclip className="h-3.5 w-3.5" /> Attach
+                    </div>
+                  </label>
+                  <div className="flex-1" />
+                  <Button
+                    onClick={submitNote}
+                    disabled={(!newNote.trim() && commentFiles.length === 0) || uploadingComment}
+                    size="sm"
+                  >
+                    {uploadingComment ? (
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                    ) : (
+                      <Send className="h-4 w-4" />
+                    )}
+                    <span className="ml-1">Send</span>
+                  </Button>
+                </div>
               </div>
 
-              {/* Notes list */}
+              {/* Comments list */}
               {adminNotes.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-6">No notes yet</p>
+                <p className="text-sm text-muted-foreground text-center py-6">No comments yet</p>
               ) : (
                 <div className="space-y-3">
                   {adminNotes.map((note) => (
-                    <div key={note.id} className="border rounded-lg p-3 space-y-1">
+                    <div key={note.id} className="border rounded-lg p-3 space-y-2">
                       <p className="text-sm whitespace-pre-wrap">{note.content}</p>
+                      {/* Attachments */}
+                      {note.attachments && note.attachments.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {note.attachments.map((url: string, i: number) => {
+                            const isImage = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(url);
+                            const filename = url.split("/").pop() || "file";
+                            return isImage ? (
+                              <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="block">
+                                <img src={url} alt="" className="h-20 w-20 object-cover rounded-lg border hover:opacity-80 transition-opacity" />
+                              </a>
+                            ) : (
+                              <a
+                                key={i}
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1.5 px-2 py-1.5 border rounded-md text-xs text-primary hover:bg-muted/50 transition-colors"
+                              >
+                                <File className="h-3.5 w-3.5" />
+                                <span className="max-w-[120px] truncate">{filename}</span>
+                              </a>
+                            );
+                          })}
+                        </div>
+                      )}
                       <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-1">
                         <span>Staff</span>
                         <span>{new Date(note.created_at).toLocaleString()}</span>
