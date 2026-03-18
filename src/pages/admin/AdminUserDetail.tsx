@@ -117,7 +117,7 @@ const AdminUserDetail = () => {
     setChangingPassword(false);
   };
 
-
+  const updateStatus = async (status: string) => {
     await supabase.from("profiles").update({ status }).eq("id", userId);
     toast.success(`User ${status === "suspended" ? "suspended" : "activated"}`);
     fetchAll();
