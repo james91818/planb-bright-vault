@@ -5,14 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Wallet as WalletIcon, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, Landmark, Bitcoin } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+const FIAT_CURRENCIES = ["EUR", "USD", "GBP", "CHF", "AUD", "CAD"];
+const CRYPTO_CURRENCIES = ["BTC", "ETH", "SOL", "XRP", "BNB", "DOGE", "ADA", "DOT", "LINK", "AVAX"];
 
 const statusColors: Record<string, string> = {
   approved: "bg-success/10 text-success",
@@ -56,7 +58,7 @@ const WalletPage = () => {
     });
     toast.success("Deposit request submitted. Awaiting approval.");
     setDepositOpen(false);
-    setForm({ amount: "", currency: "EUR", method: "crypto", wallet_address: "", destination: "" });
+    resetForm();
     fetchData();
   };
 
@@ -76,11 +78,18 @@ const WalletPage = () => {
     });
     toast.success("Withdrawal request submitted. Awaiting approval.");
     setWithdrawOpen(false);
-    setForm({ amount: "", currency: "EUR", method: "crypto", wallet_address: "", destination: "" });
+    resetForm();
     fetchData();
   };
 
-  const totalBalance = wallets.reduce((s, w) => s + Number(w.balance), 0);
+  const resetForm = () => setForm({ amount: "", currency: "EUR", method: "crypto", wallet_address: "", destination: "" });
+
+  const fiatWallets = wallets.filter(w => FIAT_CURRENCIES.includes(w.currency));
+  const cryptoWallets = wallets.filter(w => CRYPTO_CURRENCIES.includes(w.currency) && Number(w.balance) > 0);
+  const fiatTotal = fiatWallets.reduce((s, w) => s + Number(w.balance), 0);
+  const hasCrypto = cryptoWallets.length > 0;
+
+  const allCurrencies = [...FIAT_CURRENCIES, ...CRYPTO_CURRENCIES];
 
   return (
     <div className="space-y-6">
@@ -90,107 +99,139 @@ const WalletPage = () => {
           <p className="text-muted-foreground text-sm">Manage your funds</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => { setForm({ amount: "", currency: "EUR", method: "crypto", wallet_address: "", destination: "" }); setDepositOpen(true); }}>
+          <Button onClick={() => { resetForm(); setDepositOpen(true); }}>
             <ArrowUpRight className="h-4 w-4 mr-1" /> Deposit
           </Button>
-          <Button variant="outline" onClick={() => { setForm({ amount: "", currency: "EUR", method: "crypto", wallet_address: "", destination: "" }); setWithdrawOpen(true); }}>
+          <Button variant="outline" onClick={() => { resetForm(); setWithdrawOpen(true); }}>
             <ArrowDownRight className="h-4 w-4 mr-1" /> Withdraw
           </Button>
         </div>
       </div>
 
-      {/* Balance Cards */}
-      <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-6">
-        {loading ? (
-          <div className="col-span-full flex justify-center py-8">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
+      ) : (
+        <>
+          {/* Total Balance */}
+          <Card className="border-primary/20 bg-primary/5">
+            <CardContent className="p-5">
+              <p className="text-sm text-muted-foreground font-medium">Total Fiat Balance</p>
+              <p className="text-3xl font-display font-bold mt-1">
+                €{fiatTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Fiat Assets */}
+          <div>
+            <h2 className="text-base font-display font-semibold flex items-center gap-2 mb-3">
+              <Landmark className="h-4 w-4 text-muted-foreground" /> Fiat Assets
+            </h2>
+            <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+              {fiatWallets.map((w) => (
+                <Card key={w.id} className={Number(w.balance) > 0 ? "border-primary/20" : ""}>
+                  <CardContent className="p-4">
+                    <p className="text-xs text-muted-foreground font-medium">{w.currency}</p>
+                    <p className="text-lg font-display font-bold mt-1">
+                      {Number(w.balance).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+              {fiatWallets.length === 0 && (
+                <p className="col-span-full text-sm text-muted-foreground">No fiat wallets found.</p>
+              )}
+            </div>
           </div>
-        ) : (
-          wallets.map((w) => (
-            <Card key={w.id}>
-              <CardContent className="p-4">
-                <p className="text-xs text-muted-foreground font-medium">{w.currency}</p>
-                <p className="text-lg font-display font-bold mt-1">
-                  {Number(w.balance).toLocaleString("en-US", { minimumFractionDigits: 2 })}
-                </p>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
 
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-display">Total Balance</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-3xl font-display font-bold">€{totalBalance.toLocaleString("en-US", { minimumFractionDigits: 2 })}</p>
-        </CardContent>
-      </Card>
+          {/* Crypto Assets — only show if user holds any */}
+          {hasCrypto && (
+            <div>
+              <h2 className="text-base font-display font-semibold flex items-center gap-2 mb-3">
+                <Bitcoin className="h-4 w-4 text-muted-foreground" /> Crypto Assets
+              </h2>
+              <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+                {cryptoWallets.map((w) => (
+                  <Card key={w.id} className="border-primary/20">
+                    <CardContent className="p-4">
+                      <p className="text-xs text-muted-foreground font-medium">{w.currency}</p>
+                      <p className="text-lg font-display font-bold mt-1">
+                        {Number(w.balance).toLocaleString("en-US", { minimumFractionDigits: 6 })}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
 
-      {/* Transaction History */}
-      <Tabs defaultValue="deposits">
-        <TabsList>
-          <TabsTrigger value="deposits">Deposits</TabsTrigger>
-          <TabsTrigger value="withdrawals">Withdrawals</TabsTrigger>
-        </TabsList>
-        <TabsContent value="deposits">
-          <Card>
-            <CardContent className="p-0">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b bg-muted/50">
-                    <th className="text-left p-3 font-medium text-muted-foreground">Amount</th>
-                    <th className="text-left p-3 font-medium text-muted-foreground">Method</th>
-                    <th className="text-left p-3 font-medium text-muted-foreground">Status</th>
-                    <th className="text-left p-3 font-medium text-muted-foreground">Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {deposits.length === 0 ? (
-                    <tr><td colSpan={4} className="p-8 text-center text-muted-foreground">No deposits yet</td></tr>
-                  ) : deposits.map((d) => (
-                    <tr key={d.id} className="border-b last:border-0">
-                      <td className="p-3 font-semibold">{d.currency} {Number(d.amount).toLocaleString()}</td>
-                      <td className="p-3 capitalize text-muted-foreground">{d.method}</td>
-                      <td className="p-3"><span className={`text-xs px-2 py-1 rounded-full font-medium ${statusColors[d.status] ?? "bg-muted"}`}>{d.status}</span></td>
-                      <td className="p-3 text-muted-foreground text-xs">{new Date(d.created_at).toLocaleDateString()}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="withdrawals">
-          <Card>
-            <CardContent className="p-0">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b bg-muted/50">
-                    <th className="text-left p-3 font-medium text-muted-foreground">Amount</th>
-                    <th className="text-left p-3 font-medium text-muted-foreground">Method</th>
-                    <th className="text-left p-3 font-medium text-muted-foreground">Status</th>
-                    <th className="text-left p-3 font-medium text-muted-foreground">Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {withdrawals.length === 0 ? (
-                    <tr><td colSpan={4} className="p-8 text-center text-muted-foreground">No withdrawals yet</td></tr>
-                  ) : withdrawals.map((w) => (
-                    <tr key={w.id} className="border-b last:border-0">
-                      <td className="p-3 font-semibold">{w.currency} {Number(w.amount).toLocaleString()}</td>
-                      <td className="p-3 capitalize text-muted-foreground">{w.method}</td>
-                      <td className="p-3"><span className={`text-xs px-2 py-1 rounded-full font-medium ${statusColors[w.status] ?? "bg-muted"}`}>{w.status}</span></td>
-                      <td className="p-3 text-muted-foreground text-xs">{new Date(w.created_at).toLocaleDateString()}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+          {/* Transaction History */}
+          <Tabs defaultValue="deposits">
+            <TabsList>
+              <TabsTrigger value="deposits">Deposits</TabsTrigger>
+              <TabsTrigger value="withdrawals">Withdrawals</TabsTrigger>
+            </TabsList>
+            <TabsContent value="deposits">
+              <Card>
+                <CardContent className="p-0">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b bg-muted/50">
+                        <th className="text-left p-3 font-medium text-muted-foreground">Amount</th>
+                        <th className="text-left p-3 font-medium text-muted-foreground">Method</th>
+                        <th className="text-left p-3 font-medium text-muted-foreground">Status</th>
+                        <th className="text-left p-3 font-medium text-muted-foreground">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {deposits.length === 0 ? (
+                        <tr><td colSpan={4} className="p-8 text-center text-muted-foreground">No deposits yet</td></tr>
+                      ) : deposits.map((d) => (
+                        <tr key={d.id} className="border-b last:border-0">
+                          <td className="p-3 font-semibold">{d.currency} {Number(d.amount).toLocaleString()}</td>
+                          <td className="p-3 capitalize text-muted-foreground">{d.method}</td>
+                          <td className="p-3"><span className={`text-xs px-2 py-1 rounded-full font-medium ${statusColors[d.status] ?? "bg-muted"}`}>{d.status}</span></td>
+                          <td className="p-3 text-muted-foreground text-xs">{new Date(d.created_at).toLocaleDateString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="withdrawals">
+              <Card>
+                <CardContent className="p-0">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b bg-muted/50">
+                        <th className="text-left p-3 font-medium text-muted-foreground">Amount</th>
+                        <th className="text-left p-3 font-medium text-muted-foreground">Method</th>
+                        <th className="text-left p-3 font-medium text-muted-foreground">Status</th>
+                        <th className="text-left p-3 font-medium text-muted-foreground">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {withdrawals.length === 0 ? (
+                        <tr><td colSpan={4} className="p-8 text-center text-muted-foreground">No withdrawals yet</td></tr>
+                      ) : withdrawals.map((w) => (
+                        <tr key={w.id} className="border-b last:border-0">
+                          <td className="p-3 font-semibold">{w.currency} {Number(w.amount).toLocaleString()}</td>
+                          <td className="p-3 capitalize text-muted-foreground">{w.method}</td>
+                          <td className="p-3"><span className={`text-xs px-2 py-1 rounded-full font-medium ${statusColors[w.status] ?? "bg-muted"}`}>{w.status}</span></td>
+                          <td className="p-3 text-muted-foreground text-xs">{new Date(w.created_at).toLocaleDateString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </>
+      )}
 
       {/* Deposit Dialog */}
       <Dialog open={depositOpen} onOpenChange={setDepositOpen}>
@@ -207,7 +248,7 @@ const WalletPage = () => {
                 <Select value={form.currency} onValueChange={(v) => setForm({ ...form, currency: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {["EUR", "USD", "GBP", "CHF", "AUD", "CAD"].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    {allCurrencies.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -251,7 +292,7 @@ const WalletPage = () => {
                 <Select value={form.currency} onValueChange={(v) => setForm({ ...form, currency: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {["EUR", "USD", "GBP", "CHF", "AUD", "CAD"].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    {allCurrencies.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
