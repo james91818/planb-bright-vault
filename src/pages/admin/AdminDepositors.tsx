@@ -8,6 +8,7 @@ import { Search, MoreHorizontal, DollarSign, Phone, Eye, Ban, Mail, KeyRound, Se
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import StatusChanger from "@/components/admin/StatusChanger";
 import { useNavigate } from "react-router-dom";
+import DepositorsTable from "@/components/admin/DepositorsTable";
 import { toast } from "sonner";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
