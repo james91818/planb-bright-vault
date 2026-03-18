@@ -528,7 +528,7 @@ const AdminUserDetail = () => {
           <TabsTrigger value="stakes">Stakes ({stakes.length})</TabsTrigger>
           <TabsTrigger value="bank">Bank</TabsTrigger>
           <TabsTrigger value="crypto">Crypto Wallets</TabsTrigger>
-          <TabsTrigger value="report">Report</TabsTrigger>
+          <TabsTrigger value="report">Reports</TabsTrigger>
           <TabsTrigger value="notes">Comments ({adminNotes.length})</TabsTrigger>
         </TabsList>
 
