@@ -329,8 +329,7 @@ const Landing = () => {
       {/* ===== AI TRADING ROBOT ===== */}
       <section className="container mx-auto px-4 py-16 md:py-24">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left: Info */}
-          <div className="space-y-6 max-w-lg">
+          <AnimatedSection direction="left" className="space-y-6 max-w-lg">
             <div className="inline-flex items-center gap-2 bg-primary/10 text-primary text-sm font-semibold px-4 py-1.5 rounded-full">
               <Bot className="h-4 w-4" />
               AI-Powered Trading
