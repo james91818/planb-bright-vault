@@ -618,6 +618,7 @@ const Landing = () => {
               </div>
             </CardContent>
           </Card>
+        </AnimatedSection>
         </div>
       </section>
 
