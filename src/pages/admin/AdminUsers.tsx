@@ -277,6 +277,7 @@ const AdminUsers = () => {
                   <th className="text-left p-3 font-medium text-muted-foreground">Registration</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Affiliate</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Funnel</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Agent</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Status</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Last Note</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">#Notes</th>
@@ -285,9 +286,9 @@ const AdminUsers = () => {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={11} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
+                  <tr><td colSpan={12} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
                 ) : filtered.length === 0 ? (
-                  <tr><td colSpan={11} className="p-8 text-center text-muted-foreground">No leads found</td></tr>
+                  <tr><td colSpan={12} className="p-8 text-center text-muted-foreground">No leads found</td></tr>
                 ) : (
                   filtered.map((u) => {
                     const note = notesMap[u.id];
