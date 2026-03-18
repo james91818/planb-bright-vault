@@ -30,7 +30,7 @@ const AdminUsers = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
-  const [newUser, setNewUser] = useState({ email: "", password: "", full_name: "", phone: "", country: "" });
+  const [newUser, setNewUser] = useState({ email: "", password: "", first_name: "", last_name: "", phone: "", country: "", date_of_birth: "", address: "", city: "", postal_code: "", funnel: "" });
   const [depositOpen, setDepositOpen] = useState(false);
   const [depositForm, setDepositForm] = useState({ user_id: "", amount: "", currency: "EUR", method: "manual", notes: "" });
   const [notesMap, setNotesMap] = useState<Record<string, { content: string; created_at: string; count: number }>>({});
@@ -75,12 +75,17 @@ const AdminUsers = () => {
   };
 
   const handleCreateUser = async () => {
+    const fullName = `${newUser.first_name} ${newUser.last_name}`.trim();
+    if (!newUser.email || !newUser.password || !fullName) {
+      toast.error("Email, password, and name are required");
+      return;
+    }
     const { data, error } = await supabase.auth.signUp({
       email: newUser.email,
       password: newUser.password,
       options: {
         data: {
-          full_name: newUser.full_name,
+          full_name: fullName,
           phone: newUser.phone,
           country: newUser.country,
         },
@@ -90,9 +95,15 @@ const AdminUsers = () => {
       toast.error(error.message);
       return;
     }
+    // Update profile with extra fields
+    if (data.user) {
+      await supabase.from("profiles").update({
+        funnel: newUser.funnel || null,
+      }).eq("id", data.user.id);
+    }
     toast.success("User created successfully");
     setCreateOpen(false);
-    setNewUser({ email: "", password: "", full_name: "", phone: "", country: "" });
+    setNewUser({ email: "", password: "", first_name: "", last_name: "", phone: "", country: "", date_of_birth: "", address: "", city: "", postal_code: "", funnel: "" });
     setTimeout(fetchData, 1000);
   };
 
@@ -273,27 +284,59 @@ const AdminUsers = () => {
             <DialogTitle>Create New User</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
-            <div className="space-y-1">
-              <Label>Full Name</Label>
-              <Input value={newUser.full_name} onChange={(e) => setNewUser({ ...newUser, full_name: e.target.value })} />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label>First Name *</Label>
+                <Input value={newUser.first_name} onChange={(e) => setNewUser({ ...newUser, first_name: e.target.value })} placeholder="John" />
+              </div>
+              <div className="space-y-1">
+                <Label>Last Name *</Label>
+                <Input value={newUser.last_name} onChange={(e) => setNewUser({ ...newUser, last_name: e.target.value })} placeholder="Doe" />
+              </div>
             </div>
-            <div className="space-y-1">
-              <Label>Email</Label>
-              <Input type="email" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} />
-            </div>
-            <div className="space-y-1">
-              <Label>Password</Label>
-              <Input type="password" value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label>Email *</Label>
+                <Input type="email" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} placeholder="john@example.com" />
+              </div>
+              <div className="space-y-1">
+                <Label>Password *</Label>
+                <Input type="password" value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} placeholder="Min 6 characters" />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label>Phone</Label>
-                <Input value={newUser.phone} onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })} />
+                <Input value={newUser.phone} onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })} placeholder="+49 123 456 7890" />
               </div>
               <div className="space-y-1">
-                <Label>Country</Label>
-                <Input value={newUser.country} onChange={(e) => setNewUser({ ...newUser, country: e.target.value })} />
+                <Label>Date of Birth</Label>
+                <Input type="date" value={newUser.date_of_birth} onChange={(e) => setNewUser({ ...newUser, date_of_birth: e.target.value })} />
               </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label>Country</Label>
+                <Input value={newUser.country} onChange={(e) => setNewUser({ ...newUser, country: e.target.value })} placeholder="Germany" />
+              </div>
+              <div className="space-y-1">
+                <Label>City</Label>
+                <Input value={newUser.city} onChange={(e) => setNewUser({ ...newUser, city: e.target.value })} placeholder="Berlin" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label>Address</Label>
+                <Input value={newUser.address} onChange={(e) => setNewUser({ ...newUser, address: e.target.value })} placeholder="Street, Number" />
+              </div>
+              <div className="space-y-1">
+                <Label>Postal Code</Label>
+                <Input value={newUser.postal_code} onChange={(e) => setNewUser({ ...newUser, postal_code: e.target.value })} placeholder="10115" />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label>Funnel / Source</Label>
+              <Input value={newUser.funnel} onChange={(e) => setNewUser({ ...newUser, funnel: e.target.value })} placeholder="e.g. Google Ads, Referral, Direct" />
             </div>
           </div>
           <DialogFooter>
