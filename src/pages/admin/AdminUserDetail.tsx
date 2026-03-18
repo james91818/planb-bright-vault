@@ -1209,7 +1209,7 @@ const AdminUserDetail = () => {
                     setSendingReport(true);
                     try {
                       const { data, error } = await supabase.functions.invoke("generate-client-report", {
-                        body: { user_id: userId, sections: reportSections, action: "email" },
+                        body: { user_id: userId, sections: reportSections, action: "email", date_range: reportDateRange },
                       });
                       if (error) throw error;
                       const result = typeof data === "string" ? JSON.parse(data) : data;
