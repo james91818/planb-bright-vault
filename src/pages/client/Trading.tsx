@@ -83,22 +83,34 @@ function isMarketOpen(asset: Asset): boolean {
 }
 
 // ─── Candle generation ───
+// Generates candles that END at basePrice (the real market price)
 function generateCandles(count: number, basePrice: number, intervalMs = 3600000) {
   const candles: { time: string; o: number; h: number; l: number; c: number }[] = [];
-  let price = basePrice;
   const now = Date.now();
-  const volatility = intervalMs > 3600000 ? 0.03 : 0.02;
-  for (let i = count; i >= 0; i--) {
-    const open = price;
-    const change = (Math.random() - 0.47) * price * volatility;
-    const close = open + change;
-    const high = Math.max(open, close) + Math.random() * price * 0.008;
-    const low = Math.min(open, close) - Math.random() * price * 0.008;
+  const volatility = intervalMs > 3600000 ? 0.008 : 0.005;
+
+  // Build prices backwards from basePrice
+  const prices: number[] = [basePrice];
+  let p = basePrice;
+  for (let i = 0; i < count; i++) {
+    const change = (Math.random() - 0.5) * p * volatility;
+    p = p - change; // go backwards
+    prices.unshift(p);
+  }
+
+  // Now create candles from the price path (prices[i] -> prices[i+1])
+  for (let i = 0; i < count; i++) {
+    const open = prices[i];
+    const close = prices[i + 1];
+    const high = Math.max(open, close) + Math.random() * Math.abs(close) * 0.002;
+    const low = Math.min(open, close) - Math.random() * Math.abs(close) * 0.002;
     candles.push({
-      time: new Date(now - i * intervalMs).toISOString(),
-      o: +open.toFixed(2), h: +high.toFixed(2), l: +low.toFixed(2), c: +close.toFixed(2),
+      time: new Date(now - (count - i) * intervalMs).toISOString(),
+      o: +open.toFixed(open < 1 ? 6 : 2),
+      h: +high.toFixed(high < 1 ? 6 : 2),
+      l: +low.toFixed(low < 1 ? 6 : 2),
+      c: +close.toFixed(close < 1 ? 6 : 2),
     });
-    price = close;
   }
   return candles;
 }
