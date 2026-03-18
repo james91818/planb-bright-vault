@@ -555,6 +555,32 @@ const AdminUsers = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Change Password Dialog */}
+      <Dialog open={pwDialogOpen} onOpenChange={setPwDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Change Password — {pwUserName}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label>New Password</Label>
+              <Input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Min. 6 characters"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPwDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleChangePassword} disabled={pwLoading}>
+              {pwLoading ? "Changing..." : "Change Password"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
