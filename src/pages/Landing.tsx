@@ -455,7 +455,7 @@ const Landing = () => {
               </div>
             </div>
           </div>
-        </Card>
+        </Card></ScaleIn>
       </section>
 
       {/* ===== CTA BANNER ===== */}
