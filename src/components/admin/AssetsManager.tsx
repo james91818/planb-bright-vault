@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -54,49 +55,67 @@ const AssetsManager = () => {
     setEditAsset(a);
   };
 
+  const assetTypes = [...new Set(assets.map(a => a.type))].sort();
+
   if (loading) return <div className="flex items-center justify-center h-32"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
+
+  const renderTable = (filtered: any[]) => (
+    <Card>
+      <CardContent className="p-0 overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b bg-muted/50">
+              <th className="text-left p-3 font-medium text-muted-foreground">Symbol</th>
+              <th className="text-left p-3 font-medium text-muted-foreground">Name</th>
+              <th className="text-left p-3 font-medium text-muted-foreground">Max Leverage</th>
+              <th className="text-left p-3 font-medium text-muted-foreground">Enabled</th>
+              <th className="text-right p-3 font-medium text-muted-foreground">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.length === 0 ? (
+              <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">No assets in this category</td></tr>
+            ) : filtered.map((a) => (
+              <tr key={a.id} className="border-b last:border-0 hover:bg-muted/30">
+                <td className="p-3 font-semibold">{a.symbol}</td>
+                <td className="p-3">{a.name}</td>
+                <td className="p-3">{a.leverage_max}×</td>
+                <td className="p-3">
+                  <Switch checked={a.enabled} onCheckedChange={(val) => toggleEnabled(a.id, val)} />
+                </td>
+                <td className="p-3 text-right">
+                  <Button size="sm" variant="outline" onClick={() => openEdit(a)}>Edit</Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <div className="space-y-4">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="text-base font-display">Tradeable Assets</CardTitle>
-            <CardDescription>{assets.length} assets configured</CardDescription>
-          </div>
-          <Button size="sm" onClick={openCreate}><Plus className="h-4 w-4 mr-1" /> Add Asset</Button>
-        </CardHeader>
-        <CardContent className="p-0 overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-muted/50">
-                <th className="text-left p-3 font-medium text-muted-foreground">Symbol</th>
-                <th className="text-left p-3 font-medium text-muted-foreground">Name</th>
-                <th className="text-left p-3 font-medium text-muted-foreground">Type</th>
-                <th className="text-left p-3 font-medium text-muted-foreground">Max Leverage</th>
-                <th className="text-left p-3 font-medium text-muted-foreground">Enabled</th>
-                <th className="text-right p-3 font-medium text-muted-foreground">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {assets.map((a) => (
-                <tr key={a.id} className="border-b last:border-0 hover:bg-muted/30">
-                  <td className="p-3 font-semibold">{a.symbol}</td>
-                  <td className="p-3">{a.name}</td>
-                  <td className="p-3 capitalize text-muted-foreground">{a.type}</td>
-                  <td className="p-3">{a.leverage_max}×</td>
-                  <td className="p-3">
-                    <Switch checked={a.enabled} onCheckedChange={(val) => toggleEnabled(a.id, val)} />
-                  </td>
-                  <td className="p-3 text-right">
-                    <Button size="sm" variant="outline" onClick={() => openEdit(a)}>Edit</Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-between">
+        <div>
+          <CardTitle className="text-base font-display">Tradeable Assets</CardTitle>
+          <CardDescription>{assets.length} assets configured</CardDescription>
+        </div>
+        <Button size="sm" onClick={openCreate}><Plus className="h-4 w-4 mr-1" /> Add Asset</Button>
+      </div>
+
+      <Tabs defaultValue={assetTypes[0] ?? "crypto"}>
+        <TabsList>
+          {assetTypes.map(t => (
+            <TabsTrigger key={t} value={t} className="capitalize">{t}</TabsTrigger>
+          ))}
+        </TabsList>
+        {assetTypes.map(t => (
+          <TabsContent key={t} value={t}>
+            {renderTable(assets.filter(a => a.type === t))}
+          </TabsContent>
+        ))}
+      </Tabs>
 
       <Dialog open={!!editAsset} onOpenChange={() => setEditAsset(null)}>
         <DialogContent>
