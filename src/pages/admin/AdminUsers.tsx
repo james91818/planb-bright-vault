@@ -9,6 +9,7 @@ import { Search, UserPlus, MoreHorizontal, Plus, Phone, Shuffle, Eye, Mail, KeyR
 import StatusChanger, { useLeadStatuses } from "@/components/admin/StatusChanger";
 import { useColumnOrder } from "@/hooks/useColumnOrder";
 import ReorderableHeader from "@/components/admin/ReorderableHeader";
+import LeadsTable from "@/components/admin/LeadsTable";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
