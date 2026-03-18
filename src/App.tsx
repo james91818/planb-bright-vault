@@ -42,6 +42,7 @@ import AdminStaking from "./pages/admin/AdminStaking";
 import AdminBalance from "./pages/admin/AdminBalance";
 import AdminCopyTrading from "./pages/admin/AdminCopyTrading";
 import AdminCalendar from "./pages/admin/AdminCalendar";
+import AdminScoreboard from "./pages/admin/AdminScoreboard";
 
 // Client pages
 import Trading from "./pages/client/Trading";
