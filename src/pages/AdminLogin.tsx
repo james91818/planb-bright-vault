@@ -21,6 +21,12 @@ const AdminLogin = () => {
     e.preventDefault();
     setLoading(true);
 
+    if (!rememberMe) {
+      localStorage.setItem("planb-session-only", "true");
+    } else {
+      localStorage.removeItem("planb-session-only");
+    }
+
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
