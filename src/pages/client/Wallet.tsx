@@ -69,6 +69,45 @@ const WalletPage = () => {
       method: form.method,
       wallet_address: form.wallet_address || null,
     });
+
+    // Notify assigned agent, admins, and managers
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("assigned_agent, full_name, email")
+        .eq("id", user.id)
+        .single();
+
+      const { data: staffRoles } = await supabase
+        .from("roles")
+        .select("id")
+        .in("name", ["Admin", "Manager"]);
+
+      const { data: staffMembers } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .in("role_id", (staffRoles ?? []).map(r => r.id));
+
+      const recipientIds = new Set<string>();
+      if (profile?.assigned_agent) recipientIds.add(profile.assigned_agent);
+      (staffMembers ?? []).forEach(sm => recipientIds.add(sm.user_id));
+      recipientIds.delete(user.id);
+
+      const clientName = profile?.full_name || profile?.email || "A client";
+      const notifications = Array.from(recipientIds).map(uid => ({
+        user_id: uid,
+        title: "New Deposit Request",
+        message: `${clientName} submitted a ${form.currency} ${Number(form.amount).toLocaleString()} deposit via ${form.method === "crypto" ? "crypto" : "bank wire"}.`,
+        type: "deposit",
+      }));
+
+      if (notifications.length > 0) {
+        await supabase.from("notifications").insert(notifications);
+      }
+    } catch (e) {
+      console.error("Failed to send deposit notifications:", e);
+    }
+
     toast.success("Deposit request submitted. Awaiting approval.");
     setDepositOpen(false);
     resetForm();
