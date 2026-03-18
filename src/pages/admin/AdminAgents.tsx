@@ -116,29 +116,28 @@ const AdminAgents = () => {
       toast.error("Please select a role for the agent");
       return;
     }
-    const { data, error } = await supabase.auth.signUp({
-      email: newAgent.email,
-      password: newAgent.password,
-      options: { data: { full_name: newAgent.full_name } },
-    });
-    if (error) {
-      toast.error(error.message);
+    if (!newAgent.email || !newAgent.password) {
+      toast.error("Email and password are required");
       return;
     }
-    if (data.user) {
-      setTimeout(async () => {
-        // Assign role and auto-confirm email so agent can log in immediately
-        await Promise.all([
-          supabase.from("user_roles").insert({ user_id: data.user!.id, role_id: newAgent.role_id }),
-          supabase.functions.invoke("admin-user-actions", {
-            body: { action: "confirm_email", user_id: data.user!.id },
-          }),
-        ]);
-        toast.success("Agent created and role assigned");
-        setCreateOpen(false);
-        setNewAgent({ email: "", password: "", full_name: "", role_id: "" });
-        fetchData();
-      }, 1500);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-user-actions", {
+        body: {
+          action: "create_user",
+          email: newAgent.email,
+          password: newAgent.password,
+          full_name: newAgent.full_name,
+          role_id: newAgent.role_id,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success("Agent created successfully — they can log in now");
+      setCreateOpen(false);
+      setNewAgent({ email: "", password: "", full_name: "", role_id: "" });
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create agent");
     }
   };
 
