@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, MoreHorizontal, DollarSign, Phone, Eye, MessageSquare, Ban, DollarSign as DepositIcon, Mail, UserX } from "lucide-react";
+import { Search, MoreHorizontal, DollarSign, Phone, Eye, Ban, Mail, KeyRound, Send } from "lucide-react";
 import StatusChanger from "@/components/admin/StatusChanger";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
