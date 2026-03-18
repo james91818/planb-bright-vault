@@ -7,6 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, UserPlus, MoreHorizontal, Plus, Phone, Shuffle, Eye, Mail, KeyRound, Send, Ban, LogIn } from "lucide-react";
 import StatusChanger, { useLeadStatuses } from "@/components/admin/StatusChanger";
+import { useColumnOrder } from "@/hooks/useColumnOrder";
+import ReorderableHeader from "@/components/admin/ReorderableHeader";
+import LeadsTable from "@/components/admin/LeadsTable";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
@@ -305,140 +308,19 @@ const AdminUsers = () => {
         </Select>
       </div>
 
-      <Card>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b bg-muted/50">
-                  <th className="text-left p-3 font-medium text-muted-foreground">Name</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">Phone</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">Email</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">Country</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">Registration</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">Affiliate</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">Funnel</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">Agent</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">Status</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">Last Note</th>
-                  <th className="text-left p-3 font-medium text-muted-foreground">#Notes</th>
-                  <th className="text-right p-3 font-medium text-muted-foreground">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr><td colSpan={12} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
-                ) : filtered.length === 0 ? (
-                  <tr><td colSpan={12} className="p-8 text-center text-muted-foreground">No leads found</td></tr>
-                ) : (
-                  filtered.map((u) => {
-                    const note = notesMap[u.id];
-                    return (
-                      <tr key={u.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => navigate(`/admin/users/${u.id}`)}>
-                        <td className="p-3">
-                          <p className="font-medium whitespace-nowrap">{u.full_name || "—"}</p>
-                        </td>
-                        <td className="p-3">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-muted-foreground whitespace-nowrap">{u.phone || "—"}</span>
-                            {u.phone && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7 shrink-0"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  window.open(`tel:${u.phone}`, "_self");
-                                }}
-                              >
-                                <Phone className="h-3.5 w-3.5 text-primary" />
-                              </Button>
-                            )}
-                          </div>
-                        </td>
-                        <td className="p-3 text-muted-foreground">{u.email || "—"}</td>
-                        <td className="p-3 text-muted-foreground">{u.country || "—"}</td>
-                        <td className="p-3 text-muted-foreground text-xs whitespace-nowrap">
-                          {new Date(u.created_at).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" })}
-                        </td>
-                        <td className="p-3 text-muted-foreground whitespace-nowrap">{u.affiliate || "—"}</td>
-                        <td className="p-3 text-muted-foreground whitespace-nowrap">{u.funnel || "—"}</td>
-                        <td className="p-3" onClick={(e) => e.stopPropagation()}>
-                          <Select value={u.assigned_agent || "none"} onValueChange={(v) => assignAgent(u.id, v === "none" ? null : v)}>
-                            <SelectTrigger className="h-8 w-[140px] text-xs">
-                              <SelectValue placeholder="Unassigned" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="none">Unassigned</SelectItem>
-                              {agents.map(a => (
-                                <SelectItem key={a.id} value={a.id}>{a.full_name || a.email}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </td>
-                        <td className="p-3">
-                          <StatusChanger userId={u.id} currentStatus={u.status} onStatusChanged={fetchData} />
-                        </td>
-                        <td className="p-3">
-                          <p className="text-xs text-muted-foreground max-w-[160px] truncate">
-                            {note?.content || "—"}
-                          </p>
-                        </td>
-                        <td className="p-3 text-center">
-                          <Badge variant="outline" className="text-xs">{note?.count ?? 0}</Badge>
-                        </td>
-                        <td className="p-3 text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                              <DropdownMenuItem onClick={() => navigate(`/admin/users/${u.id}`)}>
-                                <Eye className="h-4 w-4 mr-2" /> View Profile
-                              </DropdownMenuItem>
-                              {u.email && (
-                                <DropdownMenuItem onClick={() => window.open(`mailto:${u.email}`)}>
-                                  <Mail className="h-4 w-4 mr-2" /> Send Email
-                                </DropdownMenuItem>
-                              )}
-                              {u.phone && (
-                                <DropdownMenuItem onClick={() => window.open(`tel:${u.phone}`, "_self")}>
-                                  <Phone className="h-4 w-4 mr-2" /> Call
-                                </DropdownMenuItem>
-                              )}
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => openPasswordDialog(u.id, u.full_name || u.email)}>
-                                <KeyRound className="h-4 w-4 mr-2" /> Change Password
-                              </DropdownMenuItem>
-                              {u.email && (
-                                <DropdownMenuItem onClick={() => handleSendResetLink(u.id, u.email)}>
-                                  <Send className="h-4 w-4 mr-2" /> Send Reset Link
-                                </DropdownMenuItem>
-                              )}
-                              <DropdownMenuItem onClick={() => handleLoginAsClient(u.id)}>
-                                <LogIn className="h-4 w-4 mr-2" /> Login as Client
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => updateStatus(u.id, "active")}>
-                                Set Active
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => updateStatus(u.id, "suspended")} className="text-destructive">
-                                <Ban className="h-4 w-4 mr-2" /> Suspend
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+      <LeadsTable
+        loading={loading}
+        filtered={filtered}
+        notesMap={notesMap}
+        agents={agents}
+        navigate={navigate}
+        assignAgent={assignAgent}
+        fetchData={fetchData}
+        openPasswordDialog={openPasswordDialog}
+        handleSendResetLink={handleSendResetLink}
+        handleLoginAsClient={handleLoginAsClient}
+        updateStatus={updateStatus}
+      />
 
       {/* Create User Dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
