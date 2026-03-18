@@ -764,6 +764,11 @@ const Trading = () => {
                   <Label className="text-xs font-medium">Amount (€)</Label>
                   <Input type="number" value={orderSize} onChange={e => setOrderSize(e.target.value)}
                     placeholder="Enter amount" className="h-10 text-base" />
+                  {Number(orderSize) > 0 && livePrice > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      ≈ {(Number(orderSize) / livePrice).toFixed(livePrice > 100 ? 6 : 4)} {selectedAsset?.symbol ?? ""}
+                    </p>
+                  )}
                   <div className="grid grid-cols-4 gap-1.5">
                     {[25, 50, 75, 100].map(pct => (
                       <button key={pct} onClick={() => setOrderSize(String(Math.floor(balance * pct / 100)))}
