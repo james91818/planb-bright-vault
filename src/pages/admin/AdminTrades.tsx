@@ -227,10 +227,14 @@ const AdminTrades = () => {
                 </SelectContent>
               </Select>
             </div>
-            {overrideMode === "custom" && (
+            {(overrideMode === "custom" || overrideMode === "win" || overrideMode === "loss") && (
               <div className="space-y-1">
                 <Label>Target P&L (€)</Label>
-                <Input type="number" value={targetValue} onChange={(e) => setTargetValue(e.target.value)} placeholder="e.g. 500 or -200" />
+                <Input type="number" value={targetValue} onChange={(e) => setTargetValue(e.target.value)}
+                  placeholder={overrideMode === "loss" ? "e.g. -200" : overrideMode === "win" ? "e.g. 500" : "e.g. 500 or -200"} />
+                <p className="text-xs text-muted-foreground">
+                  {overrideMode === "win" ? "Enter the profit amount the client should receive" : overrideMode === "loss" ? "Enter the loss amount (use negative, e.g. -200)" : "Positive for profit, negative for loss"}
+                </p>
               </div>
             )}
           </div>
