@@ -129,6 +129,22 @@ const AdminDepositors = () => {
     }
   };
 
+  const handleLoginAsClient = async (userId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-user-actions", {
+        body: { action: "login_as_client", user_id: userId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (data?.url) {
+        window.open(data.url, "_blank");
+        toast.success("Opening client session in new tab");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to login as client");
+    }
+  };
+
   const filtered = depositors.filter(u =>
     (u.full_name ?? "").toLowerCase().includes(search.toLowerCase()) ||
     (u.email ?? "").toLowerCase().includes(search.toLowerCase())
