@@ -106,6 +106,45 @@ export type Database = {
         }
         Relationships: []
       }
+      appointments: {
+        Row: {
+          agent_id: string
+          client_id: string | null
+          color: string | null
+          created_at: string
+          description: string | null
+          end_at: string
+          id: string
+          start_at: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          client_id?: string | null
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          end_at: string
+          id?: string
+          start_at: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          client_id?: string | null
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          end_at?: string
+          id?: string
+          start_at?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       assets: {
         Row: {
           created_at: string
