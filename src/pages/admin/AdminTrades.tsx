@@ -20,6 +20,8 @@ const AdminTrades = () => {
   const [overrideOpen, setOverrideOpen] = useState<any>(null);
   const [overrideMode, setOverrideMode] = useState("none");
   const [targetValue, setTargetValue] = useState("");
+  const [durationSec, setDurationSec] = useState(60);
+  const [customDuration, setCustomDuration] = useState("");
   const [livePrices, setLivePrices] = useState<Record<string, number>>({});
   const [manipulating, setManipulating] = useState<Record<string, boolean>>({});
 
