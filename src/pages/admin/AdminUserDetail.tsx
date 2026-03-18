@@ -1034,7 +1034,7 @@ const AdminUserDetail = () => {
                   <Input value={cryptoForm.label} onChange={e => setCryptoForm({ ...cryptoForm, label: e.target.value })} placeholder="Main deposit address" />
                 </div>
                 <Button onClick={saveCryptoAddress} disabled={savingCrypto} className="w-full">
-                  <Plus className="h-4 w-4 mr-2" /> {savingCrypto ? "Saving..." : "Save Address"}
+                  <Plus className="h-4 w-4 mr-2" /> {savingCrypto ? "Saving..." : "Add Address"}
                 </Button>
               </div>
             </CardContent>
