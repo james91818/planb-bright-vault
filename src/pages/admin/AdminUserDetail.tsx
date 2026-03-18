@@ -521,7 +521,7 @@ const AdminUserDetail = () => {
       <Tabs defaultValue="profile" className="space-y-4">
         <TabsList>
           <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="wallets">Wallets</TabsTrigger>
+          <TabsTrigger value="wallets">Assets</TabsTrigger>
           <TabsTrigger value="deposits">Deposits ({deposits.length})</TabsTrigger>
           <TabsTrigger value="withdrawals">Withdrawals ({withdrawals.length})</TabsTrigger>
           <TabsTrigger value="trades">Trades ({trades.length})</TabsTrigger>
