@@ -205,9 +205,10 @@ const AdminTrades = () => {
       }
 
       if (trade.status === "open") {
-        // Start gradual manipulation over ~60 seconds
-        toast.info(`Starting manipulation — P&L will reach €${forcedPnl.toFixed(2)} over ${durationSec}s. Stay on this page.`);
-        startGradualManipulation(trade, forcedPnl, durationSec);
+        const dur = resolvedDuration ?? durationSec;
+        const finalDur = dur === -1 ? Math.max(5, Number(customDuration) || 60) : dur;
+        toast.info(`Starting manipulation — P&L will reach €${forcedPnl.toFixed(2)} over ${finalDur}s. Stay on this page.`);
+        startGradualManipulation(trade, forcedPnl, finalDur);
       } else {
         // Already closed — update P&L directly
         const oldPnl = Number(trade.pnl ?? 0);
