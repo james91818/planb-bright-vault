@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useRole } from "@/hooks/useRole";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +29,8 @@ const CRYPTO_IDS: Record<string, string> = {
 
 const AdminDepositors = () => {
   const navigate = useNavigate();
+  const { roleName } = useRole();
+  const canAssignAgent = roleName === "Admin" || roleName === "Manager";
   const [depositors, setDepositors] = useState<any[]>([]);
   const [agents, setAgents] = useState<any[]>([]);
   const [search, setSearch] = useState("");
@@ -312,6 +315,7 @@ const AdminDepositors = () => {
         handleSendResetLink={handleSendResetLink}
         handleLoginAsClient={handleLoginAsClient}
         updateStatus={updateStatus}
+        canAssignAgent={canAssignAgent}
       />
 
       {/* Change Password Dialog */}

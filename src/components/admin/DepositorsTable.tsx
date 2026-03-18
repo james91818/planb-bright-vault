@@ -41,12 +41,14 @@ interface Props {
   handleSendResetLink: (userId: string, email: string) => void;
   handleLoginAsClient: (userId: string) => void;
   updateStatus: (userId: string, status: string) => void;
+  canAssignAgent?: boolean;
 }
 
 const DepositorsTable = ({
   loading, filtered, notesMap, agents, navigate,
   assignAgent, fetchData, openPasswordDialog,
   handleSendResetLink, handleLoginAsClient, updateStatus,
+  canAssignAgent = true,
 }: Props) => {
   const { columns, moveColumn } = useColumnOrder("depositors_col_order", DEFAULT_COLUMNS);
 
@@ -78,17 +80,21 @@ const DepositorsTable = ({
       );
       case "affiliate": return <span className="text-muted-foreground whitespace-nowrap">{u.affiliate || "—"}</span>;
       case "funnel": return <span className="text-muted-foreground whitespace-nowrap">{u.funnel || "—"}</span>;
-      case "agent": return (
-        <div onClick={(e) => e.stopPropagation()}>
-          <Select value={u.assigned_agent || "none"} onValueChange={(v) => assignAgent(u.id, v === "none" ? null : v)}>
-            <SelectTrigger className="h-8 w-[140px] text-xs"><SelectValue placeholder="Unassigned" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">Unassigned</SelectItem>
-              {agents.map(a => <SelectItem key={a.id} value={a.id}>{a.full_name || a.email}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-      );
+      case "agent": {
+        const agentName = agents.find(a => a.id === u.assigned_agent)?.full_name || agents.find(a => a.id === u.assigned_agent)?.email;
+        if (!canAssignAgent) return <span className="text-muted-foreground text-xs whitespace-nowrap">{agentName || "Unassigned"}</span>;
+        return (
+          <div onClick={(e) => e.stopPropagation()}>
+            <Select value={u.assigned_agent || "none"} onValueChange={(v) => assignAgent(u.id, v === "none" ? null : v)}>
+              <SelectTrigger className="h-8 w-[140px] text-xs"><SelectValue placeholder="Unassigned" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Unassigned</SelectItem>
+                {agents.map(a => <SelectItem key={a.id} value={a.id}>{a.full_name || a.email}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+        );
+      }
       case "deposits": return <Badge variant="outline" className="text-xs">{u.deposit_count}</Badge>;
       case "total": return <span className="font-semibold text-success whitespace-nowrap">€{u.total_deposited.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>;
       case "balance": return <span className="whitespace-nowrap">€{u.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>;

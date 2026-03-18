@@ -37,12 +37,14 @@ interface Props {
   handleSendResetLink: (userId: string, email: string) => void;
   handleLoginAsClient: (userId: string) => void;
   updateStatus: (userId: string, status: string) => void;
+  canAssignAgent?: boolean;
 }
 
 const LeadsTable = ({
   loading, filtered, notesMap, agents, navigate,
   assignAgent, fetchData, openPasswordDialog,
   handleSendResetLink, handleLoginAsClient, updateStatus,
+  canAssignAgent = true,
 }: Props) => {
   const { columns, moveColumn } = useColumnOrder("leads_col_order", DEFAULT_COLUMNS);
 
@@ -69,17 +71,21 @@ const LeadsTable = ({
       );
       case "affiliate": return <span className="text-muted-foreground whitespace-nowrap">{u.affiliate || "—"}</span>;
       case "funnel": return <span className="text-muted-foreground whitespace-nowrap">{u.funnel || "—"}</span>;
-      case "agent": return (
-        <div onClick={(e) => e.stopPropagation()}>
-          <Select value={u.assigned_agent || "none"} onValueChange={(v) => assignAgent(u.id, v === "none" ? null : v)}>
-            <SelectTrigger className="h-8 w-[140px] text-xs"><SelectValue placeholder="Unassigned" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">Unassigned</SelectItem>
-              {agents.map(a => <SelectItem key={a.id} value={a.id}>{a.full_name || a.email}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-      );
+      case "agent": {
+        const agentName = agents.find(a => a.id === u.assigned_agent)?.full_name || agents.find(a => a.id === u.assigned_agent)?.email;
+        if (!canAssignAgent) return <span className="text-muted-foreground text-xs whitespace-nowrap">{agentName || "Unassigned"}</span>;
+        return (
+          <div onClick={(e) => e.stopPropagation()}>
+            <Select value={u.assigned_agent || "none"} onValueChange={(v) => assignAgent(u.id, v === "none" ? null : v)}>
+              <SelectTrigger className="h-8 w-[140px] text-xs"><SelectValue placeholder="Unassigned" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Unassigned</SelectItem>
+                {agents.map(a => <SelectItem key={a.id} value={a.id}>{a.full_name || a.email}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+        );
+      }
       case "status": return <StatusChanger userId={u.id} currentStatus={u.status} onStatusChanged={fetchData} />;
       case "last_note": return <p className="text-xs text-muted-foreground max-w-[160px] truncate">{note?.content || "—"}</p>;
       case "notes_count": return <Badge variant="outline" className="text-xs">{note?.count ?? 0}</Badge>;
