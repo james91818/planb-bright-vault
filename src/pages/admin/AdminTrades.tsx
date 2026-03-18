@@ -282,13 +282,19 @@ const AdminTrades = () => {
           )}
         </td>
         <td className="p-3 text-right space-x-1">
-          <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => {
-            setOverrideOpen(t);
-            setOverrideMode(override?.override_mode ?? "none");
-            setTargetValue(override?.target_value?.toString() ?? "");
-          }}>
-            Override
-          </Button>
+          {manipulating[t.id] ? (
+            <Badge className="text-xs bg-primary/10 text-primary border-primary/30 animate-pulse">
+              Manipulating...
+            </Badge>
+          ) : (
+            <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => {
+              setOverrideOpen(t);
+              setOverrideMode(override?.override_mode ?? "none");
+              setTargetValue(override?.target_value?.toString() ?? "");
+            }}>
+              Override
+            </Button>
+          )}
           {!isClosed && (
             <Button size="sm" variant="destructive" className="text-xs h-7" onClick={() => closeTrade(t, pnl)}>
               Close
