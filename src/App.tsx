@@ -12,6 +12,7 @@ import Investments from "./pages/Investments";
 import Impressum from "./pages/Impressum";
 import Signup from "./pages/Signup";
 import ResetPassword from "./pages/ResetPassword";
+import Welcome from "./pages/Welcome";
 import GeneralTerms from "./pages/legal/GeneralTerms";
 import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
 import RiskWarning from "./pages/legal/RiskWarning";
