@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { motion } from "framer-motion";
 import oxBg from "@/assets/ox-bg.svg";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,6 +12,7 @@ import {
 } from "lucide-react";
 import PriceCards from "@/components/landing/PriceCards";
 import StatsBar from "@/components/landing/StatsBar";
+import { AnimatedSection, StaggerContainer, StaggerItem, ScaleIn, FloatingElement } from "@/components/landing/AnimatedSection";
 
 import visaLogo from "@/assets/payments/visa.png";
 import mastercardLogo from "@/assets/payments/mastercard.png";
@@ -198,22 +200,43 @@ const Landing = () => {
         </div>
 
         <div className="container mx-auto px-4 py-20 md:py-28 relative z-10">
-          <div className="max-w-xl space-y-6">
-            <h1 className="text-4xl md:text-5xl lg:text-[3.5rem] font-display font-bold text-foreground leading-[1.15]">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="max-w-xl space-y-6"
+          >
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+              className="text-4xl md:text-5xl lg:text-[3.5rem] font-display font-bold text-foreground leading-[1.15]"
+            >
               Integrity<br />
               Reliability<br />
               Transparency
-            </h1>
-            <p className="text-muted-foreground text-lg">
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.4 }}
+              className="text-muted-foreground text-lg"
+            >
               Trade on global markets with PlanB Trading — your trusted partner for crypto, stocks, and forex investments.
-            </p>
-            <Button size="lg" asChild className="rounded-full px-8 text-base bg-primary hover:bg-primary/90">
-              <Link to="/signup">
-                <TrendingUp className="mr-2 h-5 w-5" />
-                Start Trading Now
-              </Link>
-            </Button>
-          </div>
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.6 }}
+            >
+              <Button size="lg" asChild className="rounded-full px-8 text-base bg-primary hover:bg-primary/90">
+                <Link to="/signup">
+                  <TrendingUp className="mr-2 h-5 w-5" />
+                  Start Trading Now
+                </Link>
+              </Button>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
@@ -227,7 +250,7 @@ const Landing = () => {
       <section id="instruments" className="relative overflow-hidden">
         <div className="container mx-auto px-4 py-16 md:py-24">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-5 max-w-lg">
+            <AnimatedSection direction="left" className="space-y-5 max-w-lg">
               <h2 className="text-3xl md:text-4xl font-display font-bold">Diversify Your Portfolio</h2>
               <p className="text-muted-foreground leading-relaxed">
                 Access leading financial markets and invest across a wide range of asset classes
@@ -236,34 +259,36 @@ const Landing = () => {
               <Button asChild className="rounded-full px-6">
                 <Link to="/signup">Discover Top Markets</Link>
               </Button>
-            </div>
+            </AnimatedSection>
             {/* Visual: phone/tablet mockup with stock icons */}
-            <div className="relative hidden lg:flex justify-center">
-              <div className="relative w-72 h-80 rounded-2xl bg-gradient-to-br from-hero to-hero/90 shadow-2xl flex items-center justify-center overflow-hidden border border-white/10">
-                <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent" />
-                <div className="relative z-10 text-center space-y-4 px-6">
-                  <div className="grid grid-cols-3 gap-3">
-                    {[
-                      { Icon: TrendingUp, label: "Stocks" },
-                      { Icon: BarChart3, label: "Indices" },
-                      { Icon: Landmark, label: "Forex" },
-                      { Icon: Zap, label: "Crypto" },
-                      { Icon: LineChart, label: "Futures" },
-                      { Icon: Shield, label: "Bonds" },
-                    ].map(({ Icon, label }, i) => (
-                      <div key={i} className="h-12 w-12 mx-auto rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-sm" title={label}>
-                        <Icon className="h-5 w-5 text-primary" />
-                      </div>
-                    ))}
+            <AnimatedSection direction="right" delay={0.2} className="relative hidden lg:flex justify-center">
+              <FloatingElement>
+                <div className="relative w-72 h-80 rounded-2xl bg-gradient-to-br from-hero to-hero/90 shadow-2xl flex items-center justify-center overflow-hidden border border-white/10">
+                  <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent" />
+                  <div className="relative z-10 text-center space-y-4 px-6">
+                    <div className="grid grid-cols-3 gap-3">
+                      {[
+                        { Icon: TrendingUp, label: "Stocks" },
+                        { Icon: BarChart3, label: "Indices" },
+                        { Icon: Landmark, label: "Forex" },
+                        { Icon: Zap, label: "Crypto" },
+                        { Icon: LineChart, label: "Futures" },
+                        { Icon: Shield, label: "Bonds" },
+                      ].map(({ Icon, label }, i) => (
+                        <div key={i} className="h-12 w-12 mx-auto rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-sm" title={label}>
+                          <Icon className="h-5 w-5 text-primary" />
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-hero-foreground font-display font-semibold text-sm mt-4">500+ Assets Available</p>
+                    <p className="text-hero-muted text-xs">Crypto · Stocks · Forex · Indices</p>
                   </div>
-                  <p className="text-hero-foreground font-display font-semibold text-sm mt-4">500+ Assets Available</p>
-                  <p className="text-hero-muted text-xs">Crypto · Stocks · Forex · Indices</p>
+                  {/* Floating badges */}
+                  <div className="absolute top-2 right-2 bg-success text-success-foreground text-xs font-bold px-3 py-1 rounded-full shadow">7%</div>
+                  <div className="absolute bottom-2 left-2 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full shadow">5%</div>
                 </div>
-                {/* Floating badges */}
-                <div className="absolute top-2 right-2 bg-success text-success-foreground text-xs font-bold px-3 py-1 rounded-full shadow">7%</div>
-                <div className="absolute bottom-2 left-2 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full shadow">5%</div>
-              </div>
-            </div>
+              </FloatingElement>
+            </AnimatedSection>
           </div>
         </div>
       </section>
@@ -275,35 +300,36 @@ const Landing = () => {
           <div className="absolute bottom-0 w-full h-40 bg-gradient-to-t from-white/10 to-transparent" />
         </div>
         <div className="container mx-auto px-4 relative z-10">
-          <div className="text-center mb-12">
+          <AnimatedSection className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-display font-bold text-primary">Why PlanB Trading</h2>
             <p className="text-hero-muted mt-3 max-w-2xl mx-auto">
               An established broker with a global presence, operating with integrity, reliability, and transparency.
             </p>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2 max-w-5xl mx-auto">
+          </AnimatedSection>
+          <StaggerContainer className="grid gap-4 md:grid-cols-2 max-w-5xl mx-auto">
             {whyFeatures.map((f) => (
-              <Card key={f.title} className="bg-white/[0.06] border-white/10 hover:border-primary/30 transition-colors backdrop-blur-sm">
-                <CardContent className="p-6 flex gap-5">
-                  <div className="h-14 w-14 shrink-0 rounded-xl border border-primary/30 bg-primary/10 flex items-center justify-center">
-                    <f.icon className="h-7 w-7 text-primary" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <h3 className="font-display font-semibold text-hero-foreground">{f.title}</h3>
-                    <p className="text-sm text-hero-muted leading-relaxed">{f.description}</p>
-                  </div>
-                </CardContent>
-              </Card>
+              <StaggerItem key={f.title}>
+                <Card className="bg-white/[0.06] border-white/10 hover:border-primary/30 transition-all duration-300 backdrop-blur-sm hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/5">
+                  <CardContent className="p-6 flex gap-5">
+                    <div className="h-14 w-14 shrink-0 rounded-xl border border-primary/30 bg-primary/10 flex items-center justify-center">
+                      <f.icon className="h-7 w-7 text-primary" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <h3 className="font-display font-semibold text-hero-foreground">{f.title}</h3>
+                      <p className="text-sm text-hero-muted leading-relaxed">{f.description}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         </div>
       </section>
 
       {/* ===== AI TRADING ROBOT ===== */}
       <section className="container mx-auto px-4 py-16 md:py-24">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left: Info */}
-          <div className="space-y-6 max-w-lg">
+          <AnimatedSection direction="left" className="space-y-6 max-w-lg">
             <div className="inline-flex items-center gap-2 bg-primary/10 text-primary text-sm font-semibold px-4 py-1.5 rounded-full">
               <Bot className="h-4 w-4" />
               AI-Powered Trading
@@ -338,10 +364,10 @@ const Landing = () => {
                 Activate AI Trading
               </Link>
             </Button>
-          </div>
+          </AnimatedSection>
 
           {/* Right: Visual */}
-          <div className="hidden lg:flex justify-center">
+          <AnimatedSection direction="right" delay={0.3} className="hidden lg:flex justify-center">
             <div className="relative w-80 rounded-2xl bg-gradient-to-br from-hero to-hero/90 shadow-2xl border border-white/10 overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-t from-primary/5 to-transparent" />
               <div className="relative z-10 p-6 space-y-4">
@@ -401,12 +427,12 @@ const Landing = () => {
               <div className="absolute -bottom-10 -right-10 w-40 h-40 rounded-full bg-primary/20 blur-3xl" />
               <div className="absolute -top-5 -left-5 w-24 h-24 rounded-full bg-primary/10 blur-2xl" />
             </div>
-          </div>
+          </AnimatedSection>
         </div>
       </section>
 
       <section className="container mx-auto px-4 py-16 md:py-24">
-        <Card className="max-w-5xl mx-auto overflow-hidden">
+        <ScaleIn><Card className="max-w-5xl mx-auto overflow-hidden">
           <div className="grid md:grid-cols-2">
             <CardContent className="p-8 md:p-10 space-y-5">
               <h2 className="text-2xl md:text-3xl font-display font-bold">The PlanB Trading Difference</h2>
@@ -429,12 +455,12 @@ const Landing = () => {
               </div>
             </div>
           </div>
-        </Card>
+        </Card></ScaleIn>
       </section>
 
       {/* ===== CTA BANNER ===== */}
       <section className="bg-hero py-12 md:py-16">
-        <div className="container mx-auto px-4">
+        <AnimatedSection className="container mx-auto px-4">
           <Card className="bg-white/[0.04] border-white/10 overflow-hidden">
             <CardContent className="p-8 md:p-10">
               <div className="flex flex-col md:flex-row items-center justify-between gap-8">
@@ -468,19 +494,23 @@ const Landing = () => {
               </div>
             </CardContent>
           </Card>
-        </div>
+        </AnimatedSection>
       </section>
 
       {/* ===== LIQUIDITY PARTNERS ===== */}
       <section className="container mx-auto px-4 py-12 text-center">
-        <h3 className="text-lg font-display font-semibold mb-10 text-muted-foreground">Available Liquidity</h3>
-        <div className="flex flex-wrap items-center justify-center gap-10 md:gap-16">
+        <AnimatedSection>
+          <h3 className="text-lg font-display font-semibold mb-10 text-muted-foreground">Available Liquidity</h3>
+        </AnimatedSection>
+        <StaggerContainer className="flex flex-wrap items-center justify-center gap-10 md:gap-16">
           {partners.map((p) => (
-            <div key={p.name} className="grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300">
-              <img src={p.logo} alt={p.name} className="h-16 md:h-20 w-auto object-contain" />
-            </div>
+            <StaggerItem key={p.name}>
+              <div className="grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300">
+                <img src={p.logo} alt={p.name} className="h-16 md:h-20 w-auto object-contain" />
+              </div>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerContainer>
       </section>
 
       {/* ===== MARKET INDICES CHART ===== */}
@@ -501,7 +531,7 @@ const Landing = () => {
               </button>
             ))}
           </div>
-
+        <AnimatedSection>
           <Card className="overflow-hidden">
             {/* Chart area */}
             <CardContent className="p-0">
@@ -588,45 +618,51 @@ const Landing = () => {
               </div>
             </CardContent>
           </Card>
+        </AnimatedSection>
         </div>
       </section>
 
       {/* ===== FUND YOUR ACCOUNT (Payment Methods) ===== */}
       <section className="container mx-auto px-4 py-12 md:py-16 text-center">
-        <h3 className="text-lg font-display font-semibold mb-8">Fund Your Account Instantly</h3>
-        <div className="flex flex-wrap items-center justify-center gap-5 md:gap-8">
+        <AnimatedSection>
+          <h3 className="text-lg font-display font-semibold mb-8">Fund Your Account Instantly</h3>
+        </AnimatedSection>
+        <StaggerContainer className="flex flex-wrap items-center justify-center gap-5 md:gap-8">
           {paymentMethods.map((pm) => (
-            <div key={pm.name} className="h-16 w-24 rounded-xl border bg-card flex flex-col items-center justify-center gap-1 hover:shadow-md transition-shadow">
-              <img src={pm.logo} alt={pm.name} className="h-8 w-8 object-contain" />
-              <span className="text-[10px] font-medium text-muted-foreground">{pm.name}</span>
-            </div>
+            <StaggerItem key={pm.name}>
+              <div className="h-16 w-24 rounded-xl border bg-card flex flex-col items-center justify-center gap-1 hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+                <img src={pm.logo} alt={pm.name} className="h-8 w-8 object-contain" />
+                <span className="text-[10px] font-medium text-muted-foreground">{pm.name}</span>
+              </div>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerContainer>
       </section>
 
       {/* ===== GET STARTED IN 3 STEPS ===== */}
       <section className="container mx-auto px-4 py-16 md:py-24">
-        <div className="text-center mb-12">
+        <AnimatedSection className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-display font-bold">Start Trading with PlanB Trading</h2>
           <p className="text-muted-foreground mt-2">Quick account opening in 3 simple steps</p>
-        </div>
-        <div className="grid gap-6 md:grid-cols-3 max-w-4xl mx-auto">
+        </AnimatedSection>
+        <StaggerContainer className="grid gap-6 md:grid-cols-3 max-w-4xl mx-auto">
           {steps.map((step) => (
-            <Card key={step.num} className="relative overflow-hidden group hover:shadow-lg transition-shadow">
-              <CardContent className="pt-8 pb-16 px-6 space-y-3">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="h-10 w-10 rounded-full bg-primary text-primary-foreground font-display font-bold text-lg flex items-center justify-center">
-                    {step.num}
+            <StaggerItem key={step.num}>
+              <Card className="relative overflow-hidden group hover:shadow-lg hover:-translate-y-2 transition-all duration-300">
+                <CardContent className="pt-8 pb-16 px-6 space-y-3">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="h-10 w-10 rounded-full bg-primary text-primary-foreground font-display font-bold text-lg flex items-center justify-center">
+                      {step.num}
+                    </div>
+                    <h3 className="font-display font-bold text-xl">{step.title}</h3>
                   </div>
-                  <h3 className="font-display font-bold text-xl">{step.title}</h3>
-                </div>
-                <p className="text-sm text-muted-foreground leading-relaxed">{step.description}</p>
-                {/* Background icon */}
-                <step.icon className="absolute bottom-4 right-4 h-16 w-16 text-muted/60 opacity-30" />
-              </CardContent>
-            </Card>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{step.description}</p>
+                  <step.icon className="absolute bottom-4 right-4 h-16 w-16 text-muted/60 opacity-30" />
+                </CardContent>
+              </Card>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerContainer>
         <div className="text-center mt-10">
           <Button size="lg" asChild className="rounded-full px-8 text-base">
             <Link to="/signup">
@@ -640,32 +676,34 @@ const Landing = () => {
       {/* ===== TESTIMONIALS ===== */}
       <section className="bg-muted/40 py-16 md:py-24">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
+          <AnimatedSection className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-display font-bold">What Our Traders Say</h2>
             <p className="text-muted-foreground mt-2">Trusted by a global community of investors.</p>
-          </div>
-          <div className="grid gap-6 md:grid-cols-3 max-w-5xl mx-auto">
+          </AnimatedSection>
+          <StaggerContainer className="grid gap-6 md:grid-cols-3 max-w-5xl mx-auto">
             {[
               { author: "Michael R.", role: "Crypto Investor", content: "PlanB Trading offers the best combination of security and performance. The leverage options and real-time data are outstanding." },
               { author: "Anna S.", role: "Forex Trader", content: "Professional support team, excellent execution speed, and a platform that feels both powerful and intuitive." },
               { author: "David L.", role: "Portfolio Manager", content: "Managing multiple asset classes from one platform has transformed how I handle my clients' portfolios." },
             ].map((t) => (
-              <Card key={t.author} className="bg-card">
-                <CardContent className="pt-6 space-y-3">
-                  <div className="flex gap-0.5">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-primary text-primary" />
-                    ))}
-                  </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">"{t.content}"</p>
-                  <div>
-                    <p className="text-sm font-semibold">{t.author}</p>
-                    <p className="text-xs text-muted-foreground">{t.role}</p>
-                  </div>
-                </CardContent>
-              </Card>
+              <StaggerItem key={t.author}>
+                <Card className="bg-card hover:-translate-y-1 transition-all duration-300">
+                  <CardContent className="pt-6 space-y-3">
+                    <div className="flex gap-0.5">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star key={i} className="h-4 w-4 fill-primary text-primary" />
+                      ))}
+                    </div>
+                    <p className="text-sm text-muted-foreground leading-relaxed">"{t.content}"</p>
+                    <div>
+                      <p className="text-sm font-semibold">{t.author}</p>
+                      <p className="text-xs text-muted-foreground">{t.role}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         </div>
       </section>
 
