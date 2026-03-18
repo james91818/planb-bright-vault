@@ -915,6 +915,76 @@ const AdminUserDetail = () => {
           </Card>
         </TabsContent>
 
+        {/* Crypto Addresses Tab */}
+        <TabsContent value="crypto">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Wallet className="h-4 w-4" /> Crypto Deposit Addresses
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <p className="text-sm text-muted-foreground">
+                Add wallet addresses for each cryptocurrency. Clients will see these when making crypto deposits.
+              </p>
+
+              {/* Existing addresses */}
+              {cryptoAddresses.length > 0 && (
+                <div className="space-y-2">
+                  {cryptoAddresses.map(a => (
+                    <div key={a.id} className="flex items-center justify-between border rounded-lg p-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs font-mono">{a.currency}</Badge>
+                          {a.network && <span className="text-xs text-muted-foreground">({a.network})</span>}
+                        </div>
+                        <p className="text-xs font-mono text-muted-foreground mt-1 break-all">{a.address}</p>
+                        {a.label && <p className="text-xs text-muted-foreground mt-0.5">{a.label}</p>}
+                      </div>
+                      <Button variant="ghost" size="sm" className="text-destructive" onClick={() => deleteCryptoAddress(a.id)}>
+                        <Ban className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Add new address */}
+              <div className="border-t pt-4 space-y-3 max-w-lg">
+                <Label className="font-semibold">Add / Update Address</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label>Currency</Label>
+                    <Select value={cryptoForm.currency} onValueChange={v => setCryptoForm({ ...cryptoForm, currency: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {["BTC", "ETH", "SOL", "XRP", "BNB", "DOGE", "ADA", "DOT", "LINK", "AVAX", "USDT", "USDC"].map(c => (
+                          <SelectItem key={c} value={c}>{c}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label>Network (optional)</Label>
+                    <Input value={cryptoForm.network} onChange={e => setCryptoForm({ ...cryptoForm, network: e.target.value })} placeholder="ERC-20, TRC-20, etc." />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <Label>Wallet Address</Label>
+                  <Input value={cryptoForm.address} onChange={e => setCryptoForm({ ...cryptoForm, address: e.target.value })} placeholder="0x..." className="font-mono text-sm" />
+                </div>
+                <div className="space-y-1">
+                  <Label>Label / Note for Client (optional)</Label>
+                  <Input value={cryptoForm.label} onChange={e => setCryptoForm({ ...cryptoForm, label: e.target.value })} placeholder="Main deposit address" />
+                </div>
+                <Button onClick={saveCryptoAddress} disabled={savingCrypto} className="w-full">
+                  <Plus className="h-4 w-4 mr-2" /> {savingCrypto ? "Saving..." : "Save Address"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* Notes Tab */}
         <TabsContent value="notes">
           <Card>
