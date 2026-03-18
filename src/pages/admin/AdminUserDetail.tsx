@@ -503,7 +503,7 @@ const AdminUserDetail = () => {
           <TabsTrigger value="bank">Bank</TabsTrigger>
           <TabsTrigger value="crypto">Crypto</TabsTrigger>
           <TabsTrigger value="report">Report</TabsTrigger>
-          <TabsTrigger value="notes">Notes ({adminNotes.length})</TabsTrigger>
+          <TabsTrigger value="notes">Comments ({adminNotes.length})</TabsTrigger>
         </TabsList>
 
         {/* Profile Tab */}
