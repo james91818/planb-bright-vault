@@ -110,7 +110,7 @@ const AdminDepositors = () => {
     });
     setNotesMap(nMap);
 
-    const enriched = profiles.map(p => ({
+    const enriched = depositorProfiles.map(p => ({
       ...p,
       total_deposited: depositTotals[p.id] ?? 0,
       deposit_count: depositCounts[p.id] ?? 0,
@@ -122,6 +122,12 @@ const AdminDepositors = () => {
   };
 
   useEffect(() => { fetchData(); }, [cryptoPricesEur]);
+
+  const assignAgent = async (userId: string, agentId: string | null) => {
+    await supabase.from("profiles").update({ assigned_agent: agentId }).eq("id", userId);
+    toast.success("Agent assigned");
+    fetchData();
+  };
 
   const updateStatus = async (userId: string, status: string) => {
     await supabase.from("profiles").update({ status }).eq("id", userId);
