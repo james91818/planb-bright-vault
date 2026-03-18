@@ -981,7 +981,7 @@ const AdminUserDetail = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               <p className="text-sm text-muted-foreground">
-                Add wallet addresses for each cryptocurrency. Clients will see these when making crypto deposits.
+                Add multiple wallet addresses per cryptocurrency. Clients will see these when making crypto deposits.
               </p>
 
               {/* Existing addresses */}
