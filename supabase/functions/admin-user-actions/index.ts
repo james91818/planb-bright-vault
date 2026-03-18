@@ -86,6 +86,37 @@ Deno.serve(async (req) => {
       });
     }
 
+    if (action === "login_as_client") {
+      if (!user_id) {
+        return new Response(JSON.stringify({ error: "user_id required" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const { data: userData, error: userError } = await adminClient.auth.admin.getUserById(user_id);
+      if (userError || !userData?.user?.email) {
+        return new Response(JSON.stringify({ error: "User not found or no email" }), {
+          status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
+        type: "magiclink",
+        email: userData.user.email,
+      });
+      if (linkError) {
+        return new Response(JSON.stringify({ error: linkError.message }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      // Build the redirect URL using the hashed token
+      const props = linkData?.properties;
+      const token = props?.hashed_token;
+      const baseUrl = supabaseUrl + "/auth/v1/verify";
+      const redirectUrl = `${baseUrl}?token=${token}&type=magiclink&redirect_to=${encodeURIComponent(supabaseUrl.replace('.supabase.co', '.lovable.app') + '/dashboard')}`;
+      return new Response(JSON.stringify({ success: true, url: redirectUrl }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     return new Response(JSON.stringify({ error: "Unknown action" }), {
       status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
