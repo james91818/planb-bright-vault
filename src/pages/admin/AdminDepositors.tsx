@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, MoreHorizontal, DollarSign, Phone, Eye, Ban, Mail, KeyRound, Send } from "lucide-react";
+import { Search, MoreHorizontal, DollarSign, Phone, Eye, Ban, Mail, KeyRound, Send, LogIn } from "lucide-react";
 import StatusChanger from "@/components/admin/StatusChanger";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -126,6 +126,22 @@ const AdminDepositors = () => {
       toast.success(`Password reset link sent to ${email}`);
     } catch (err: any) {
       toast.error(err.message || "Failed to send reset link");
+    }
+  };
+
+  const handleLoginAsClient = async (userId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-user-actions", {
+        body: { action: "login_as_client", user_id: userId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (data?.url) {
+        window.open(data.url, "_blank");
+        toast.success("Opening client session in new tab");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to login as client");
     }
   };
 
@@ -304,6 +320,9 @@ const AdminDepositors = () => {
                                   <Send className="h-4 w-4 mr-2" /> Send Reset Link
                                 </DropdownMenuItem>
                               )}
+                              <DropdownMenuItem onClick={() => handleLoginAsClient(u.id)}>
+                                <LogIn className="h-4 w-4 mr-2" /> Login as Client
+                              </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={() => updateStatus(u.id, "active")}>
                                 Set Active
