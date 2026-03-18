@@ -197,6 +197,9 @@ const AdminDepositors = () => {
                         <td className="p-3 text-muted-foreground text-xs whitespace-nowrap">
                           {new Date(u.created_at).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" })}
                         </td>
+                        <td className="p-3 text-muted-foreground text-xs whitespace-nowrap">
+                          {u.first_deposit_at ? new Date(u.first_deposit_at).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" }) : "—"}
+                        </td>
                         <td className="p-3 text-muted-foreground whitespace-nowrap">{u.affiliate || "—"}</td>
                         <td className="p-3 text-muted-foreground whitespace-nowrap">{u.funnel || "—"}</td>
                         <td className="p-3">
