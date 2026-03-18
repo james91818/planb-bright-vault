@@ -642,6 +642,7 @@ const AdminUserDetail = () => {
                       <th className="text-left p-3 font-medium text-muted-foreground">Asset</th>
                       <th className="text-left p-3 font-medium text-muted-foreground">Direction</th>
                       <th className="text-left p-3 font-medium text-muted-foreground">Size</th>
+                      <th className="text-left p-3 font-medium text-muted-foreground">Qty</th>
                       <th className="text-left p-3 font-medium text-muted-foreground">Entry</th>
                       <th className="text-left p-3 font-medium text-muted-foreground">P&L</th>
                       <th className="text-left p-3 font-medium text-muted-foreground">Status</th>
@@ -650,10 +651,14 @@ const AdminUserDetail = () => {
                   </thead>
                   <tbody>
                     {trades.length === 0 ? (
-                      <tr><td colSpan={7} className="p-6 text-center text-muted-foreground">No trades</td></tr>
+                      <tr><td colSpan={8} className="p-6 text-center text-muted-foreground">No trades</td></tr>
                     ) : trades.map(t => {
                       const symbol = (t.assets as any)?.symbol;
                       const pnl = computeLivePnl(t, livePrices[symbol]);
+                      const entryPrice = Number(t.entry_price);
+                      const size = Number(t.size);
+                      const qty = entryPrice > 0 ? size / entryPrice : 0;
+                      const assetBase = symbol?.replace(/\/.*$/, "").replace("EUR", "").replace("USD", "").replace("USDT", "") || "";
                       return (
                         <tr key={t.id} className="border-b last:border-0">
                           <td className="p-3 font-medium">{symbol ?? "—"}</td>
@@ -662,8 +667,11 @@ const AdminUserDetail = () => {
                               {t.direction}
                             </Badge>
                           </td>
-                          <td className="p-3">€{Number(t.size).toLocaleString()}</td>
-                          <td className="p-3">{Number(t.entry_price).toLocaleString()}</td>
+                          <td className="p-3">€{size.toLocaleString()}</td>
+                          <td className="p-3 text-muted-foreground text-xs whitespace-nowrap">
+                            {qty < 1 ? qty.toFixed(6) : qty.toFixed(4)} {assetBase}
+                          </td>
+                          <td className="p-3">{entryPrice.toLocaleString()}</td>
                           <td className={`p-3 font-semibold ${pnl >= 0 ? "text-success" : "text-destructive"}`}>
                             {pnl >= 0 ? "+" : ""}€{pnl.toFixed(2)}
                           </td>
