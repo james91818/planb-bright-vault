@@ -344,6 +344,10 @@ const Trading = () => {
         last.l = Math.min(last.l, last.c);
         setLivePrice(last.c);
         setPriceChange(+((last.c - prev[0].o) / prev[0].o * 100).toFixed(2));
+        // Update livePrices map so open position P&L refreshes on every tick
+        if (selectedAsset) {
+          setLivePrices(lp => ({ ...lp, [selectedAsset.symbol]: last.c }));
+        }
         return [...prev.slice(0, -1), last];
       });
     }, 1200);
