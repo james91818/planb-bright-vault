@@ -332,15 +332,30 @@ const Trading = () => {
   }, [assets, refreshPrices]);
 
   // Update live price when livePrices map changes and we have a selected asset
+  // Only generate chart on first load; afterwards just update the last candle
+  const chartInitialized = React.useRef(false);
   useEffect(() => {
-    if (selectedAsset && livePrices[selectedAsset.symbol]) {
-      const realPrice = livePrices[selectedAsset.symbol];
-      setLivePrice(realPrice);
-      // Regenerate chart from real price
+    if (!selectedAsset || !livePrices[selectedAsset.symbol]) return;
+    const realPrice = livePrices[selectedAsset.symbol];
+    setLivePrice(realPrice);
+
+    if (!chartInitialized.current || candles.length === 0) {
+      // First time: generate full chart ending at the real price
       const tf = TIMEFRAME_CONFIG[timeframe];
       const data = generateCandles(tf.count, realPrice, tf.intervalMs);
       setCandles(data);
       setPriceChange(+((data[data.length - 1].c - data[0].o) / data[0].o * 100).toFixed(2));
+      chartInitialized.current = true;
+    } else {
+      // Subsequent updates: smoothly update last candle to real price
+      setCandles(prev => {
+        if (!prev.length) return prev;
+        const last = { ...prev[prev.length - 1] };
+        last.c = realPrice;
+        last.h = Math.max(last.h, realPrice);
+        last.l = Math.min(last.l, realPrice);
+        return [...prev.slice(0, -1), last];
+      });
     }
   }, [livePrices, selectedAsset?.symbol]);
 
