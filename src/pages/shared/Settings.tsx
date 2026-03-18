@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { User, Shield, LogOut, Tag, Plus, Pencil, Trash2, Globe, Bell, UserCog, Lock, Palette, FileText } from "lucide-react";
 import RolesManager from "@/components/admin/RolesManager";
+import AssetsManager from "@/components/admin/AssetsManager";
 import { useNavigate } from "react-router-dom";
 import { invalidateStatusCache } from "@/components/admin/StatusChanger";
 import {
