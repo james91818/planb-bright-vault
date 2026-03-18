@@ -432,7 +432,7 @@ const Landing = () => {
       </section>
 
       <section className="container mx-auto px-4 py-16 md:py-24">
-        <Card className="max-w-5xl mx-auto overflow-hidden">
+        <ScaleIn><Card className="max-w-5xl mx-auto overflow-hidden">
           <div className="grid md:grid-cols-2">
             <CardContent className="p-8 md:p-10 space-y-5">
               <h2 className="text-2xl md:text-3xl font-display font-bold">The PlanB Trading Difference</h2>
