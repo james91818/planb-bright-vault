@@ -1,0 +1,2 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS affiliate text DEFAULT NULL;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS funnel text DEFAULT NULL;

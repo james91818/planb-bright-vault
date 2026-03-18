@@ -4,12 +4,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, MoreHorizontal, DollarSign, Phone } from "lucide-react";
+import { Search, MoreHorizontal, DollarSign, Phone, Eye, MessageSquare, Ban, DollarSign as DepositIcon, Mail, UserX } from "lucide-react";
 import StatusChanger from "@/components/admin/StatusChanger";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
 
@@ -149,6 +149,8 @@ const AdminDepositors = () => {
                   <th className="text-left p-3 font-medium text-muted-foreground">Email</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Country</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Registration</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Affiliate</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Funnel</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Deposits</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Total</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Balance</th>
@@ -160,9 +162,9 @@ const AdminDepositors = () => {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={12} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
+                  <tr><td colSpan={14} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
                 ) : filtered.length === 0 ? (
-                  <tr><td colSpan={12} className="p-8 text-center text-muted-foreground">No depositors found</td></tr>
+                  <tr><td colSpan={14} className="p-8 text-center text-muted-foreground">No depositors found</td></tr>
                 ) : (
                   filtered.map(u => {
                     const note = notesMap[u.id];
@@ -194,6 +196,8 @@ const AdminDepositors = () => {
                         <td className="p-3 text-muted-foreground text-xs whitespace-nowrap">
                           {new Date(u.created_at).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" })}
                         </td>
+                        <td className="p-3 text-muted-foreground whitespace-nowrap">{u.affiliate || "—"}</td>
+                        <td className="p-3 text-muted-foreground whitespace-nowrap">{u.funnel || "—"}</td>
                         <td className="p-3">
                           <Badge variant="outline" className="text-xs">{u.deposit_count}</Badge>
                         </td>
@@ -217,9 +221,33 @@ const AdminDepositors = () => {
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); updateStatus(u.id, "active"); }}>Set Active</DropdownMenuItem>
-                              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); updateStatus(u.id, "suspended"); }}>Suspend</DropdownMenuItem>
+                            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                              <DropdownMenuItem onClick={() => navigate(`/admin/users/${u.id}`)}>
+                                <Eye className="h-4 w-4 mr-2" /> View Profile
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => navigate(`/admin/deposits?user=${u.id}`)}>
+                                <DollarSign className="h-4 w-4 mr-2" /> View Deposits
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => navigate(`/admin/withdrawals?user=${u.id}`)}>
+                                <DollarSign className="h-4 w-4 mr-2" /> View Withdrawals
+                              </DropdownMenuItem>
+                              {u.email && (
+                                <DropdownMenuItem onClick={() => window.open(`mailto:${u.email}`)}>
+                                  <Mail className="h-4 w-4 mr-2" /> Send Email
+                                </DropdownMenuItem>
+                              )}
+                              {u.phone && (
+                                <DropdownMenuItem onClick={() => window.open(`tel:${u.phone}`, "_self")}>
+                                  <Phone className="h-4 w-4 mr-2" /> Call
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => updateStatus(u.id, "active")}>
+                                Set Active
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => updateStatus(u.id, "suspended")} className="text-destructive">
+                                <Ban className="h-4 w-4 mr-2" /> Suspend
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </td>
