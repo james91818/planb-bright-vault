@@ -320,6 +320,9 @@ const AdminDepositors = () => {
                                   <Send className="h-4 w-4 mr-2" /> Send Reset Link
                                 </DropdownMenuItem>
                               )}
+                              <DropdownMenuItem onClick={() => handleLoginAsClient(u.id)}>
+                                <LogIn className="h-4 w-4 mr-2" /> Login as Client
+                              </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={() => updateStatus(u.id, "active")}>
                                 Set Active
