@@ -77,7 +77,7 @@ const Settings = () => {
   };
 
   useEffect(() => {
-    if (isStaff) fetchStatuses();
+    if (isAdmin) fetchStatuses();
     if (isAdmin) {
       fetchPlatformSettings();
       // Fetch agents (staff profiles)
@@ -168,7 +168,7 @@ const Settings = () => {
         <TabsList className="w-full justify-start flex-wrap h-auto gap-1">
           <TabsTrigger value="account">Account</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
-          {isStaff && <TabsTrigger value="statuses">Statuses</TabsTrigger>}
+          {isAdmin && <TabsTrigger value="statuses">Statuses</TabsTrigger>}
           {isAdmin && <TabsTrigger value="branding">Branding</TabsTrigger>}
           {isAdmin && <TabsTrigger value="localization">Localization</TabsTrigger>}
           {isAdmin && <TabsTrigger value="registration">Registration</TabsTrigger>}
@@ -243,7 +243,7 @@ const Settings = () => {
         </TabsContent>
 
         {/* STATUSES TAB — Staff */}
-        {isStaff && (
+        {isAdmin && (
           <TabsContent value="statuses" className="space-y-4 mt-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">

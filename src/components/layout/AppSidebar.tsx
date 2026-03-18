@@ -74,7 +74,7 @@ const adminNav = [
 const bottomNav = [
   { title: "Notifications", icon: Bell, path: "/notifications" },
   { title: "Support", icon: HelpCircle, path: "/support" },
-  { title: "Settings", icon: Settings, path: "/settings" },
+  { title: "Settings", icon: Settings, path: "/settings", adminOnly: true },
 ];
 
 const AppSidebar = () => {
@@ -182,7 +182,7 @@ const AppSidebar = () => {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {bottomNav.map((item) => (
+              {bottomNav.filter(item => !(item as any).adminOnly || roleName === "Admin").map((item) => (
                 <SidebarMenuItem key={item.path}>
                   <SidebarMenuButton
                     isActive={location.pathname === item.path}
