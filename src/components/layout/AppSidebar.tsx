@@ -128,6 +128,14 @@ const AppSidebar = () => {
             )}
           </div>
         </div>
+        {!isStaff && balance !== null && !collapsed && (
+          <div className="mt-3 rounded-lg bg-sidebar-accent px-3 py-2">
+            <p className="text-[10px] uppercase tracking-wider text-sidebar-foreground/50 font-medium">Total Balance</p>
+            <p className="text-lg font-display font-bold text-sidebar-primary-foreground">
+              €{balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </p>
+          </div>
+        )}
       </SidebarHeader>
 
       {/* Collapse toggle button */}
