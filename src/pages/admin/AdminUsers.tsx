@@ -322,6 +322,19 @@ const AdminUsers = () => {
                         </td>
                         <td className="p-3 text-muted-foreground whitespace-nowrap">{u.affiliate || "—"}</td>
                         <td className="p-3 text-muted-foreground whitespace-nowrap">{u.funnel || "—"}</td>
+                        <td className="p-3" onClick={(e) => e.stopPropagation()}>
+                          <Select value={u.assigned_agent || "none"} onValueChange={(v) => assignAgent(u.id, v === "none" ? null : v)}>
+                            <SelectTrigger className="h-8 w-[140px] text-xs">
+                              <SelectValue placeholder="Unassigned" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">Unassigned</SelectItem>
+                              {agents.map(a => (
+                                <SelectItem key={a.id} value={a.id}>{a.full_name || a.email}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </td>
                         <td className="p-3">
                           <StatusChanger userId={u.id} currentStatus={u.status} onStatusChanged={fetchData} />
                         </td>
