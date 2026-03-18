@@ -22,6 +22,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 const AdminUsers = () => {
   const { user: authUser } = useAuth();
+  const leadStatuses = useLeadStatuses();
   const navigate = useNavigate();
   const [users, setUsers] = useState<any[]>([]);
   const [staffUserIds, setStaffUserIds] = useState<Set<string>>(new Set());
