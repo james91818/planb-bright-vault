@@ -300,6 +300,7 @@ const Trading = () => {
   const [slMode, setSlMode] = useState<"price" | "pct">("price");
   const [tpMode, setTpMode] = useState<"price" | "pct">("price");
   const [placing, setPlacing] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [showAssetList, setShowAssetList] = useState(false);
   const [balance, setBalance] = useState(0);
   const [livePrices, setLivePrices] = useState<Record<string, number>>({});
