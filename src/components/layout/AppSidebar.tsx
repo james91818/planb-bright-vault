@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   ChevronsLeft,
@@ -39,6 +40,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { useRole } from "@/hooks/useRole";
 import { useTheme } from "@/hooks/useTheme";
+import { supabase } from "@/integrations/supabase/client";
 
 const clientNav = [
   { title: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
@@ -73,14 +75,30 @@ const bottomNav = [
 const AppSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const { isStaff, roleName } = useRole();
   const { toggleSidebar, state } = useSidebar();
   const collapsed = state === "collapsed";
   const { theme, toggleTheme } = useTheme();
+  const [balance, setBalance] = useState<number | null>(null);
+
   const mainNav = isStaff
     ? adminNav.filter(item => !(item as any).adminOnly || roleName === "Admin")
     : clientNav;
+
+  // Fetch EUR balance for clients
+  useEffect(() => {
+    if (!user || isStaff) return;
+    const fetchBalance = async () => {
+      const { data } = await supabase
+        .from("wallets").select("balance")
+        .eq("user_id", user.id).eq("currency", "EUR").maybeSingle();
+      if (data) setBalance(Number(data.balance));
+    };
+    fetchBalance();
+    const interval = setInterval(fetchBalance, 30000);
+    return () => clearInterval(interval);
+  }, [user, isStaff]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -110,6 +128,14 @@ const AppSidebar = () => {
             )}
           </div>
         </div>
+        {!isStaff && balance !== null && !collapsed && (
+          <div className="mt-3 rounded-lg bg-sidebar-accent px-3 py-2">
+            <p className="text-[10px] uppercase tracking-wider text-sidebar-foreground/50 font-medium">Total Balance</p>
+            <p className="text-lg font-display font-bold text-sidebar-primary-foreground">
+              €{balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </p>
+          </div>
+        )}
       </SidebarHeader>
 
       {/* Collapse toggle button */}
