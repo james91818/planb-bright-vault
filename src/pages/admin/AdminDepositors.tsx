@@ -300,7 +300,7 @@ const AdminDepositors = () => {
                         <td className="p-3">
                           <Badge variant="outline" className="text-xs">{u.deposit_count}</Badge>
                         </td>
-                        <td className="p-3 font-semibold text-success whitespace-nowrap">€{u.total_deposited.toLocaleString()}</td>
+                        <td className="p-3 font-semibold text-success whitespace-nowrap">€{u.total_deposited.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                         <td className="p-3 whitespace-nowrap">€{u.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                         <td className="p-3">
                           <StatusChanger userId={u.id} currentStatus={u.status} onStatusChanged={fetchData} />
