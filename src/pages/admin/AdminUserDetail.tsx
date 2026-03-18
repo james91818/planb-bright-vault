@@ -651,23 +651,27 @@ const AdminUserDetail = () => {
                   <tbody>
                     {trades.length === 0 ? (
                       <tr><td colSpan={7} className="p-6 text-center text-muted-foreground">No trades</td></tr>
-                    ) : trades.map(t => (
-                      <tr key={t.id} className="border-b last:border-0">
-                        <td className="p-3 font-medium">{(t.assets as any)?.symbol ?? "—"}</td>
-                        <td className="p-3">
-                          <Badge variant="outline" className={`text-xs capitalize ${t.direction === "buy" ? "text-success" : "text-destructive"}`}>
-                            {t.direction}
-                          </Badge>
-                        </td>
-                        <td className="p-3">€{Number(t.size).toLocaleString()}</td>
-                        <td className="p-3">{Number(t.entry_price).toLocaleString()}</td>
-                        <td className={`p-3 font-semibold ${Number(t.pnl ?? 0) >= 0 ? "text-success" : "text-destructive"}`}>
-                          €{Number(t.pnl ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                        </td>
-                        <td className="p-3"><Badge variant="outline" className="text-xs capitalize">{t.status}</Badge></td>
-                        <td className="p-3 text-muted-foreground text-xs">{new Date(t.opened_at).toLocaleDateString()}</td>
-                      </tr>
-                    ))}
+                    ) : trades.map(t => {
+                      const symbol = (t.assets as any)?.symbol;
+                      const pnl = computeLivePnl(t, livePrices[symbol]);
+                      return (
+                        <tr key={t.id} className="border-b last:border-0">
+                          <td className="p-3 font-medium">{symbol ?? "—"}</td>
+                          <td className="p-3">
+                            <Badge variant="outline" className={`text-xs capitalize ${t.direction === "buy" ? "text-success" : "text-destructive"}`}>
+                              {t.direction}
+                            </Badge>
+                          </td>
+                          <td className="p-3">€{Number(t.size).toLocaleString()}</td>
+                          <td className="p-3">{Number(t.entry_price).toLocaleString()}</td>
+                          <td className={`p-3 font-semibold ${pnl >= 0 ? "text-success" : "text-destructive"}`}>
+                            {pnl >= 0 ? "+" : ""}€{pnl.toFixed(2)}
+                          </td>
+                          <td className="p-3"><Badge variant="outline" className="text-xs capitalize">{t.status}</Badge></td>
+                          <td className="p-3 text-muted-foreground text-xs">{new Date(t.opened_at).toLocaleDateString()}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
