@@ -347,6 +347,9 @@ const AdminUserDetail = () => {
         <span className={`text-xs px-3 py-1.5 rounded-full font-medium ${statusColors[profile.status] ?? "bg-muted text-muted-foreground"}`}>
           {profile.status}
         </span>
+        <Button variant="outline" size="sm" onClick={() => navigate(`/admin/calendar?client=${userId}&clientName=${encodeURIComponent(profile.full_name || profile.email)}`)}>
+          <CalendarDays className="h-4 w-4 mr-1" /> Schedule Appointment
+        </Button>
         <Badge variant={profile.is_lead ? "secondary" : "default"} className="text-xs">
           {profile.is_lead ? "Lead" : "Depositor"}
         </Badge>
