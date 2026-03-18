@@ -138,14 +138,14 @@ function PriceChart({ candles, chartType }: { candles: ReturnType<typeof generat
   }
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full" preserveAspectRatio="none">
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full">
       {[0.25, 0.5, 0.75].map(f => {
         const y = padY + f * (H - padY * 2);
         const price = allHigh - f * range;
         return (
           <g key={f}>
-            <line x1={20} y1={y} x2={W - 20} y2={y} stroke="hsl(var(--border))" strokeWidth="0.5" strokeDasharray="4" />
-            <text x={W - 18} y={y + 4} fill="hsl(var(--muted-foreground))" fontSize="10" textAnchor="start">{price.toFixed(2)}</text>
+            <line x1={20} y1={y} x2={W - 50} y2={y} stroke="hsl(var(--border))" strokeWidth="0.5" strokeDasharray="4" />
+            <text x={W - 4} y={y + 4} fill="hsl(var(--muted-foreground))" fontSize="10" textAnchor="end">{price.toFixed(2)}</text>
           </g>
         );
       })}
