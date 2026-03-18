@@ -78,7 +78,20 @@ const Settings = () => {
 
   useEffect(() => {
     if (isStaff) fetchStatuses();
-    if (isAdmin) fetchPlatformSettings();
+    if (isAdmin) {
+      fetchPlatformSettings();
+      // Fetch agents (staff profiles)
+      (async () => {
+        const { data: urData } = await supabase.from("user_roles").select("user_id");
+        const staffIds = (urData ?? []).map((ur: any) => ur.user_id);
+        if (staffIds.length > 0) {
+          const { data: profiles } = await supabase.from("profiles").select("id, full_name, email").in("id", staffIds);
+          setAgents(profiles ?? []);
+        }
+        const { data: affs } = await supabase.from("affiliates").select("id, name, status").eq("status", "active");
+        setAffiliates(affs ?? []);
+      })();
+    }
   }, [isStaff, isAdmin]);
 
   const updateProfile = async () => {
