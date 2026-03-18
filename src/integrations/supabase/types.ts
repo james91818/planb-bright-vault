@@ -217,6 +217,53 @@ export type Database = {
         }
         Relationships: []
       }
+      client_bank_details: {
+        Row: {
+          account_holder: string
+          bank_name: string
+          created_at: string
+          iban: string
+          id: string
+          notes: string | null
+          reference: string | null
+          swift_bic: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_holder?: string
+          bank_name?: string
+          created_at?: string
+          iban?: string
+          id?: string
+          notes?: string | null
+          reference?: string | null
+          swift_bic?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_holder?: string
+          bank_name?: string
+          created_at?: string
+          iban?: string
+          id?: string
+          notes?: string | null
+          reference?: string | null
+          swift_bic?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_bank_details_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       copied_trades: {
         Row: {
           created_at: string | null

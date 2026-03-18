@@ -52,6 +52,10 @@ const AdminUserDetail = () => {
   const [editStake, setEditStake] = useState<any>(null);
   const [rewardsInput, setRewardsInput] = useState("");
   const [claimedInput, setClaimedInput] = useState("false");
+  // Bank details
+  const [bankDetails, setBankDetails] = useState<any>(null);
+  const [bankForm, setBankForm] = useState({ bank_name: "", account_holder: "", iban: "", swift_bic: "", reference: "", notes: "" });
+  const [savingBank, setSavingBank] = useState(false);
 
   const fetchAll = async () => {
     if (!userId) return;
@@ -73,11 +77,12 @@ const AdminUserDetail = () => {
       supabase.from("wallets").select("*").eq("user_id", userId),
     ]);
 
-    // Fetch admin notes and stakes
-    const [{ data: notes }, { data: userStakes }, { data: plans }] = await Promise.all([
+    // Fetch admin notes, stakes, and bank details
+    const [{ data: notes }, { data: userStakes }, { data: plans }, { data: bankData }] = await Promise.all([
       (supabase as any).from("admin_notes").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
       supabase.from("user_stakes").select("*, staking_plans(name, asset, apy)").eq("user_id", userId).order("started_at", { ascending: false }),
       supabase.from("staking_plans").select("*").order("apy"),
+      (supabase as any).from("client_bank_details").select("*").eq("user_id", userId).maybeSingle(),
     ]);
 
     setProfile(prof);
@@ -90,6 +95,17 @@ const AdminUserDetail = () => {
     setAdminNotes(notes ?? []);
     setStakes(userStakes ?? []);
     setStakingPlans(plans ?? []);
+    setBankDetails(bankData);
+    if (bankData) {
+      setBankForm({
+        bank_name: bankData.bank_name ?? "",
+        account_holder: bankData.account_holder ?? "",
+        iban: bankData.iban ?? "",
+        swift_bic: bankData.swift_bic ?? "",
+        reference: bankData.reference ?? "",
+        notes: bankData.notes ?? "",
+      });
+    }
 
     if (prof) {
       setEditProfile({
@@ -200,6 +216,19 @@ const AdminUserDetail = () => {
   const updateWalletBalance = async (walletId: string, newBalance: number) => {
     await supabase.from("wallets").update({ balance: newBalance }).eq("id", walletId);
     toast.success("Wallet balance updated");
+    fetchAll();
+  };
+
+  const saveBankDetails = async () => {
+    if (!userId) return;
+    setSavingBank(true);
+    if (bankDetails) {
+      await (supabase as any).from("client_bank_details").update(bankForm).eq("user_id", userId);
+    } else {
+      await (supabase as any).from("client_bank_details").insert({ ...bankForm, user_id: userId });
+    }
+    toast.success("Bank details saved");
+    setSavingBank(false);
     fetchAll();
   };
 
@@ -413,6 +442,7 @@ const AdminUserDetail = () => {
           <TabsTrigger value="withdrawals">Withdrawals ({withdrawals.length})</TabsTrigger>
           <TabsTrigger value="trades">Trades ({trades.length})</TabsTrigger>
           <TabsTrigger value="stakes">Stakes ({stakes.length})</TabsTrigger>
+          <TabsTrigger value="bank">Bank</TabsTrigger>
           <TabsTrigger value="notes">Notes ({adminNotes.length})</TabsTrigger>
         </TabsList>
 
@@ -804,6 +834,52 @@ const AdminUserDetail = () => {
                     </tbody>
                   </table>
                 </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Bank Tab */}
+        <TabsContent value="bank">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Landmark className="h-4 w-4" /> Bank Details for Deposits
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 max-w-lg">
+              <p className="text-sm text-muted-foreground">
+                These bank details will be shown to the client when they choose to deposit via bank wire.
+              </p>
+              <div className="space-y-1">
+                <Label>Bank Name</Label>
+                <Input value={bankForm.bank_name} onChange={e => setBankForm({ ...bankForm, bank_name: e.target.value })} placeholder="Deutsche Bank AG" />
+              </div>
+              <div className="space-y-1">
+                <Label>Account Holder</Label>
+                <Input value={bankForm.account_holder} onChange={e => setBankForm({ ...bankForm, account_holder: e.target.value })} placeholder="PlanB Trading Ltd." />
+              </div>
+              <div className="space-y-1">
+                <Label>IBAN</Label>
+                <Input value={bankForm.iban} onChange={e => setBankForm({ ...bankForm, iban: e.target.value })} placeholder="DE89 3704 0044 0532 0130 00" />
+              </div>
+              <div className="space-y-1">
+                <Label>SWIFT / BIC</Label>
+                <Input value={bankForm.swift_bic} onChange={e => setBankForm({ ...bankForm, swift_bic: e.target.value })} placeholder="COBADEFFXXX" />
+              </div>
+              <div className="space-y-1">
+                <Label>Reference / Note for Client</Label>
+                <Input value={bankForm.reference} onChange={e => setBankForm({ ...bankForm, reference: e.target.value })} placeholder="Use your account ID as reference" />
+              </div>
+              <div className="space-y-1">
+                <Label>Internal Notes (not shown to client)</Label>
+                <Textarea value={bankForm.notes} onChange={e => setBankForm({ ...bankForm, notes: e.target.value })} placeholder="Internal notes..." rows={2} />
+              </div>
+              <Button onClick={saveBankDetails} disabled={savingBank} className="w-full">
+                <Save className="h-4 w-4 mr-2" /> {savingBank ? "Saving..." : bankDetails ? "Update Bank Details" : "Save Bank Details"}
+              </Button>
+              {bankDetails && (
+                <p className="text-xs text-muted-foreground">Last updated: {new Date(bankDetails.updated_at).toLocaleString()}</p>
               )}
             </CardContent>
           </Card>
