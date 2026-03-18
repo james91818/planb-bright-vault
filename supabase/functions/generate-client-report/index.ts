@@ -299,6 +299,7 @@ Deno.serve(async (req: Request) => {
       withdrawals: wds ?? [],
       stakes: stakes ?? [],
       sections: activeSections,
+      dateRangeLabel: dateRangeLabel(date_range || "all"),
     };
 
     const htmlReport = generateHtmlReport(reportData);
