@@ -115,6 +115,7 @@ const AdminUserDetail = () => {
     const { data: cryptoData } = await (supabase as any).from("client_crypto_addresses").select("*").eq("user_id", userId).order("currency");
     setCryptoAddresses(cryptoData ?? []);
 
+    if (prof) {
       setEditProfile({
         full_name: prof.full_name ?? "",
         phone: prof.phone ?? "",
