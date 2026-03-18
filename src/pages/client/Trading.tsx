@@ -535,28 +535,24 @@ const Trading = () => {
     setPlacing(false);
   };
 
-  const closeTrade = async (trade: Trade) => {
-    const symbol = trade.assets?.symbol ?? "";
-    
-    // Always fetch a fresh price to ensure accurate P&L on close
-    let currentPrice: number | undefined;
-    if (trade.current_price) {
-      currentPrice = Number(trade.current_price);
-    } else if (symbol) {
-      const freshPrices = await fetchLivePrices([symbol]);
-      currentPrice = freshPrices[symbol] || livePrices[symbol] || undefined;
+  const closeTrade = async (trade: Trade, displayedPrice?: number, displayedPnl?: number) => {
+    const finalPrice = displayedPrice ?? (trade.current_price ? Number(trade.current_price) : null);
+    const finalPnl = Number((displayedPnl ?? trade.pnl ?? 0).toFixed(2));
+
+    await supabase.from("trades").update({
+      status: "closed",
+      closed_at: new Date().toISOString(),
+      pnl: finalPnl,
+      current_price: finalPrice,
+    }).eq("id", trade.id);
+
+    const { data: wallet } = await supabase.from("wallets").select("id, balance").eq("user_id", user!.id).eq("currency", "EUR").maybeSingle();
+    if (wallet) {
+      await supabase.from("wallets").update({ balance: Number(wallet.balance) + Number(trade.size) + finalPnl }).eq("id", wallet.id);
     }
 
-    const pnl = currentPrice ? computeLivePnl(trade, currentPrice) : 0;
-    await supabase.from("trades").update({ 
-      status: "closed", 
-      closed_at: new Date().toISOString(), 
-      pnl,
-      current_price: currentPrice ?? null,
-    }).eq("id", trade.id);
-    const { data: wallet } = await supabase.from("wallets").select("id, balance").eq("user_id", user!.id).eq("currency", "EUR").maybeSingle();
-    if (wallet) await supabase.from("wallets").update({ balance: Number(wallet.balance) + Number(trade.size) + pnl }).eq("id", wallet.id);
-    toast.success(`Trade closed — P&L: €${pnl.toFixed(2)}`); fetchData();
+    toast.success(`Trade closed — P&L: €${finalPnl.toFixed(2)}`);
+    fetchData();
   };
 
   const sendAIMessage = async () => {
