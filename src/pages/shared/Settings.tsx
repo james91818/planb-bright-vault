@@ -77,7 +77,7 @@ const Settings = () => {
   };
 
   useEffect(() => {
-    if (isStaff) fetchStatuses();
+    if (isAdmin) fetchStatuses();
     if (isAdmin) {
       fetchPlatformSettings();
       // Fetch agents (staff profiles)

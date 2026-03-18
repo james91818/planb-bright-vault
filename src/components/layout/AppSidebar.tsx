@@ -74,7 +74,7 @@ const adminNav = [
 const bottomNav = [
   { title: "Notifications", icon: Bell, path: "/notifications" },
   { title: "Support", icon: HelpCircle, path: "/support" },
-  { title: "Settings", icon: Settings, path: "/settings" },
+  { title: "Settings", icon: Settings, path: "/settings", adminOnly: true },
 ];
 
 const AppSidebar = () => {
