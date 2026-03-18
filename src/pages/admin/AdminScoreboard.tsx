@@ -40,7 +40,7 @@ const AdminScoreboard = () => {
     // Fetch all profiles to map agents
     const { data: profiles } = await supabase
       .from("profiles")
-      .select("id, full_name, assigned_agent");
+      .select("id, full_name, email, assigned_agent");
 
     // Fetch staff profiles for agent names
     const { data: staffRoles } = await supabase
