@@ -456,7 +456,7 @@ const AdminUserDetail = () => {
                 </thead>
                 <tbody>
                   {wallets.map(w => (
-                    <WalletRow key={w.id} wallet={w} onUpdate={updateWalletBalance} />
+                    <WalletRow key={w.id} wallet={w} onUpdate={updateWalletBalance} cryptoPricesEur={cryptoPricesEur} />
                   ))}
                 </tbody>
               </table>
