@@ -4,13 +4,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, MoreHorizontal, DollarSign, Phone, Eye, MessageSquare, Ban, DollarSign as DepositIcon, Mail, UserX } from "lucide-react";
+import { Search, MoreHorizontal, DollarSign, Phone, Eye, Ban, Mail, KeyRound, Send } from "lucide-react";
 import StatusChanger from "@/components/admin/StatusChanger";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 
 const AdminDepositors = () => {
@@ -19,6 +23,11 @@ const AdminDepositors = () => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [notesMap, setNotesMap] = useState<Record<string, { content: string; created_at: string; count: number }>>({});
+  const [pwDialogOpen, setPwDialogOpen] = useState(false);
+  const [pwUserId, setPwUserId] = useState("");
+  const [pwUserName, setPwUserName] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [pwLoading, setPwLoading] = useState(false);
 
   const fetchData = async () => {
     const { data: profiles } = await supabase
@@ -77,6 +86,47 @@ const AdminDepositors = () => {
     await supabase.from("profiles").update({ status }).eq("id", userId);
     toast.success(`User status updated to ${status}`);
     fetchData();
+  };
+
+  const openPasswordDialog = (userId: string, name: string) => {
+    setPwUserId(userId);
+    setPwUserName(name);
+    setNewPassword("");
+    setPwDialogOpen(true);
+  };
+
+  const handleChangePassword = async () => {
+    if (newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+    setPwLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-user-actions", {
+        body: { action: "change_password", user_id: pwUserId, password: newPassword },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success("Password changed successfully");
+      setPwDialogOpen(false);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to change password");
+    } finally {
+      setPwLoading(false);
+    }
+  };
+
+  const handleSendResetLink = async (userId: string, email: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-user-actions", {
+        body: { action: "send_reset_link", user_id: userId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(`Password reset link sent to ${email}`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send reset link");
+    }
   };
 
   const filtered = depositors.filter(u =>
@@ -246,6 +296,15 @@ const AdminDepositors = () => {
                                 </DropdownMenuItem>
                               )}
                               <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => openPasswordDialog(u.id, u.full_name || u.email)}>
+                                <KeyRound className="h-4 w-4 mr-2" /> Change Password
+                              </DropdownMenuItem>
+                              {u.email && (
+                                <DropdownMenuItem onClick={() => handleSendResetLink(u.id, u.email)}>
+                                  <Send className="h-4 w-4 mr-2" /> Send Reset Link
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={() => updateStatus(u.id, "active")}>
                                 Set Active
                               </DropdownMenuItem>
@@ -264,6 +323,32 @@ const AdminDepositors = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Change Password Dialog */}
+      <Dialog open={pwDialogOpen} onOpenChange={setPwDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Change Password — {pwUserName}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label>New Password</Label>
+              <Input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Min. 6 characters"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPwDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleChangePassword} disabled={pwLoading}>
+              {pwLoading ? "Changing..." : "Change Password"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
