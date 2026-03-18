@@ -173,7 +173,7 @@ const AdminTrades = () => {
                               }}>
                                 Override
                               </Button>
-                              <Button size="sm" variant="destructive" className="text-xs h-7" onClick={() => closeTrade(t, Number(t.pnl ?? 0))}>
+                              <Button size="sm" variant="destructive" className="text-xs h-7" onClick={() => closeTrade(t, pnl)}>
                                 Close
                               </Button>
                             </>
