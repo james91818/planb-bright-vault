@@ -104,6 +104,7 @@ const App = () => (
             <Route path="/admin/news" element={<AdminNews />} />
             <Route path="/admin/copy-trading" element={<AdminCopyTrading />} />
             <Route path="/admin/roles" element={<AdminRoles />} />
+            <Route path="/admin/calendar" element={<AdminCalendar />} />
             {/* Shared routes */}
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/support" element={<Support />} />
