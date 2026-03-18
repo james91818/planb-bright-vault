@@ -693,7 +693,7 @@ const Trading = () => {
 
                   {/* Dropdown */}
                   {showAssetList && (
-                    <Card className="absolute top-full left-0 mt-2 z-50 w-80 max-h-[420px] overflow-hidden shadow-2xl border">
+                    <Card className="absolute top-full left-0 mt-2 z-50 w-[calc(100vw-3rem)] sm:w-80 max-h-[420px] overflow-hidden shadow-2xl border">
                       <CardContent className="p-3 space-y-2">
                         <div className="relative">
                           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
