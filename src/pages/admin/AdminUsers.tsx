@@ -317,7 +317,14 @@ const AdminUsers = () => {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label>Country</Label>
-                <Input value={newUser.country} onChange={(e) => setNewUser({ ...newUser, country: e.target.value })} placeholder="Germany" />
+                <Select value={newUser.country} onValueChange={(v) => setNewUser({ ...newUser, country: v })}>
+                  <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
+                  <SelectContent>
+                    {["Germany", "Austria", "Switzerland", "United Kingdom", "France", "Netherlands", "Belgium", "Italy", "Spain", "Portugal", "Sweden", "Norway", "Denmark", "Finland", "Poland", "Czech Republic", "Ireland", "Luxembourg", "Greece", "Cyprus", "Malta", "Romania", "Bulgaria", "Croatia", "Hungary", "Slovakia", "Slovenia", "Estonia", "Latvia", "Lithuania", "United States", "Canada", "Australia", "New Zealand", "United Arab Emirates", "Saudi Arabia", "Turkey", "South Africa", "Brazil", "Mexico", "Japan", "South Korea", "Singapore", "Hong Kong", "India", "China"].map(c => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-1">
                 <Label>City</Label>
