@@ -104,6 +104,26 @@ const AdminUserDetail = () => {
 
   useEffect(() => { fetchAll(); }, [userId]);
 
+  const saveStakeOverride = async () => {
+    if (!editStake) return;
+    const { error } = await supabase.from("user_stakes").update({
+      rewards_earned: Number(rewardsInput),
+      claimed: claimedInput === "true",
+    }).eq("id", editStake.id);
+    if (error) { toast.error("Failed to update"); return; }
+    if (claimedInput === "true" && !editStake.claimed) {
+      const reward = Number(rewardsInput) || 0;
+      const totalReturn = Number(editStake.amount) + reward;
+      const { data: wallet } = await supabase.from("wallets").select("id, balance").eq("user_id", editStake.user_id).eq("currency", "EUR").maybeSingle();
+      if (wallet) {
+        await supabase.from("wallets").update({ balance: Number(wallet.balance) + totalReturn }).eq("id", wallet.id);
+      }
+    }
+    toast.success("Stake updated");
+    setEditStake(null);
+    fetchAll();
+  };
+
   // Fetch crypto prices on load for EUR conversion
   useEffect(() => {
     fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,ripple,binancecoin,dogecoin,cardano,polkadot,chainlink,avalanche-2&vs_currencies=eur")
