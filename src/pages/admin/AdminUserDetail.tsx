@@ -133,11 +133,13 @@ const AdminUserDetail = () => {
       return;
     }
     const amount = Number(depForm.amount);
+    const isCrypto = depForm.method === "crypto";
+    const creditCurrency = isCrypto ? depForm.crypto_asset : depForm.currency;
 
     const { error: depError } = await supabase.from("deposits").insert({
       user_id: userId!,
       amount,
-      currency: depForm.currency,
+      currency: creditCurrency,
       method: depForm.method,
       status: "approved",
       admin_notes: depForm.notes || "Manual deposit by admin",
@@ -149,15 +151,19 @@ const AdminUserDetail = () => {
       return;
     }
 
+    // Credit the appropriate wallet (crypto or fiat)
     const { data: wallet } = await supabase
       .from("wallets")
       .select("id, balance")
       .eq("user_id", userId!)
-      .eq("currency", depForm.currency)
+      .eq("currency", creditCurrency)
       .maybeSingle();
 
     if (wallet) {
       await supabase.from("wallets").update({ balance: Number(wallet.balance) + amount }).eq("id", wallet.id);
+    } else {
+      // Create wallet if it doesn't exist (e.g. crypto wallets)
+      await supabase.from("wallets").insert({ user_id: userId!, currency: creditCurrency, balance: amount });
     }
 
     if (amount >= 1) {
