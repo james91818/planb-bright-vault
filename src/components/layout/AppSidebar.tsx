@@ -22,6 +22,7 @@ import {
   Newspaper,
   Globe,
   Handshake,
+  Copy,
 } from "lucide-react";
 import {
   Sidebar,
