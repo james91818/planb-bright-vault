@@ -192,7 +192,7 @@ const AdminDepositors = () => {
       <div>
         <h1 className="text-2xl font-display font-bold">Depositors</h1>
         <p className="text-muted-foreground text-sm">
-          {depositors.length} depositors · €{totalDeposited.toLocaleString()} total deposited
+          {depositors.length} depositors · €{totalDeposited.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} total deposited
         </p>
       </div>
 

@@ -99,7 +99,12 @@ const WalletPage = () => {
 
   const fiatWallets = wallets.filter(w => FIAT_CURRENCIES.includes(w.currency));
   const cryptoWallets = wallets.filter(w => CRYPTO_CURRENCIES.includes(w.currency) && Number(w.balance) > 0);
-  const fiatTotal = fiatWallets.reduce((s, w) => s + Number(w.balance), 0);
+  const totalBalanceEur = wallets.reduce((sum, wallet) => {
+    const balance = Number(wallet.balance);
+    if (FIAT_CURRENCIES.includes(wallet.currency)) return sum + balance;
+    const rate = cryptoPricesEur[wallet.currency];
+    return sum + (rate ? balance * rate : balance);
+  }, 0);
   const hasCrypto = cryptoWallets.length > 0;
 
   const allCurrencies = [...FIAT_CURRENCIES, ...CRYPTO_CURRENCIES];
