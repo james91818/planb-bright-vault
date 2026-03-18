@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { ArrowLeft, Save, Ban, CheckCircle, DollarSign, TrendingUp, Wallet, Shield, MessageSquare, Send, Plus, Eye, EyeOff, KeyRound } from "lucide-react";
+import { ArrowLeft, Save, Ban, CheckCircle, DollarSign, TrendingUp, Wallet, Shield, MessageSquare, Send, Plus, Eye, EyeOff, KeyRound, Landmark, Lock, Clock, TrendingDown } from "lucide-react";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
@@ -46,6 +46,12 @@ const AdminUserDetail = () => {
   const [changingPassword, setChangingPassword] = useState(false);
   const [cryptoPricesEur, setCryptoPricesEur] = useState<Record<string, number>>({});
   const [livePrices, setLivePrices] = useState<Record<string, number>>({});
+  // Stakes
+  const [stakes, setStakes] = useState<any[]>([]);
+  const [stakingPlans, setStakingPlans] = useState<any[]>([]);
+  const [editStake, setEditStake] = useState<any>(null);
+  const [rewardsInput, setRewardsInput] = useState("");
+  const [claimedInput, setClaimedInput] = useState("false");
 
   const fetchAll = async () => {
     if (!userId) return;
@@ -67,8 +73,12 @@ const AdminUserDetail = () => {
       supabase.from("wallets").select("*").eq("user_id", userId),
     ]);
 
-    // Fetch admin notes separately (table may not be in generated types)
-    const { data: notes } = await (supabase as any).from("admin_notes").select("*").eq("user_id", userId).order("created_at", { ascending: false });
+    // Fetch admin notes and stakes
+    const [{ data: notes }, { data: userStakes }, { data: plans }] = await Promise.all([
+      (supabase as any).from("admin_notes").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
+      supabase.from("user_stakes").select("*, staking_plans(name, asset, apy)").eq("user_id", userId).order("started_at", { ascending: false }),
+      supabase.from("staking_plans").select("*").order("apy"),
+    ]);
 
     setProfile(prof);
     setRoles(rolesData ?? []);
@@ -78,6 +88,8 @@ const AdminUserDetail = () => {
     setTrades(trs ?? []);
     setWallets(wals ?? []);
     setAdminNotes(notes ?? []);
+    setStakes(userStakes ?? []);
+    setStakingPlans(plans ?? []);
 
     if (prof) {
       setEditProfile({
@@ -91,6 +103,26 @@ const AdminUserDetail = () => {
   };
 
   useEffect(() => { fetchAll(); }, [userId]);
+
+  const saveStakeOverride = async () => {
+    if (!editStake) return;
+    const { error } = await supabase.from("user_stakes").update({
+      rewards_earned: Number(rewardsInput),
+      claimed: claimedInput === "true",
+    }).eq("id", editStake.id);
+    if (error) { toast.error("Failed to update"); return; }
+    if (claimedInput === "true" && !editStake.claimed) {
+      const reward = Number(rewardsInput) || 0;
+      const totalReturn = Number(editStake.amount) + reward;
+      const { data: wallet } = await supabase.from("wallets").select("id, balance").eq("user_id", editStake.user_id).eq("currency", "EUR").maybeSingle();
+      if (wallet) {
+        await supabase.from("wallets").update({ balance: Number(wallet.balance) + totalReturn }).eq("id", wallet.id);
+      }
+    }
+    toast.success("Stake updated");
+    setEditStake(null);
+    fetchAll();
+  };
 
   // Fetch crypto prices on load for EUR conversion
   useEffect(() => {
@@ -377,6 +409,7 @@ const AdminUserDetail = () => {
           <TabsTrigger value="deposits">Deposits ({deposits.length})</TabsTrigger>
           <TabsTrigger value="withdrawals">Withdrawals ({withdrawals.length})</TabsTrigger>
           <TabsTrigger value="trades">Trades ({trades.length})</TabsTrigger>
+          <TabsTrigger value="stakes">Stakes ({stakes.length})</TabsTrigger>
           <TabsTrigger value="notes">Notes ({adminNotes.length})</TabsTrigger>
         </TabsList>
 
@@ -687,6 +720,75 @@ const AdminUserDetail = () => {
           </Card>
         </TabsContent>
 
+        {/* Stakes Tab */}
+        <TabsContent value="stakes">
+          <Card>
+            <CardContent className="p-0">
+              <div className="p-4 border-b">
+                <h3 className="font-display font-semibold flex items-center gap-2">
+                  <Landmark className="h-4 w-4" /> Stakes ({stakes.length})
+                </h3>
+              </div>
+              {stakes.length === 0 ? (
+                <p className="p-8 text-center text-muted-foreground">No stakes</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b bg-muted/50">
+                        <th className="text-left p-3 font-medium text-muted-foreground">Plan</th>
+                        <th className="text-left p-3 font-medium text-muted-foreground">Amount</th>
+                        <th className="text-left p-3 font-medium text-muted-foreground">APY</th>
+                        <th className="text-left p-3 font-medium text-muted-foreground">Rewards</th>
+                        <th className="text-left p-3 font-medium text-muted-foreground">Unlocks</th>
+                        <th className="text-left p-3 font-medium text-muted-foreground">Status</th>
+                        <th className="text-right p-3 font-medium text-muted-foreground">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {stakes.map((s) => {
+                        const unlocked = new Date(s.unlocks_at) <= new Date();
+                        const reward = Number(s.rewards_earned ?? 0);
+                        return (
+                          <tr key={s.id} className="border-b last:border-0 hover:bg-muted/30">
+                            <td className="p-3 font-medium">{(s as any).staking_plans?.name}</td>
+                            <td className="p-3 font-semibold">€{Number(s.amount).toLocaleString()}</td>
+                            <td className="p-3 text-success font-semibold">{(s as any).staking_plans?.apy}%</td>
+                            <td className="p-3">
+                              <span className={reward >= 0 ? "text-success font-semibold" : "text-destructive font-semibold"}>
+                                {reward >= 0 ? "+" : ""}€{reward.toFixed(2)}
+                              </span>
+                            </td>
+                            <td className="p-3 text-xs text-muted-foreground">{new Date(s.unlocks_at).toLocaleDateString()}</td>
+                            <td className="p-3">
+                              {s.claimed ? (
+                                <Badge variant="outline">Claimed</Badge>
+                              ) : unlocked ? (
+                                <Badge className="bg-success/10 text-success border-success/30">Ready</Badge>
+                              ) : (
+                                <Badge variant="outline" className="gap-1"><Clock className="h-3 w-3" /> Locked</Badge>
+                              )}
+                            </td>
+                            <td className="p-3 text-right">
+                              <Button size="sm" variant="outline" onClick={() => {
+                                setEditStake(s);
+                                setRewardsInput(String(s.rewards_earned ?? 0));
+                                setClaimedInput(s.claimed ? "true" : "false");
+                              }}>
+                                <DollarSign className="h-3.5 w-3.5 mr-1" /> Manage
+                              </Button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* Notes Tab */}
         <TabsContent value="notes">
           <Card>
@@ -769,6 +871,57 @@ const AdminUserDetail = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setManualWithdrawOpen(false)}>Cancel</Button>
             <Button onClick={submitManualWithdraw}>Submit Withdrawal</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Manage Stake Dialog */}
+      <Dialog open={!!editStake} onOpenChange={() => setEditStake(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Landmark className="h-5 w-5" /> Manage Stake
+            </DialogTitle>
+          </DialogHeader>
+          {editStake && (
+            <div className="space-y-4">
+              <div className="bg-muted/50 rounded-lg p-3 text-sm space-y-1">
+                <p><span className="text-muted-foreground">Plan:</span> {(editStake as any).staking_plans?.name}</p>
+                <p><span className="text-muted-foreground">Staked:</span> €{Number(editStake.amount).toLocaleString()}</p>
+                <p><span className="text-muted-foreground">APY:</span> {(editStake as any).staking_plans?.apy}%</p>
+                <p><span className="text-muted-foreground">Unlocks:</span> {new Date(editStake.unlocks_at).toLocaleString()}</p>
+              </div>
+              <div className="space-y-1">
+                <Label>Rewards Earned (€)</Label>
+                <p className="text-xs text-muted-foreground">Set positive for profit, negative for loss</p>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" className="text-success" onClick={() => setRewardsInput(String(Math.abs(Number(rewardsInput) || 0)))}>
+                    <TrendingUp className="h-3.5 w-3.5 mr-1" /> Profit
+                  </Button>
+                  <Button size="sm" variant="outline" className="text-destructive" onClick={() => setRewardsInput(String(-Math.abs(Number(rewardsInput) || 0)))}>
+                    <TrendingDown className="h-3.5 w-3.5 mr-1" /> Loss
+                  </Button>
+                </div>
+                <Input type="number" value={rewardsInput} onChange={(e) => setRewardsInput(e.target.value)} placeholder="0.00" />
+              </div>
+              <div className="space-y-1">
+                <Label>Status</Label>
+                <Select value={claimedInput} onValueChange={setClaimedInput}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="false">Active (not claimed)</SelectItem>
+                    <SelectItem value="true">Claimed (return funds + rewards to wallet)</SelectItem>
+                  </SelectContent>
+                </Select>
+                {claimedInput === "true" && !editStake.claimed && (
+                  <p className="text-xs text-success">Will credit €{(Number(editStake.amount) + Number(rewardsInput || 0)).toFixed(2)} to user's EUR wallet</p>
+                )}
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditStake(null)}>Cancel</Button>
+            <Button onClick={saveStakeOverride}>Save Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
