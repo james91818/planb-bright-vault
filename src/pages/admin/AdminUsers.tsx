@@ -103,7 +103,7 @@ const AdminUsers = () => {
     }
     toast.success("User created successfully");
     setCreateOpen(false);
-    setNewUser({ email: "", password: "", first_name: "", last_name: "", phone: "", country: "", date_of_birth: "", address: "", city: "", postal_code: "", funnel: "" });
+    setNewUser({ email: "", password: "", first_name: "", last_name: "", phone: "", country: "Germany", date_of_birth: "", address: "", city: "", postal_code: "", funnel: "" });
     setTimeout(fetchData, 1000);
   };
 
