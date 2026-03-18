@@ -273,6 +273,8 @@ const Trading = () => {
   const [orderType, setOrderType] = useState("market");
   const [stopLoss, setStopLoss] = useState("");
   const [takeProfit, setTakeProfit] = useState("");
+  const [slMode, setSlMode] = useState<"price" | "pct">("price");
+  const [tpMode, setTpMode] = useState<"price" | "pct">("price");
   const [placing, setPlacing] = useState(false);
   const [showAssetList, setShowAssetList] = useState(false);
   const [balance, setBalance] = useState(0);
