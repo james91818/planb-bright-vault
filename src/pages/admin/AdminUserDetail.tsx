@@ -1169,6 +1169,26 @@ const AdminUserDetail = () => {
                 >
                   <Send className="h-4 w-4 mr-1" /> Send to Client Email
                 </Button>
+
+                <Button
+                  disabled={sendingReport}
+                  variant="outline"
+                  onClick={async () => {
+                    setSendingReport(true);
+                    try {
+                      const { data, error } = await supabase.functions.invoke("generate-client-report", {
+                        body: { user_id: userId, sections: reportSections, action: "download" },
+                      });
+                      if (error) throw error;
+                      setPreviewHtml(typeof data === "string" ? data : JSON.stringify(data));
+                    } catch (err: any) {
+                      toast.error(err.message || "Failed to generate preview");
+                    }
+                    setSendingReport(false);
+                  }}
+                >
+                  <Eye className="h-4 w-4 mr-1" /> Preview Report
+                </Button>
               </div>
               {!profile.email && <p className="text-xs text-destructive">No email address on file.</p>}
             </CardContent>
