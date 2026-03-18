@@ -351,16 +351,6 @@ const AdminUserDetail = () => {
             <Card>
               <CardHeader><CardTitle className="text-base">Account Controls</CardTitle></CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-1">
-                  <Label>Role</Label>
-                  <Select value={userRoleId} onValueChange={assignRole}>
-                    <SelectTrigger><SelectValue placeholder="No role" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">No role</SelectItem>
-                      {roles.map(r => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
                 <div className="space-y-2 pt-4">
                   <Label>Status Actions</Label>
                   <div className="flex gap-2">
