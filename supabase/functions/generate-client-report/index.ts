@@ -104,7 +104,7 @@ function generateHtmlReport(data: ReportData): string {
 </head>
 <body>
 <h1>Investment Report</h1>
-<p class="subtitle">Prepared for <strong>${profile.full_name || profile.email}</strong> &mdash; ${now}</p>
+<p class="subtitle">Prepared for <strong>${profile.full_name || profile.email}</strong> &mdash; ${now} &mdash; Period: <strong>${drLabel}</strong></p>
 `;
 
   // Wallets / Portfolio
