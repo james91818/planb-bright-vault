@@ -283,6 +283,7 @@ const AdminTrades = () => {
         <td className="p-3">€{Number(t.entry_price).toFixed(2)}</td>
         <td className="p-3">{t.current_price ? `€${Number(t.current_price).toFixed(2)}` : <span className="text-muted-foreground">—</span>}</td>
         <td className="p-3">{t.leverage}×</td>
+        <td className={`p-3 font-semibold ${pnl >= 0 ? "text-success" : "text-destructive"}`}>
           {pnl >= 0 ? "+" : ""}€{pnl.toFixed(2)}
         </td>
         <td className="p-3">
