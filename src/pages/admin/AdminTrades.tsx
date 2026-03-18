@@ -459,19 +459,7 @@ const AdminTrades = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOverrideOpen(null)}>Cancel</Button>
-            <Button onClick={() => {
-              // Resolve custom duration before applying
-              if (durationSec === -1 && customDuration) {
-                const resolved = Math.max(5, Number(customDuration));
-                setDurationSec(resolved);
-                // Need to call setOverride after state update — use direct approach
-                const originalDuration = durationSec;
-                // Apply with resolved duration directly
-                const d = resolved;
-                // We'll handle this inline
-              }
-              setOverride();
-            }}>Apply Override</Button>
+            <Button onClick={() => setOverride()}>Apply Override</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
