@@ -11,9 +11,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
   TrendingUp, TrendingDown, Search, CandlestickChart, LineChart as LineChartIcon,
-  ArrowUpRight, ArrowDownRight, Clock, X, ChevronDown, Bot, Send, Loader2,
+  ArrowUpRight, ArrowDownRight, Clock, X, ChevronDown, Bot, Send, Loader2, AlertTriangle,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
+} from "@/components/ui/dialog";
 
 // ─── Local crypto icon map ───
 import btcIcon from "@/assets/crypto/btc.png";
