@@ -499,14 +499,18 @@ const Landing = () => {
 
       {/* ===== LIQUIDITY PARTNERS ===== */}
       <section className="container mx-auto px-4 py-12 text-center">
-        <h3 className="text-lg font-display font-semibold mb-10 text-muted-foreground">Available Liquidity</h3>
-        <div className="flex flex-wrap items-center justify-center gap-10 md:gap-16">
+        <AnimatedSection>
+          <h3 className="text-lg font-display font-semibold mb-10 text-muted-foreground">Available Liquidity</h3>
+        </AnimatedSection>
+        <StaggerContainer className="flex flex-wrap items-center justify-center gap-10 md:gap-16">
           {partners.map((p) => (
-            <div key={p.name} className="grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300">
-              <img src={p.logo} alt={p.name} className="h-16 md:h-20 w-auto object-contain" />
-            </div>
+            <StaggerItem key={p.name}>
+              <div className="grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300">
+                <img src={p.logo} alt={p.name} className="h-16 md:h-20 w-auto object-contain" />
+              </div>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerContainer>
       </section>
 
       {/* ===== MARKET INDICES CHART ===== */}
