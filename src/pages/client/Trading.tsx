@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { computeLivePnl } from "@/lib/tradePnl";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -83,22 +83,34 @@ function isMarketOpen(asset: Asset): boolean {
 }
 
 // ─── Candle generation ───
+// Generates candles that END at basePrice (the real market price)
 function generateCandles(count: number, basePrice: number, intervalMs = 3600000) {
   const candles: { time: string; o: number; h: number; l: number; c: number }[] = [];
-  let price = basePrice;
   const now = Date.now();
-  const volatility = intervalMs > 3600000 ? 0.03 : 0.02;
-  for (let i = count; i >= 0; i--) {
-    const open = price;
-    const change = (Math.random() - 0.47) * price * volatility;
-    const close = open + change;
-    const high = Math.max(open, close) + Math.random() * price * 0.008;
-    const low = Math.min(open, close) - Math.random() * price * 0.008;
+  const volatility = intervalMs > 3600000 ? 0.008 : 0.005;
+
+  // Build prices backwards from basePrice
+  const prices: number[] = [basePrice];
+  let p = basePrice;
+  for (let i = 0; i < count; i++) {
+    const change = (Math.random() - 0.5) * p * volatility;
+    p = p - change; // go backwards
+    prices.unshift(p);
+  }
+
+  // Now create candles from the price path (prices[i] -> prices[i+1])
+  for (let i = 0; i < count; i++) {
+    const open = prices[i];
+    const close = prices[i + 1];
+    const high = Math.max(open, close) + Math.random() * Math.abs(close) * 0.002;
+    const low = Math.min(open, close) - Math.random() * Math.abs(close) * 0.002;
     candles.push({
-      time: new Date(now - i * intervalMs).toISOString(),
-      o: +open.toFixed(2), h: +high.toFixed(2), l: +low.toFixed(2), c: +close.toFixed(2),
+      time: new Date(now - (count - i) * intervalMs).toISOString(),
+      o: +open.toFixed(open < 1 ? 6 : 2),
+      h: +high.toFixed(high < 1 ? 6 : 2),
+      l: +low.toFixed(low < 1 ? 6 : 2),
+      c: +close.toFixed(close < 1 ? 6 : 2),
     });
-    price = close;
   }
   return candles;
 }
@@ -320,15 +332,30 @@ const Trading = () => {
   }, [assets, refreshPrices]);
 
   // Update live price when livePrices map changes and we have a selected asset
+  // Only generate chart on first load; afterwards just update the last candle
+  const chartInitialized = useRef(false);
   useEffect(() => {
-    if (selectedAsset && livePrices[selectedAsset.symbol]) {
-      const realPrice = livePrices[selectedAsset.symbol];
-      setLivePrice(realPrice);
-      // Regenerate chart from real price
+    if (!selectedAsset || !livePrices[selectedAsset.symbol]) return;
+    const realPrice = livePrices[selectedAsset.symbol];
+    setLivePrice(realPrice);
+
+    if (!chartInitialized.current || candles.length === 0) {
+      // First time: generate full chart ending at the real price
       const tf = TIMEFRAME_CONFIG[timeframe];
       const data = generateCandles(tf.count, realPrice, tf.intervalMs);
       setCandles(data);
       setPriceChange(+((data[data.length - 1].c - data[0].o) / data[0].o * 100).toFixed(2));
+      chartInitialized.current = true;
+    } else {
+      // Subsequent updates: smoothly update last candle to real price
+      setCandles(prev => {
+        if (!prev.length) return prev;
+        const last = { ...prev[prev.length - 1] };
+        last.c = realPrice;
+        last.h = Math.max(last.h, realPrice);
+        last.l = Math.min(last.l, realPrice);
+        return [...prev.slice(0, -1), last];
+      });
     }
   }, [livePrices, selectedAsset?.symbol]);
 
@@ -409,10 +436,10 @@ const Trading = () => {
   }, [openTrades, selectedAsset?.symbol, realApiPrices]);
 
   const selectAsset = (asset: Asset, pricesMap?: Record<string, number>) => {
+    chartInitialized.current = false; // Reset so chart regenerates for new asset
     setSelectedAsset(asset);
     setShowAssetList(false);
     const prices = pricesMap ?? livePrices;
-    // Use real price if available, otherwise fallback
     const fallbackPrices: Record<string, number> = {
       BTC: 62500, ETH: 3400, SOL: 145, XRP: 0.52, BNB: 580,
       DOGE: 0.12, ADA: 0.45, DOT: 7.2, LINK: 14.5, AVAX: 35,
@@ -426,10 +453,10 @@ const Trading = () => {
     const tf = TIMEFRAME_CONFIG[timeframe];
     const data = generateCandles(tf.count, base, tf.intervalMs);
     setCandles(data);
-    const last = data[data.length - 1];
-    setLivePrice(last.c);
-    setPriceChange(+((last.c - data[0].o) / data[0].o * 100).toFixed(2));
+    setLivePrice(base);
+    setPriceChange(+((data[data.length - 1].c - data[0].o) / data[0].o * 100).toFixed(2));
     setOrderSize(""); setLeverage(1); setStopLoss(""); setTakeProfit("");
+    chartInitialized.current = true;
   };
 
   const placeTrade = async () => {
