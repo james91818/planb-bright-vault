@@ -323,6 +323,7 @@ const AdminUsers = () => {
         handleSendResetLink={handleSendResetLink}
         handleLoginAsClient={handleLoginAsClient}
         updateStatus={updateStatus}
+        canAssignAgent={canAssignAgent}
       />
 
       {/* Create User Dialog */}
