@@ -219,6 +219,19 @@ const AdminUserDetail = () => {
     fetchAll();
   };
 
+  const saveBankDetails = async () => {
+    if (!userId) return;
+    setSavingBank(true);
+    if (bankDetails) {
+      await (supabase as any).from("client_bank_details").update(bankForm).eq("user_id", userId);
+    } else {
+      await (supabase as any).from("client_bank_details").insert({ ...bankForm, user_id: userId });
+    }
+    toast.success("Bank details saved");
+    setSavingBank(false);
+    fetchAll();
+  };
+
   const submitNote = async () => {
     if (!currentUser || !userId || !newNote.trim()) return;
     await (supabase as any).from("admin_notes").insert({
