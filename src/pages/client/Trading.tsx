@@ -535,28 +535,24 @@ const Trading = () => {
     setPlacing(false);
   };
 
-  const closeTrade = async (trade: Trade) => {
-    const symbol = trade.assets?.symbol ?? "";
-    
-    // Always fetch a fresh price to ensure accurate P&L on close
-    let currentPrice: number | undefined;
-    if (trade.current_price) {
-      currentPrice = Number(trade.current_price);
-    } else if (symbol) {
-      const freshPrices = await fetchLivePrices([symbol]);
-      currentPrice = freshPrices[symbol] || livePrices[symbol] || undefined;
+  const closeTrade = async (trade: Trade, displayedPrice?: number, displayedPnl?: number) => {
+    const finalPrice = displayedPrice ?? (trade.current_price ? Number(trade.current_price) : null);
+    const finalPnl = Number((displayedPnl ?? trade.pnl ?? 0).toFixed(2));
+
+    await supabase.from("trades").update({
+      status: "closed",
+      closed_at: new Date().toISOString(),
+      pnl: finalPnl,
+      current_price: finalPrice,
+    }).eq("id", trade.id);
+
+    const { data: wallet } = await supabase.from("wallets").select("id, balance").eq("user_id", user!.id).eq("currency", "EUR").maybeSingle();
+    if (wallet) {
+      await supabase.from("wallets").update({ balance: Number(wallet.balance) + Number(trade.size) + finalPnl }).eq("id", wallet.id);
     }
 
-    const pnl = currentPrice ? computeLivePnl(trade, currentPrice) : 0;
-    await supabase.from("trades").update({ 
-      status: "closed", 
-      closed_at: new Date().toISOString(), 
-      pnl,
-      current_price: currentPrice ?? null,
-    }).eq("id", trade.id);
-    const { data: wallet } = await supabase.from("wallets").select("id, balance").eq("user_id", user!.id).eq("currency", "EUR").maybeSingle();
-    if (wallet) await supabase.from("wallets").update({ balance: Number(wallet.balance) + Number(trade.size) + pnl }).eq("id", wallet.id);
-    toast.success(`Trade closed — P&L: €${pnl.toFixed(2)}`); fetchData();
+    toast.success(`Trade closed — P&L: €${finalPnl.toFixed(2)}`);
+    fetchData();
   };
 
   const sendAIMessage = async () => {
@@ -1007,6 +1003,7 @@ const Trading = () => {
                       // Use admin-set current_price if available (manipulation), otherwise live market price
                       const priceForPnl = t.current_price ? Number(t.current_price) : (livePrices[symbol ?? ""] || undefined);
                       const pnl = computeLivePnl(t, priceForPnl);
+                      const displayPrice = t.current_price ? Number(t.current_price) : (livePrices[symbol ?? ""] || Number(t.entry_price));
                       const tradeIcon = t.assets ? getAssetIcon(t.assets.symbol, null) : null;
                       return (
                         <tr key={t.id} className="border-b last:border-0 hover:bg-muted/20 transition-colors">
@@ -1030,14 +1027,14 @@ const Trading = () => {
                           </td>
                           <td className="p-3.5 font-medium">€{Number(t.size).toLocaleString()}</td>
                           <td className="p-3.5 text-muted-foreground">€{Number(t.entry_price).toFixed(2)}</td>
-                          <td className="p-3.5">€{(t.current_price ? Number(t.current_price) : (livePrices[symbol ?? ""] || Number(t.entry_price))).toFixed(2)}</td>
+                          <td className="p-3.5">€{displayPrice.toFixed(2)}</td>
                           <td className="p-3.5">{t.leverage}×</td>
                           <td className={`p-3.5 font-bold ${pnl >= 0 ? "text-success" : "text-destructive"}`}>
                             {pnl >= 0 ? "+" : ""}€{pnl.toFixed(2)}
                           </td>
                           <td className="p-3.5 text-right">
                             <Button size="sm" variant="outline" className="text-destructive border-destructive/30 hover:bg-destructive/10 text-xs h-8 px-3"
-                              onClick={() => closeTrade(t)}>
+                              onClick={() => closeTrade(t, displayPrice, pnl)}>
                               <X className="h-3.5 w-3.5 mr-1" /> Close
                             </Button>
                           </td>
