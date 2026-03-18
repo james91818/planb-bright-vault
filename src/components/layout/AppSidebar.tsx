@@ -63,6 +63,7 @@ const adminNav = [
   { title: "Withdrawals", icon: ArrowDownRight, path: "/admin/withdrawals" },
   { title: "Trades", icon: TrendingUp, path: "/admin/trades" },
   { title: "Staking", icon: Landmark, path: "/admin/staking" },
+  { title: "Copy Trading", icon: Copy, path: "/admin/copy-trading" },
   
   { title: "News", icon: Newspaper, path: "/admin/news" },
   
