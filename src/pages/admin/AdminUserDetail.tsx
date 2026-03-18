@@ -445,21 +445,6 @@ const AdminUserDetail = () => {
                 <DialogTitle>Manual Deposit for {profile?.full_name || profile?.email}</DialogTitle>
               </DialogHeader>
               <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label>Amount</Label>
-                    <Input type="number" value={depForm.amount} onChange={(e) => setDepForm({ ...depForm, amount: e.target.value })} placeholder="1000" />
-                  </div>
-                  <div className="space-y-1">
-                    <Label>Currency</Label>
-                    <Select value={depForm.currency} onValueChange={(v) => setDepForm({ ...depForm, currency: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {["EUR", "USD", "GBP", "CHF", "AUD", "CAD"].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
                 <div className="space-y-1">
                   <Label>Method</Label>
                   <Select value={depForm.method} onValueChange={(v) => setDepForm({ ...depForm, method: v })}>
@@ -470,6 +455,35 @@ const AdminUserDetail = () => {
                       <SelectItem value="bank_wire">Bank Wire</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label>Amount</Label>
+                    <Input type="number" value={depForm.amount} onChange={(e) => setDepForm({ ...depForm, amount: e.target.value })} placeholder="1000" />
+                  </div>
+                  {depForm.method === "crypto" ? (
+                    <div className="space-y-1">
+                      <Label>Crypto Asset</Label>
+                      <Select value={depForm.crypto_asset} onValueChange={(v) => setDepForm({ ...depForm, crypto_asset: v })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {["BTC", "ETH", "SOL", "XRP", "BNB", "DOGE", "ADA", "DOT", "LINK", "AVAX"].map(c => (
+                            <SelectItem key={c} value={c}>{c}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      <Label>Currency</Label>
+                      <Select value={depForm.currency} onValueChange={(v) => setDepForm({ ...depForm, currency: v })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {["EUR", "USD", "GBP", "CHF", "AUD", "CAD"].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-1">
                   <Label>Notes (optional)</Label>
