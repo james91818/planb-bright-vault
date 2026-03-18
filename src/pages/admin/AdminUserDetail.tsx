@@ -172,7 +172,7 @@ const AdminUserDetail = () => {
 
     toast.success("Manual deposit created and credited");
     setManualDepositOpen(false);
-    setDepForm({ amount: "", currency: "EUR", method: "manual", notes: "" });
+    setDepForm({ amount: "", currency: "EUR", method: "manual", notes: "", crypto_asset: "BTC" });
     fetchAll();
   };
 
