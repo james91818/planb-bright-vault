@@ -29,6 +29,8 @@ const CRYPTO_IDS: Record<string, string> = {
 
 const AdminDepositors = () => {
   const navigate = useNavigate();
+  const { roleName } = useRole();
+  const canAssignAgent = roleName === "Admin" || roleName === "Manager";
   const [depositors, setDepositors] = useState<any[]>([]);
   const [agents, setAgents] = useState<any[]>([]);
   const [search, setSearch] = useState("");
