@@ -573,9 +573,9 @@ const Trading = () => {
   return (
     <div className="space-y-4">
       {/* ─── TOP: chart + order panel ─── */}
-      <div className="flex flex-col lg:flex-row gap-4">
+      <div className="flex flex-col lg:flex-row gap-4 lg:items-stretch">
         {/* Chart area */}
-        <div className="flex-1 space-y-3">
+        <div className="flex-1 flex flex-col space-y-3">
           {/* Asset header */}
           <Card>
             <CardContent className="p-4 flex items-center justify-between flex-wrap gap-3">
