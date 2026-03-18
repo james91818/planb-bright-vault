@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { ArrowLeft, Save, Ban, CheckCircle, DollarSign, TrendingUp, Wallet, Shield, MessageSquare, Send, Plus } from "lucide-react";
+import { ArrowLeft, Save, Ban, CheckCircle, DollarSign, TrendingUp, Wallet, Shield, MessageSquare, Send, Plus, Eye, EyeOff, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
@@ -40,6 +40,9 @@ const AdminUserDetail = () => {
   const [depForm, setDepForm] = useState({ amount: "", currency: "EUR", method: "manual", notes: "", crypto_asset: "BTC" });
   const [manualWithdrawOpen, setManualWithdrawOpen] = useState(false);
   const [wdForm, setWdForm] = useState({ amount: "", currency: "EUR", method: "manual", notes: "" });
+  const [newPassword, setNewPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
 
   const fetchAll = async () => {
     if (!userId) return;
@@ -94,7 +97,27 @@ const AdminUserDetail = () => {
     fetchAll();
   };
 
-  const updateStatus = async (status: string) => {
+  const handleChangePassword = async () => {
+    if (!newPassword || newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+    setChangingPassword(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-user-actions", {
+        body: { action: "change_password", user_id: userId, password: newPassword },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success("Password updated successfully");
+      setNewPassword("");
+    } catch (err: any) {
+      toast.error(`Failed to change password: ${err.message}`);
+    }
+    setChangingPassword(false);
+  };
+
+
     await supabase.from("profiles").update({ status }).eq("id", userId);
     toast.success(`User ${status === "suspended" ? "suspended" : "activated"}`);
     fetchAll();
@@ -345,6 +368,27 @@ const AdminUserDetail = () => {
                 <Button onClick={handleSaveProfile} disabled={saving} className="w-full">
                   <Save className="h-4 w-4 mr-2" /> Save Changes
                 </Button>
+                <div className="border-t pt-4 mt-4 space-y-2">
+                  <Label className="flex items-center gap-2"><KeyRound className="h-4 w-4" /> Change Password</Label>
+                  <div className="relative">
+                    <Input
+                      type={showNewPassword ? "text" : "password"}
+                      placeholder="New password (min 6 chars)"
+                      value={newPassword}
+                      onChange={e => setNewPassword(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  <Button onClick={handleChangePassword} disabled={changingPassword || !newPassword} variant="outline" className="w-full">
+                    <KeyRound className="h-4 w-4 mr-2" /> {changingPassword ? "Updating..." : "Update Password"}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
