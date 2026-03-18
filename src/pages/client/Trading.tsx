@@ -716,7 +716,7 @@ const Trading = () => {
         </div>
 
         {/* ─── RIGHT PANEL: Manual / AI toggle ─── */}
-        <div className="w-full lg:w-[340px] shrink-0 space-y-3">
+        <div className="w-full lg:w-[340px] shrink-0 flex flex-col space-y-3">
           {/* Mode switcher */}
           <div className="grid grid-cols-2 gap-0 bg-muted rounded-xl p-1">
             <button
