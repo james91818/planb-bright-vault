@@ -847,7 +847,8 @@ const Trading = () => {
                   </thead>
                   <tbody>
                     {openTrades.map(t => {
-                      const pnl = Number(t.pnl ?? 0);
+                      const symbol = t.assets?.symbol;
+                      const pnl = computeLivePnl(t, livePrices[symbol ?? ""] || undefined);
                       const tradeIcon = t.assets ? getAssetIcon(t.assets.symbol, null) : null;
                       return (
                         <tr key={t.id} className="border-b last:border-0 hover:bg-muted/20 transition-colors">
