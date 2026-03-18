@@ -21,6 +21,7 @@ const AdminTrades = () => {
   const [overrideMode, setOverrideMode] = useState("none");
   const [targetValue, setTargetValue] = useState("");
   const [livePrices, setLivePrices] = useState<Record<string, number>>({});
+  const [manipulating, setManipulating] = useState<Record<string, boolean>>({});
 
   const fetchTrades = async () => {
     const { data: tradesData } = await supabase
