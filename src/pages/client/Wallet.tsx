@@ -77,18 +77,77 @@ const WalletPage = () => {
 
   const submitWithdrawal = async () => {
     if (!user || !form.amount) return;
+    const isCrypto = form.method === "crypto";
+    if (isCrypto && !form.destination.trim()) {
+      toast.error("Please enter your wallet address");
+      return;
+    }
+    if (!isCrypto && (!form.bank_name.trim() || !form.iban.trim())) {
+      toast.error("Please enter your bank details (bank name and IBAN)");
+      return;
+    }
     const wallet = wallets.find(w => w.currency === form.currency);
     if (!wallet || Number(wallet.balance) < Number(form.amount)) {
       toast.error("Insufficient balance");
       return;
     }
-    await supabase.from("withdrawals").insert({
+    const destination = isCrypto
+      ? form.destination.trim()
+      : `Bank: ${form.bank_name.trim()}, IBAN: ${form.iban.trim()}${form.swift.trim() ? `, SWIFT: ${form.swift.trim()}` : ""}`;
+
+    const { data: insertedWd } = await supabase.from("withdrawals").insert({
       user_id: user.id,
       amount: Number(form.amount),
       currency: form.currency,
       method: form.method,
-      destination: form.destination || null,
-    });
+      destination,
+    }).select("id").single();
+
+    // Send notifications to assigned agent, admins, and managers
+    try {
+      // Get the user's profile to find assigned agent
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("assigned_agent, full_name, email")
+        .eq("id", user.id)
+        .single();
+
+      // Get all admin and manager user IDs
+      const { data: staffRoles } = await supabase
+        .from("roles")
+        .select("id, name")
+        .in("name", ["Admin", "Manager"]);
+
+      const staffRoleIds = (staffRoles ?? []).map(r => r.id);
+      const { data: staffMembers } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .in("role_id", staffRoleIds);
+
+      const recipientIds = new Set<string>();
+      // Add assigned agent
+      if (profile?.assigned_agent) recipientIds.add(profile.assigned_agent);
+      // Add admins and managers
+      (staffMembers ?? []).forEach(sm => recipientIds.add(sm.user_id));
+      // Don't notify self
+      recipientIds.delete(user.id);
+
+      const clientName = profile?.full_name || profile?.email || "A client";
+      const notifications = Array.from(recipientIds).map(uid => ({
+        user_id: uid,
+        title: "New Withdrawal Request",
+        message: `${clientName} requested a ${form.currency} ${Number(form.amount).toLocaleString()} withdrawal via ${form.method === "crypto" ? "crypto" : "bank wire"}.`,
+        type: "withdrawal",
+      }));
+
+      if (notifications.length > 0) {
+        await supabase.from("notifications").insert(notifications);
+      }
+    } catch (e) {
+      // Non-critical — don't block the withdrawal
+      console.error("Failed to send notifications:", e);
+    }
+
     toast.success("Withdrawal request submitted. Awaiting approval.");
     setWithdrawOpen(false);
     resetForm();
