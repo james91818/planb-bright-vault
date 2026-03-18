@@ -45,7 +45,7 @@ const AdminUsers = () => {
     ]);
     const staffIds = new Set((urData ?? []).map((ur: any) => ur.user_id));
     setStaffUserIds(staffIds);
-    const clientProfiles = (profiles ?? []).filter(p => !staffIds.has(p.id));
+    const clientProfiles = (profiles ?? []).filter(p => !staffIds.has(p.id) && p.is_lead !== false);
     setUsers(clientProfiles);
 
     // Fetch latest admin notes for all users
