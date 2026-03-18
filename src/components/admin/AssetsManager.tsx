@@ -59,8 +59,6 @@ const AssetsManager = () => {
 
   if (loading) return <div className="flex items-center justify-center h-32"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
 
-  return (
-
   const renderTable = (filtered: any[]) => (
     <Card>
       <CardContent className="p-0 overflow-x-auto">
