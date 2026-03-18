@@ -257,8 +257,20 @@ const AdminUserDetail = () => {
     fetchAll();
   };
 
-  const totalDeposited = deposits.filter(d => d.status === "approved").reduce((s, d) => s + Number(d.amount), 0);
-  const totalWithdrawn = withdrawals.filter(w => w.status === "approved").reduce((s, w) => s + Number(w.amount), 0);
+  const FIAT_CURRENCIES = ["EUR", "USD", "GBP", "CHF", "AUD", "CAD"];
+  const totalDeposited = deposits.filter(d => d.status === "approved").reduce((s, d) => {
+    const amt = Number(d.amount);
+    if (FIAT_CURRENCIES.includes(d.currency)) return s + amt;
+    // Crypto: convert to EUR using live price
+    const eurPrice = cryptoPricesEur[d.currency];
+    return s + (eurPrice ? amt * eurPrice : amt);
+  }, 0);
+  const totalWithdrawn = withdrawals.filter(w => w.status === "approved").reduce((s, w) => {
+    const amt = Number(w.amount);
+    if (FIAT_CURRENCIES.includes(w.currency)) return s + amt;
+    const eurPrice = cryptoPricesEur[w.currency];
+    return s + (eurPrice ? amt * eurPrice : amt);
+  }, 0);
   const totalPnl = trades.filter(t => t.status === "closed").reduce((s, t) => s + Number(t.pnl ?? 0), 0);
   const openTradesCount = trades.filter(t => t.status === "open").length;
 
