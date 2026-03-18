@@ -1043,7 +1043,7 @@ const Trading = () => {
                           </td>
                           <td className="p-3.5 text-right">
                             <Button size="sm" variant="outline" className="text-destructive border-destructive/30 hover:bg-destructive/10 text-xs h-8 px-3"
-                              onClick={() => closeTrade(t, displayPrice, pnl)}>
+                              onClick={() => closeTrade(t)}>
                               <X className="h-3.5 w-3.5 mr-1" /> Close
                             </Button>
                           </td>
