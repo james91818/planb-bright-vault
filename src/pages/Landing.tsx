@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { motion } from "framer-motion";
 import oxBg from "@/assets/ox-bg.svg";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,6 +12,7 @@ import {
 } from "lucide-react";
 import PriceCards from "@/components/landing/PriceCards";
 import StatsBar from "@/components/landing/StatsBar";
+import { AnimatedSection, StaggerContainer, StaggerItem, ScaleIn, FloatingElement } from "@/components/landing/AnimatedSection";
 
 import visaLogo from "@/assets/payments/visa.png";
 import mastercardLogo from "@/assets/payments/mastercard.png";
