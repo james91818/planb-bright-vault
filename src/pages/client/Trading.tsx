@@ -743,7 +743,7 @@ const Trading = () => {
 
           {tradingMode === "manual" ? (
             /* ─── MANUAL ORDER FORM ─── */
-            <Card>
+            <Card className="flex-1 flex flex-col overflow-y-auto">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-display">Place Order</CardTitle>
                 <p className="text-xs text-muted-foreground">
