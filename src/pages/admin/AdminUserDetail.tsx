@@ -88,6 +88,8 @@ const AdminUserDetail = () => {
     setTrades(trs ?? []);
     setWallets(wals ?? []);
     setAdminNotes(notes ?? []);
+    setStakes(userStakes ?? []);
+    setStakingPlans(plans ?? []);
 
     if (prof) {
       setEditProfile({
