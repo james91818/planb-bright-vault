@@ -11,7 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { User, Shield, LogOut, Tag, Plus, Pencil, Trash2, Globe, Bell, UserCog, Lock, Palette } from "lucide-react";
+import { User, Shield, LogOut, Tag, Plus, Pencil, Trash2, Globe, Bell, UserCog, Lock, Palette, FileText } from "lucide-react";
+import RolesManager from "@/components/admin/RolesManager";
 import { useNavigate } from "react-router-dom";
 import { invalidateStatusCache } from "@/components/admin/StatusChanger";
 import {
@@ -139,7 +140,7 @@ const Settings = () => {
   if (loading) return <div className="flex items-center justify-center h-64"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
 
   return (
-    <div className="space-y-6 max-w-3xl">
+    <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-display font-bold">Settings</h1>
         <p className="text-muted-foreground text-sm">
@@ -158,6 +159,7 @@ const Settings = () => {
           {isAdmin && <TabsTrigger value="auth-security">Auth & Security</TabsTrigger>}
           {isAdmin && <TabsTrigger value="notifications">Notifications</TabsTrigger>}
           {isAdmin && <TabsTrigger value="landing">Landing Page</TabsTrigger>}
+          {isAdmin && <TabsTrigger value="roles">Roles</TabsTrigger>}
         </TabsList>
 
         {/* ACCOUNT TAB */}
@@ -584,6 +586,13 @@ const Settings = () => {
                 </Button>
               </CardContent>
             </Card>
+          </TabsContent>
+        )}
+
+        {/* ROLES TAB — Admin */}
+        {isAdmin && (
+          <TabsContent value="roles" className="mt-4">
+            <RolesManager />
           </TabsContent>
         )}
       </Tabs>
