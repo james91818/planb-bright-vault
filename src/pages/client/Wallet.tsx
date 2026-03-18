@@ -49,6 +49,13 @@ const WalletPage = () => {
 
   useEffect(() => { fetchData(); }, [user]);
 
+  // Fetch bank details assigned by admin
+  useEffect(() => {
+    if (!user) return;
+    (supabase as any).from("client_bank_details").select("*").eq("user_id", user.id).maybeSingle()
+      .then(({ data }: any) => setClientBankDetails(data));
+  }, [user]);
+
   useEffect(() => {
     fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,ripple,binancecoin,dogecoin,cardano,polkadot,chainlink,avalanche-2&vs_currencies=eur")
       .then(r => r.json())
