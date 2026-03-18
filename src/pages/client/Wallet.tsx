@@ -33,6 +33,7 @@ const WalletPage = () => {
   const [form, setForm] = useState({ amount: "", currency: "EUR", method: "bank_wire", wallet_address: "", destination: "", bank_name: "", iban: "", swift: "" });
   const [cryptoPricesEur, setCryptoPricesEur] = useState<Record<string, number>>({});
   const [clientBankDetails, setClientBankDetails] = useState<any>(null);
+  const [clientCryptoAddresses, setClientCryptoAddresses] = useState<any[]>([]);
 
   const fetchData = async () => {
     if (!user) return;
