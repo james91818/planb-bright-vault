@@ -31,6 +31,10 @@ const AdminDepositors = () => {
   const [agents, setAgents] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [countryFilter, setCountryFilter] = useState("all");
+  const [agentFilter, setAgentFilter] = useState("all");
+  const [affiliateFilter, setAffiliateFilter] = useState("all");
+  const [funnelFilter, setFunnelFilter] = useState("all");
   const [notesMap, setNotesMap] = useState<Record<string, { content: string; created_at: string; count: number }>>({});
   const [pwDialogOpen, setPwDialogOpen] = useState(false);
   const [pwUserId, setPwUserId] = useState("");
