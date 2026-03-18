@@ -391,15 +391,22 @@ const Trading = () => {
           if (!sym || sym === selectedAsset?.symbol) continue;
           const cur = next[sym];
           if (!cur) continue;
-          const volatility = cur < 1 ? 0.002 : cur < 100 ? 0.001 : 0.0006;
-          const tick = (Math.random() - 0.48) * cur * volatility;
+          const volatility = cur < 1 ? 0.0003 : cur < 100 ? 0.00015 : 0.00008;
+          // Mean-revert toward real API price
+          const realPrice = realApiPrices[sym];
+          let drift = 0;
+          if (realPrice && realPrice > 0) {
+            const deviation = (cur - realPrice) / realPrice;
+            drift = -deviation * 0.05;
+          }
+          const tick = ((Math.random() - 0.5) * cur * volatility) + (cur * drift);
           next[sym] = +(cur + tick).toFixed(cur < 1 ? 6 : 2);
         }
         return next;
       });
     }, 2000);
     return () => clearInterval(interval);
-  }, [openTrades, selectedAsset?.symbol]);
+  }, [openTrades, selectedAsset?.symbol, realApiPrices]);
 
   const selectAsset = (asset: Asset, pricesMap?: Record<string, number>) => {
     setSelectedAsset(asset);
