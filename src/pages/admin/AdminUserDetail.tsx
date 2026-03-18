@@ -476,6 +476,23 @@ const AdminUserDetail = () => {
             <Card>
               <CardHeader><CardTitle className="text-base">Account Controls</CardTitle></CardHeader>
               <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-sm font-medium">Email Notifications</Label>
+                    <p className="text-xs text-muted-foreground">Send email alerts for deposits, withdrawals, trades</p>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      const newVal = !profile.email_notifications;
+                      await supabase.from("profiles").update({ email_notifications: newVal }).eq("id", userId);
+                      setProfile({ ...profile, email_notifications: newVal });
+                      toast.success(`Email notifications ${newVal ? "enabled" : "disabled"}`);
+                    }}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${profile.email_notifications ? "bg-primary" : "bg-muted"}`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${profile.email_notifications ? "translate-x-6" : "translate-x-1"}`} />
+                  </button>
+                </div>
                 <div className="space-y-2 pt-4">
                   <Label>Status Actions</Label>
                   <div className="flex gap-2">
