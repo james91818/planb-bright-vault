@@ -56,6 +56,10 @@ const AdminUserDetail = () => {
   const [bankDetails, setBankDetails] = useState<any>(null);
   const [bankForm, setBankForm] = useState({ bank_name: "", account_holder: "", iban: "", swift_bic: "", reference: "", notes: "" });
   const [savingBank, setSavingBank] = useState(false);
+  // Crypto addresses
+  const [cryptoAddresses, setCryptoAddresses] = useState<any[]>([]);
+  const [cryptoForm, setCryptoForm] = useState({ currency: "BTC", address: "", network: "", label: "" });
+  const [savingCrypto, setSavingCrypto] = useState(false);
 
   const fetchAll = async () => {
     if (!userId) return;
