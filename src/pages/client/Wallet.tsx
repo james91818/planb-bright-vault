@@ -166,16 +166,24 @@ const WalletPage = () => {
                 <Bitcoin className="h-4 w-4 text-muted-foreground" /> Crypto Assets
               </h2>
               <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
-                {cryptoWallets.map((w) => (
-                  <Card key={w.id} className="border-primary/20">
-                    <CardContent className="p-4">
-                      <p className="text-xs text-muted-foreground font-medium">{w.currency}</p>
-                      <p className="text-lg font-display font-bold mt-1">
-                        {Number(w.balance).toLocaleString("en-US", { minimumFractionDigits: 6 })}
-                      </p>
-                    </CardContent>
-                  </Card>
-                ))}
+                {cryptoWallets.map((w) => {
+                  const eurValue = cryptoPricesEur[w.currency] ? Number(w.balance) * cryptoPricesEur[w.currency] : null;
+                  return (
+                    <Card key={w.id} className="border-primary/20">
+                      <CardContent className="p-4">
+                        <p className="text-xs text-muted-foreground font-medium">{w.currency}</p>
+                        <p className="text-lg font-display font-bold mt-1">
+                          {Number(w.balance).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
+                        </p>
+                        {eurValue !== null && (
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            ≈ €{eurValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             </div>
           )}
