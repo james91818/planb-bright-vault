@@ -19,6 +19,20 @@ const COLORS = [
   "hsl(var(--chart-1))",
 ];
 
+const FIAT_CURRENCIES = ["EUR", "USD", "GBP", "CHF", "AUD", "CAD"];
+const CRYPTO_IDS: Record<string, string> = {
+  BTC: "bitcoin",
+  ETH: "ethereum",
+  SOL: "solana",
+  XRP: "ripple",
+  BNB: "binancecoin",
+  DOGE: "dogecoin",
+  ADA: "cardano",
+  DOT: "polkadot",
+  LINK: "chainlink",
+  AVAX: "avalanche-2",
+};
+
 const ClientDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -31,7 +45,22 @@ const ClientDashboard = () => {
   const [recentWithdrawals, setRecentWithdrawals] = useState<any[]>([]);
   const [watchlistAssets, setWatchlistAssets] = useState<any[]>([]);
   const [prices, setPrices] = useState<Record<string, number>>({});
+  const [cryptoPricesEur, setCryptoPricesEur] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const ids = Object.values(CRYPTO_IDS).join(",");
+    fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=eur`)
+      .then((r) => r.json())
+      .then((data) => {
+        const map: Record<string, number> = {};
+        for (const [symbol, cgId] of Object.entries(CRYPTO_IDS)) {
+          if (data[cgId]?.eur) map[symbol] = data[cgId].eur;
+        }
+        setCryptoPricesEur(map);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -82,11 +111,21 @@ const ClientDashboard = () => {
     fetchData();
   }, [user]);
 
-  const totalBalance = wallets.reduce((s, w) => s + Number(w.balance), 0);
-  const portfolioData = wallets.filter(w => Number(w.balance) > 0).map(w => ({
-    name: w.currency,
-    value: Number(w.balance),
-  }));
+  const walletToEur = (wallet: any) => {
+    const balance = Number(wallet.balance || 0);
+    if (FIAT_CURRENCIES.includes(wallet.currency)) return balance;
+    const rate = cryptoPricesEur[wallet.currency];
+    return rate ? balance * rate : balance;
+  };
+
+  const totalBalance = wallets.reduce((sum, wallet) => sum + walletToEur(wallet), 0);
+  const portfolioData = wallets
+    .filter((wallet) => Number(wallet.balance) > 0)
+    .map((wallet) => ({
+      name: wallet.currency,
+      value: walletToEur(wallet),
+    }))
+    .filter((wallet) => wallet.value > 0);
 
   const statusColors: Record<string, string> = {
     approved: "text-success",
