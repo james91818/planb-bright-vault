@@ -213,16 +213,8 @@ const AdminUsers = () => {
       return;
     }
 
-    const { data: wallet } = await supabase
-      .from("wallets")
-      .select("id, balance")
-      .eq("user_id", depositForm.user_id)
-      .eq("currency", depositForm.currency)
-      .maybeSingle();
-
-    if (wallet) {
-      await supabase.from("wallets").update({ balance: Number(wallet.balance) + amount }).eq("id", wallet.id);
-    }
+    // Wallet crediting is handled automatically by the credit_wallet_on_deposit_approval trigger
+    // No manual wallet update needed here
 
     if (amount >= 1) {
       await supabase.from("profiles").update({ is_lead: false }).eq("id", depositForm.user_id);
