@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { User, Shield, LogOut, Tag, Plus, Pencil, Trash2, Globe, Bell, UserCog, Lock, Palette, FileText } from "lucide-react";
 import RolesManager from "@/components/admin/RolesManager";
+import AssetsManager from "@/components/admin/AssetsManager";
 import { useNavigate } from "react-router-dom";
 import { invalidateStatusCache } from "@/components/admin/StatusChanger";
 import {
@@ -160,6 +161,7 @@ const Settings = () => {
           {isAdmin && <TabsTrigger value="notifications">Notifications</TabsTrigger>}
           {isAdmin && <TabsTrigger value="landing">Landing Page</TabsTrigger>}
           {isAdmin && <TabsTrigger value="roles">Roles</TabsTrigger>}
+          {isAdmin && <TabsTrigger value="assets">Assets</TabsTrigger>}
         </TabsList>
 
         {/* ACCOUNT TAB */}
@@ -593,6 +595,13 @@ const Settings = () => {
         {isAdmin && (
           <TabsContent value="roles" className="mt-4">
             <RolesManager />
+          </TabsContent>
+        )}
+
+        {/* ASSETS TAB — Admin */}
+        {isAdmin && (
+          <TabsContent value="assets" className="mt-4">
+            <AssetsManager />
           </TabsContent>
         )}
       </Tabs>
