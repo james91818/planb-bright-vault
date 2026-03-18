@@ -250,7 +250,7 @@ const Landing = () => {
       <section id="instruments" className="relative overflow-hidden">
         <div className="container mx-auto px-4 py-16 md:py-24">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-5 max-w-lg">
+            <AnimatedSection direction="left" className="space-y-5 max-w-lg">
               <h2 className="text-3xl md:text-4xl font-display font-bold">Diversify Your Portfolio</h2>
               <p className="text-muted-foreground leading-relaxed">
                 Access leading financial markets and invest across a wide range of asset classes
@@ -259,34 +259,36 @@ const Landing = () => {
               <Button asChild className="rounded-full px-6">
                 <Link to="/signup">Discover Top Markets</Link>
               </Button>
-            </div>
+            </AnimatedSection>
             {/* Visual: phone/tablet mockup with stock icons */}
-            <div className="relative hidden lg:flex justify-center">
-              <div className="relative w-72 h-80 rounded-2xl bg-gradient-to-br from-hero to-hero/90 shadow-2xl flex items-center justify-center overflow-hidden border border-white/10">
-                <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent" />
-                <div className="relative z-10 text-center space-y-4 px-6">
-                  <div className="grid grid-cols-3 gap-3">
-                    {[
-                      { Icon: TrendingUp, label: "Stocks" },
-                      { Icon: BarChart3, label: "Indices" },
-                      { Icon: Landmark, label: "Forex" },
-                      { Icon: Zap, label: "Crypto" },
-                      { Icon: LineChart, label: "Futures" },
-                      { Icon: Shield, label: "Bonds" },
-                    ].map(({ Icon, label }, i) => (
-                      <div key={i} className="h-12 w-12 mx-auto rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-sm" title={label}>
-                        <Icon className="h-5 w-5 text-primary" />
-                      </div>
-                    ))}
+            <AnimatedSection direction="right" delay={0.2} className="relative hidden lg:flex justify-center">
+              <FloatingElement>
+                <div className="relative w-72 h-80 rounded-2xl bg-gradient-to-br from-hero to-hero/90 shadow-2xl flex items-center justify-center overflow-hidden border border-white/10">
+                  <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent" />
+                  <div className="relative z-10 text-center space-y-4 px-6">
+                    <div className="grid grid-cols-3 gap-3">
+                      {[
+                        { Icon: TrendingUp, label: "Stocks" },
+                        { Icon: BarChart3, label: "Indices" },
+                        { Icon: Landmark, label: "Forex" },
+                        { Icon: Zap, label: "Crypto" },
+                        { Icon: LineChart, label: "Futures" },
+                        { Icon: Shield, label: "Bonds" },
+                      ].map(({ Icon, label }, i) => (
+                        <div key={i} className="h-12 w-12 mx-auto rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-sm" title={label}>
+                          <Icon className="h-5 w-5 text-primary" />
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-hero-foreground font-display font-semibold text-sm mt-4">500+ Assets Available</p>
+                    <p className="text-hero-muted text-xs">Crypto · Stocks · Forex · Indices</p>
                   </div>
-                  <p className="text-hero-foreground font-display font-semibold text-sm mt-4">500+ Assets Available</p>
-                  <p className="text-hero-muted text-xs">Crypto · Stocks · Forex · Indices</p>
+                  {/* Floating badges */}
+                  <div className="absolute top-2 right-2 bg-success text-success-foreground text-xs font-bold px-3 py-1 rounded-full shadow">7%</div>
+                  <div className="absolute bottom-2 left-2 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full shadow">5%</div>
                 </div>
-                {/* Floating badges */}
-                <div className="absolute top-2 right-2 bg-success text-success-foreground text-xs font-bold px-3 py-1 rounded-full shadow">7%</div>
-                <div className="absolute bottom-2 left-2 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full shadow">5%</div>
-              </div>
-            </div>
+              </FloatingElement>
+            </AnimatedSection>
           </div>
         </div>
       </section>
