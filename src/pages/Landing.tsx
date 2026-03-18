@@ -494,7 +494,7 @@ const Landing = () => {
               </div>
             </CardContent>
           </Card>
-        </div>
+        </AnimatedSection>
       </section>
 
       {/* ===== LIQUIDITY PARTNERS ===== */}
