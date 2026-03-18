@@ -228,12 +228,20 @@ const AdminUsers = () => {
     fetchData();
   };
 
+  const uniqueCountries = [...new Set(users.map(u => u.country).filter(Boolean))].sort();
+  const uniqueAffiliates = [...new Set(users.map(u => u.affiliate).filter(Boolean))].sort();
+  const uniqueFunnels = [...new Set(users.map(u => u.funnel).filter(Boolean))].sort();
+
   const filtered = users.filter((u) => {
     const matchesSearch =
       (u.full_name ?? "").toLowerCase().includes(search.toLowerCase()) ||
       (u.email ?? "").toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === "all" || u.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesCountry = countryFilter === "all" || u.country === countryFilter;
+    const matchesAgent = agentFilter === "all" || (agentFilter === "none" ? !u.assigned_agent : u.assigned_agent === agentFilter);
+    const matchesAffiliate = affiliateFilter === "all" || (affiliateFilter === "none" ? !u.affiliate : u.affiliate === affiliateFilter);
+    const matchesFunnel = funnelFilter === "all" || (funnelFilter === "none" ? !u.funnel : u.funnel === funnelFilter);
+    return matchesSearch && matchesStatus && matchesCountry && matchesAgent && matchesAffiliate && matchesFunnel;
   });
 
   return (
