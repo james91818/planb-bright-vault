@@ -163,9 +163,9 @@ const AdminDepositors = () => {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={14} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
+                  <tr><td colSpan={15} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
                 ) : filtered.length === 0 ? (
-                  <tr><td colSpan={14} className="p-8 text-center text-muted-foreground">No depositors found</td></tr>
+                  <tr><td colSpan={15} className="p-8 text-center text-muted-foreground">No depositors found</td></tr>
                 ) : (
                   filtered.map(u => {
                     const note = notesMap[u.id];
