@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, UserPlus, MoreHorizontal, Plus, Phone, Shuffle, Eye, Mail, KeyRound, Send, Ban, LogIn } from "lucide-react";
 import StatusChanger, { useLeadStatuses } from "@/components/admin/StatusChanger";
+import { useColumnOrder } from "@/hooks/useColumnOrder";
+import ReorderableHeader from "@/components/admin/ReorderableHeader";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
