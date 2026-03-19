@@ -359,11 +359,15 @@ const AdminTrades = () => {
     const symbol = t.assets?.symbol;
     // If there's an active override with a target P&L, use that instead of live price
     const hasActiveOverride = override?.is_active && override?.override_mode !== "none" && override?.target_value != null;
+    // Also check if the trade's pnl was locked by manipulation (pnl is set and differs from live calc)
+    const manipulationLocked = !isClosed && t.pnl != null && Number(t.pnl) !== 0 && manipulating[t.id] !== true;
     const pnl = isClosed
       ? Number(t.pnl ?? 0)
       : hasActiveOverride
         ? Number(override.target_value)
-        : computeLivePnl(t, livePrices[symbol]);
+        : manipulationLocked
+          ? Number(t.pnl)
+          : computeLivePnl(t, livePrices[symbol]);
     return (
       <tr key={t.id} className="border-b last:border-0 hover:bg-muted/30">
         <td className="p-3">
