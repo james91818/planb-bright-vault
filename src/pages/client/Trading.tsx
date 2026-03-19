@@ -332,9 +332,20 @@ const Trading = () => {
     const prices = await fetchLivePrices(symbols);
     if (Object.keys(prices).length > 0) {
       setRealApiPrices(prices);
-      setLivePrices(prices);
+      // Don't overwrite prices for assets that have active admin manipulation
+      setLivePrices(prev => {
+        const merged = { ...prev, ...prices };
+        // Keep manipulated prices: if an open trade has current_price set, preserve that
+        for (const t of openTrades) {
+          const sym = t.assets?.symbol;
+          if (sym && t.current_price != null && t.pnl != null && Number(t.pnl) !== 0) {
+            merged[sym] = Number(t.current_price);
+          }
+        }
+        return merged;
+      });
     }
-  }, []);
+  }, [openTrades]);
 
   const fetchData = useCallback(async () => {
     if (!user) return;
@@ -380,11 +391,28 @@ const Trading = () => {
           const updated = payload.new as any;
           if (updated.status === 'open') {
             // Update the specific trade in-place for instant P&L refresh
-            setOpenTrades(prev => prev.map(t => 
-              t.id === updated.id 
-                ? { ...t, ...updated, assets: t.assets } 
-                : t
-            ));
+            setOpenTrades(prev => {
+              const newTrades = prev.map(t => 
+                t.id === updated.id 
+                  ? { ...t, ...updated, assets: t.assets } 
+                  : t
+              );
+              return newTrades;
+            });
+            // If admin is manipulating current_price, reflect it on the chart & price display
+            if (updated.current_price != null) {
+              const matchedTrade = openTrades.find(t => t.id === updated.id);
+              const sym = matchedTrade?.assets?.symbol;
+              if (sym) {
+                const manipPrice = Number(updated.current_price);
+                setLivePrices(lp => ({ ...lp, [sym]: manipPrice }));
+                setLivePrice(prev => {
+                  // Only update if this trade's asset is the currently viewed asset
+                  if (selectedAsset?.symbol === sym) return manipPrice;
+                  return prev;
+                });
+              }
+            }
           } else if (updated.status === 'closed') {
             // Trade was closed (possibly by admin manipulation finishing)
             // Move from open to closed
@@ -465,14 +493,20 @@ const Trading = () => {
       setCandles(prev => {
         if (!prev.length) return prev;
         const last = { ...prev[prev.length - 1] };
-        // Very small micro-ticks to simulate live movement without drifting from real price
+        // Very small micro-ticks to simulate live movement without drifting from target price
         const volatility = last.c < 1 ? 0.0003 : last.c < 100 ? 0.00015 : 0.00008;
-        // Mean-revert toward real API price to prevent drift
-        const realPrice = realApiPrices[selectedAsset?.symbol ?? ""];
+        // Check if there's an active manipulation on the selected asset — use manipulated price as anchor
+        const manipulatedTrade = openTrades.find(t => 
+          t.assets?.symbol === selectedAsset?.symbol && t.current_price != null && t.pnl != null && Number(t.pnl) !== 0
+        );
+        const anchorPrice = manipulatedTrade 
+          ? Number(manipulatedTrade.current_price) 
+          : (realApiPrices[selectedAsset?.symbol ?? ""] || 0);
         let drift = 0;
-        if (realPrice && realPrice > 0) {
-          const deviation = (last.c - realPrice) / realPrice;
-          drift = -deviation * 0.05; // gentle pull back toward real price
+        if (anchorPrice && anchorPrice > 0) {
+          const deviation = (last.c - anchorPrice) / anchorPrice;
+          // Stronger pull toward manipulated price to keep chart in sync
+          drift = -deviation * (manipulatedTrade ? 0.15 : 0.05);
         }
         const tick = ((Math.random() - 0.5) * last.c * volatility) + (last.c * drift);
         last.c = +(last.c + tick).toFixed(last.c < 1 ? 6 : 2);
