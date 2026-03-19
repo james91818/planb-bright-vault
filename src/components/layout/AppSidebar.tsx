@@ -81,7 +81,7 @@ const AppSidebar = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { isStaff, roleName } = useRole();
-  const { toggleSidebar, state } = useSidebar();
+  const { toggleSidebar, state, isMobile, setOpenMobile } = useSidebar();
   const collapsed = state === "collapsed";
   
   const [balance, setBalance] = useState<number | null>(null);
@@ -109,13 +109,18 @@ const AppSidebar = () => {
     navigate("/login");
   };
 
+  const handleNavigate = (path: string) => {
+    navigate(path);
+    if (isMobile) setOpenMobile(false);
+  };
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-4">
         <div className="flex items-center justify-between">
           <div
             className="flex items-center gap-3 cursor-pointer"
-            onClick={() => navigate("/dashboard")}
+            onClick={() => handleNavigate("/dashboard")}
           >
             <div className="h-9 w-9 rounded-lg bg-sidebar-primary flex items-center justify-center">
               {isStaff ? (
@@ -172,7 +177,7 @@ const AppSidebar = () => {
                 <SidebarMenuItem key={item.path}>
                   <SidebarMenuButton
                     isActive={location.pathname === item.path}
-                    onClick={() => navigate(item.path)}
+                    onClick={() => handleNavigate(item.path)}
                     tooltip={item.title}
                   >
                     <item.icon className="h-4 w-4" />
@@ -193,7 +198,7 @@ const AppSidebar = () => {
                 <SidebarMenuItem key={item.path}>
                   <SidebarMenuButton
                     isActive={location.pathname === item.path}
-                    onClick={() => navigate(item.path)}
+                    onClick={() => handleNavigate(item.path)}
                     tooltip={item.title}
                   >
                     <item.icon className="h-4 w-4" />
@@ -210,7 +215,7 @@ const AppSidebar = () => {
         <SidebarMenu>
           
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={() => navigate("/")} tooltip="Back to Website">
+            <SidebarMenuButton onClick={() => handleNavigate("/")} tooltip="Back to Website">
               <Globe className="h-4 w-4" />
               <span>Back to Website</span>
             </SidebarMenuButton>
