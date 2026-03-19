@@ -115,25 +115,33 @@ const AppSidebar = () => {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-4">
-        <div
-          className="flex items-center gap-3 cursor-pointer"
-          onClick={() => navigate("/dashboard")}
-        >
-          <div className="h-9 w-9 rounded-lg bg-sidebar-primary flex items-center justify-center">
-            {isStaff ? (
-              <Shield className="h-5 w-5 text-sidebar-primary-foreground" />
-            ) : (
-              <TrendingUp className="h-5 w-5 text-sidebar-primary-foreground" />
-            )}
+        <div className="flex items-center justify-between">
+          <div
+            className="flex items-center gap-3 cursor-pointer"
+            onClick={() => navigate("/dashboard")}
+          >
+            <div className="h-9 w-9 rounded-lg bg-sidebar-primary flex items-center justify-center">
+              {isStaff ? (
+                <Shield className="h-5 w-5 text-sidebar-primary-foreground" />
+              ) : (
+                <TrendingUp className="h-5 w-5 text-sidebar-primary-foreground" />
+              )}
+            </div>
+            <div>
+              <span className="text-lg font-display font-bold text-sidebar-primary-foreground">
+                PlanB Trading
+              </span>
+              {isStaff && (
+                <p className="text-[10px] font-semibold text-primary uppercase tracking-wider">Backoffice</p>
+              )}
+            </div>
           </div>
-          <div>
-            <span className="text-lg font-display font-bold text-sidebar-primary-foreground">
-              PlanB Trading
-            </span>
-            {isStaff && (
-              <p className="text-[10px] font-semibold text-primary uppercase tracking-wider">Backoffice</p>
-            )}
-          </div>
+          <button
+            onClick={toggleSidebar}
+            className="md:hidden p-1.5 rounded-md text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"
+          >
+            <ChevronsLeft className="h-5 w-5" />
+          </button>
         </div>
         {!isStaff && balance !== null && !collapsed && (
           <div className="mt-3 rounded-lg bg-sidebar-accent px-3 py-2">
