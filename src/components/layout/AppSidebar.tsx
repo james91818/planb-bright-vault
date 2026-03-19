@@ -81,7 +81,7 @@ const AppSidebar = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { isStaff, roleName } = useRole();
-  const { toggleSidebar, state } = useSidebar();
+  const { toggleSidebar, state, isMobile, setOpenMobile } = useSidebar();
   const collapsed = state === "collapsed";
   
   const [balance, setBalance] = useState<number | null>(null);
