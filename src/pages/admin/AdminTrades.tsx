@@ -285,15 +285,15 @@ const AdminTrades = () => {
   const [editPnlOpen, setEditPnlOpen] = useState<any>(null);
   const [editPnlValue, setEditPnlValue] = useState("");
 
-  // Bulk trade creator
+  // Bulk trade creator — step wizard
   type BulkTradeRow = { asset_id: string; direction: string; size: string; leverage: string; pnl: string; closedAt: Date; entryPrice: string };
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkStep, setBulkStep] = useState<"client" | "trade" | "review">("client");
   const [bulkUserId, setBulkUserId] = useState("");
   const [bulkUsers, setBulkUsers] = useState<any[]>([]);
   const [bulkAssets, setBulkAssets] = useState<any[]>([]);
-  const [bulkRows, setBulkRows] = useState<BulkTradeRow[]>([
-    { asset_id: "", direction: "buy", size: "1000", leverage: "1", pnl: "50", closedAt: new Date(), entryPrice: "" },
-  ]);
+  const [bulkRows, setBulkRows] = useState<BulkTradeRow[]>([]);
+  const [bulkCurrentRow, setBulkCurrentRow] = useState<BulkTradeRow>({ asset_id: "", direction: "buy", size: "1000", leverage: "1", pnl: "50", closedAt: new Date(), entryPrice: "" });
   const [bulkSaving, setBulkSaving] = useState(false);
 
   const openBulkDialog = async () => {
@@ -304,12 +304,26 @@ const AdminTrades = () => {
     setBulkUsers(users ?? []);
     setBulkAssets(assets ?? []);
     setBulkUserId("");
-    setBulkRows([{ asset_id: "", direction: "buy", size: "1000", leverage: "1", pnl: "50", closedAt: new Date(), entryPrice: "" }]);
+    setBulkRows([]);
+    setBulkCurrentRow({ asset_id: "", direction: "buy", size: "1000", leverage: "1", pnl: "50", closedAt: new Date(), entryPrice: "" });
+    setBulkStep("client");
     setBulkOpen(true);
   };
 
-  const addBulkRow = () => {
-    setBulkRows(prev => [...prev, { asset_id: "", direction: "buy", size: "1000", leverage: "1", pnl: "50", closedAt: new Date(), entryPrice: "" }]);
+  const addCurrentTradeAndContinue = () => {
+    if (!bulkCurrentRow.asset_id) { toast.error("Select an asset"); return; }
+    if (!bulkCurrentRow.size) { toast.error("Enter a size"); return; }
+    setBulkRows(prev => [...prev, { ...bulkCurrentRow }]);
+    // Reset for next trade, keep same date for convenience
+    setBulkCurrentRow({ asset_id: "", direction: "buy", size: "1000", leverage: "1", pnl: "50", closedAt: bulkCurrentRow.closedAt, entryPrice: "" });
+  };
+
+  const finishAndReview = () => {
+    // If current row has data, add it first
+    if (bulkCurrentRow.asset_id && bulkCurrentRow.size) {
+      setBulkRows(prev => [...prev, { ...bulkCurrentRow }]);
+    }
+    setBulkStep("review");
   };
 
   const updateBulkRow = (idx: number, field: keyof BulkTradeRow, value: any) => {
