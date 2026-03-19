@@ -63,71 +63,73 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/backoffice" element={<AdminLogin />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/account-types" element={<AccountTypes />} />
-          <Route path="/investments" element={<Investments />} />
-          <Route path="/impressum" element={<Impressum />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/welcome" element={<Welcome />} />
-          <Route path="/general-terms" element={<GeneralTerms />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="/risk-warning" element={<RiskWarning />} />
-          <Route path="/terms-conditions" element={<TermsConditions />} />
-          <Route path="/about" element={<AboutUs />} />
-          <Route path="/contact" element={<ContactUs />} />
-          <Route path="/support-center" element={<SupportCenter />} />
-          <Route path="/trading-hours" element={<TradingHours />} />
-          <Route path="/instruments" element={<InstrumentsPage />} />
-          <Route element={<AppLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            {/* Client routes */}
-            <Route path="/trading" element={<Trading />} />
-            <Route path="/wallet" element={<WalletPage />} />
-            <Route path="/staking" element={<Staking />} />
-            <Route path="/watchlist" element={<Watchlist />} />
-            <Route path="/copy-trading" element={<CopyTrading />} />
-            <Route path="/pnl" element={<PnlSummary />} />
-            {/* Admin routes - protected by role */}
-            <Route element={<ProtectedRoute requireStaff />}>
-              <Route path="/admin/users" element={<AdminUsers />} />
-              <Route path="/admin/users/:userId" element={<AdminUserDetail />} />
-              <Route path="/admin/depositors" element={<AdminDepositors />} />
-              <Route path="/admin/balance" element={<AdminBalance />} />
-              <Route path="/admin/deposits" element={<AdminDeposits />} />
-              <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
-              <Route path="/admin/trades" element={<AdminTrades />} />
-              <Route path="/admin/staking" element={<AdminStaking />} />
-              <Route path="/admin/assets" element={<AdminAssets />} />
-              <Route path="/admin/news" element={<AdminNews />} />
-              <Route path="/admin/copy-trading" element={<AdminCopyTrading />} />
-              <Route path="/admin/calendar" element={<AdminCalendar />} />
-              <Route path="/admin/scoreboard" element={<AdminScoreboard />} />
-            </Route>
-            {/* Admin-only routes */}
-            <Route element={<ProtectedRoute allowedRoles={["Admin"]} />}>
-              <Route path="/admin/agents" element={<AdminAgents />} />
-              <Route path="/admin/affiliates" element={<AdminAffiliates />} />
-              <Route path="/admin/roles" element={<AdminRoles />} />
-            </Route>
-            {/* Shared routes */}
-            <Route path="/notifications" element={<Notifications />} />
-            <Route path="/support" element={<Support />} />
-            <Route path="/settings" element={<Settings />} />
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/backoffice" element={<AdminLogin />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/account-types" element={<AccountTypes />} />
+              <Route path="/investments" element={<Investments />} />
+              <Route path="/impressum" element={<Impressum />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/welcome" element={<Welcome />} />
+              <Route path="/general-terms" element={<GeneralTerms />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/risk-warning" element={<RiskWarning />} />
+              <Route path="/terms-conditions" element={<TermsConditions />} />
+              <Route path="/about" element={<AboutUs />} />
+              <Route path="/contact" element={<ContactUs />} />
+              <Route path="/support-center" element={<SupportCenter />} />
+              <Route path="/trading-hours" element={<TradingHours />} />
+              <Route path="/instruments" element={<InstrumentsPage />} />
+              <Route element={<AppLayout />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                {/* Client routes */}
+                <Route path="/trading" element={<Trading />} />
+                <Route path="/wallet" element={<WalletPage />} />
+                <Route path="/staking" element={<Staking />} />
+                <Route path="/watchlist" element={<Watchlist />} />
+                <Route path="/copy-trading" element={<CopyTrading />} />
+                <Route path="/pnl" element={<PnlSummary />} />
+                {/* Admin routes - protected by role */}
+                <Route element={<ProtectedRoute requireStaff />}>
+                  <Route path="/admin/users" element={<AdminUsers />} />
+                  <Route path="/admin/users/:userId" element={<AdminUserDetail />} />
+                  <Route path="/admin/depositors" element={<AdminDepositors />} />
+                  <Route path="/admin/balance" element={<AdminBalance />} />
+                  <Route path="/admin/deposits" element={<AdminDeposits />} />
+                  <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
+                  <Route path="/admin/trades" element={<AdminTrades />} />
+                  <Route path="/admin/staking" element={<AdminStaking />} />
+                  <Route path="/admin/assets" element={<AdminAssets />} />
+                  <Route path="/admin/news" element={<AdminNews />} />
+                  <Route path="/admin/copy-trading" element={<AdminCopyTrading />} />
+                  <Route path="/admin/calendar" element={<AdminCalendar />} />
+                  <Route path="/admin/scoreboard" element={<AdminScoreboard />} />
+                </Route>
+                {/* Admin-only routes */}
+                <Route element={<ProtectedRoute allowedRoles={["Admin"]} />}>
+                  <Route path="/admin/agents" element={<AdminAgents />} />
+                  <Route path="/admin/affiliates" element={<AdminAffiliates />} />
+                  <Route path="/admin/roles" element={<AdminRoles />} />
+                </Route>
+                {/* Shared routes */}
+                <Route path="/notifications" element={<Notifications />} />
+                <Route path="/support" element={<Support />} />
+                <Route path="/settings" element={<Settings />} />
+              </Route>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
