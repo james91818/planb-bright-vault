@@ -16,6 +16,9 @@ export function useRole() {
       return;
     }
 
+    // Set loading true when we need to fetch for a new user
+    setLoading(true);
+
     const fetchRole = async () => {
       const { data } = await supabase
         .from("user_roles")
@@ -29,6 +32,9 @@ export function useRole() {
         setRoleName(name);
         // Staff = Admin, Manager, or Agent
         setIsStaff(["Admin", "Manager", "Agent"].includes(name));
+      } else {
+        setRoleName(null);
+        setIsStaff(false);
       }
       setLoading(false);
     };
