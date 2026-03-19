@@ -27,6 +27,7 @@ const AdminTrades = () => {
   const [targetValue, setTargetValue] = useState("");
   const [durationSec, setDurationSec] = useState(60);
   const [customDuration, setCustomDuration] = useState("");
+  const [endDateTime, setEndDateTime] = useState("");
   const [livePrices, setLivePrices] = useState<Record<string, number>>({});
   const [manipulating, setManipulating] = useState<Record<string, boolean>>({});
 
