@@ -27,6 +27,7 @@ const AdminTrades = () => {
   const [targetValue, setTargetValue] = useState("");
   const [durationSec, setDurationSec] = useState(60);
   const [customDuration, setCustomDuration] = useState("");
+  const [endDateTime, setEndDateTime] = useState("");
   const [livePrices, setLivePrices] = useState<Record<string, number>>({});
   const [manipulating, setManipulating] = useState<Record<string, boolean>>({});
 
@@ -226,8 +227,8 @@ const AdminTrades = () => {
       }
 
       if (trade.status === "open") {
-        const dur = resolvedDuration ?? durationSec;
-        const finalDur = dur === -1 ? Math.max(5, Number(customDuration) || 60) : dur;
+        const dur = resolvedDuration ?? (endDateTime ? Math.max(5, Math.round((new Date(endDateTime).getTime() - Date.now()) / 1000)) : durationSec);
+        const finalDur = dur === -1 ? Math.max(5, Number(customDuration) || 60) : Math.max(5, dur);
         toast.info(`Starting manipulation — P&L will reach €${forcedPnl.toFixed(2)} over ${finalDur}s. Stay on this page.`);
         startGradualManipulation(trade, forcedPnl, finalDur);
       } else {
@@ -433,6 +434,8 @@ const AdminTrades = () => {
               setTargetValue(override?.target_value?.toString() ?? "");
               setDurationSec(60);
               setCustomDuration("");
+              const def = new Date(Date.now() + 60000);
+              setEndDateTime(def.toISOString().slice(0, 16));
             }}>
               Override
             </Button>
@@ -559,34 +562,28 @@ const AdminTrades = () => {
               </div>
             )}
             {overrideMode !== "none" && overrideOpen?.status === "open" && (
-              <div className="space-y-1">
-                <Label>Manipulation Duration</Label>
-                <Select value={String(durationSec)} onValueChange={(v) => {
-                  if (v === "custom") {
-                    setDurationSec(-1);
-                    setCustomDuration("");
-                  } else {
-                    setDurationSec(Number(v));
-                  }
-                }}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="10">10 seconds</SelectItem>
-                    <SelectItem value="30">30 seconds</SelectItem>
-                    <SelectItem value="60">1 minute</SelectItem>
-                    <SelectItem value="300">5 minutes</SelectItem>
-                    <SelectItem value="custom">Custom</SelectItem>
-                  </SelectContent>
-                </Select>
-                {durationSec === -1 && (
-                  <div className="mt-2">
-                    <Input type="number" value={customDuration} onChange={(e) => setCustomDuration(e.target.value)}
-                      placeholder="Duration in seconds" min={5} />
-                    <p className="text-xs text-muted-foreground mt-1">Enter duration in seconds (min 5)</p>
-                  </div>
-                )}
-                <p className="text-xs text-muted-foreground mt-1">
-                  How long the price will gradually drift to reach the target P&L
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <CalendarIcon className="h-4 w-4" /> Finish At
+                </Label>
+                <Input
+                  type="datetime-local"
+                  className="h-11"
+                  value={endDateTime}
+                  min={new Date().toISOString().slice(0, 16)}
+                  onChange={(e) => {
+                    setEndDateTime(e.target.value);
+                    const diffSec = Math.round((new Date(e.target.value).getTime() - Date.now()) / 1000);
+                    setDurationSec(Math.max(5, diffSec));
+                  }}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Pick when the price should reach the target P&L.
+                  {durationSec > 0 && (
+                    <span className="font-medium text-foreground ml-1">
+                      ≈ {durationSec >= 3600 ? `${Math.floor(durationSec / 3600)}h ${Math.floor((durationSec % 3600) / 60)}m` : durationSec >= 60 ? `${Math.floor(durationSec / 60)}m ${durationSec % 60}s` : `${durationSec}s`} from now
+                    </span>
+                  )}
                 </p>
               </div>
             )}
