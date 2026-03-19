@@ -326,13 +326,8 @@ const AdminTrades = () => {
     setBulkStep("review");
   };
 
-  const updateBulkRow = (idx: number, field: keyof BulkTradeRow, value: any) => {
-    setBulkRows(prev => prev.map((r, i) => i === idx ? { ...r, [field]: value } : r));
-  };
 
-  const removeBulkRow = (idx: number) => {
-    setBulkRows(prev => prev.filter((_, i) => i !== idx));
-  };
+
 
   const submitBulkTrades = async () => {
     if (!bulkUserId) { toast.error("Select a client"); return; }
