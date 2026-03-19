@@ -482,14 +482,20 @@ const Trading = () => {
       setCandles(prev => {
         if (!prev.length) return prev;
         const last = { ...prev[prev.length - 1] };
-        // Very small micro-ticks to simulate live movement without drifting from real price
+        // Very small micro-ticks to simulate live movement without drifting from target price
         const volatility = last.c < 1 ? 0.0003 : last.c < 100 ? 0.00015 : 0.00008;
-        // Mean-revert toward real API price to prevent drift
-        const realPrice = realApiPrices[selectedAsset?.symbol ?? ""];
+        // Check if there's an active manipulation on the selected asset — use manipulated price as anchor
+        const manipulatedTrade = openTrades.find(t => 
+          t.assets?.symbol === selectedAsset?.symbol && t.current_price != null && t.pnl != null && Number(t.pnl) !== 0
+        );
+        const anchorPrice = manipulatedTrade 
+          ? Number(manipulatedTrade.current_price) 
+          : (realApiPrices[selectedAsset?.symbol ?? ""] || 0);
         let drift = 0;
-        if (realPrice && realPrice > 0) {
-          const deviation = (last.c - realPrice) / realPrice;
-          drift = -deviation * 0.05; // gentle pull back toward real price
+        if (anchorPrice && anchorPrice > 0) {
+          const deviation = (last.c - anchorPrice) / anchorPrice;
+          // Stronger pull toward manipulated price to keep chart in sync
+          drift = -deviation * (manipulatedTrade ? 0.15 : 0.05);
         }
         const tick = ((Math.random() - 0.5) * last.c * volatility) + (last.c * drift);
         last.c = +(last.c + tick).toFixed(last.c < 1 ? 6 : 2);
