@@ -11,7 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { User, Shield, LogOut, Tag, Plus, Pencil, Trash2, Globe, Bell, UserCog, Lock, Palette, FileText, Users } from "lucide-react";
+import { User, Shield, LogOut, Tag, Plus, Pencil, Trash2, Globe, Bell, UserCog, Lock, Palette, FileText, Users, Sun, Moon } from "lucide-react";
+import { useTheme } from "@/hooks/useTheme";
 import RolesManager from "@/components/admin/RolesManager";
 import AssetsManager from "@/components/admin/AssetsManager";
 import { useNavigate } from "react-router-dom";
@@ -27,6 +28,7 @@ const Settings = () => {
   const { isStaff, roleName } = useRole();
   const isAdmin = roleName === "Admin";
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ full_name: "", phone: "", country: "" });
@@ -208,6 +210,21 @@ const Settings = () => {
                 </div>
               </div>
               <Button onClick={updateProfile}>Save Changes</Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base font-display flex items-center gap-2">
+                {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />} Appearance
+              </CardTitle>
+              <CardDescription>Toggle between light and dark mode</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <Label>Dark Mode</Label>
+                <Switch checked={theme === "dark"} onCheckedChange={toggleTheme} />
+              </div>
             </CardContent>
           </Card>
 

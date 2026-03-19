@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   ChevronsLeft,
-  Sun,
-  Moon,
   LayoutDashboard,
   TrendingUp,
   Wallet,
@@ -42,7 +40,6 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { useRole } from "@/hooks/useRole";
-import { useTheme } from "@/hooks/useTheme";
 import { supabase } from "@/integrations/supabase/client";
 
 const clientNav = [
@@ -86,7 +83,7 @@ const AppSidebar = () => {
   const { isStaff, roleName } = useRole();
   const { toggleSidebar, state } = useSidebar();
   const collapsed = state === "collapsed";
-  const { theme, toggleTheme } = useTheme();
+  
   const [balance, setBalance] = useState<number | null>(null);
 
   const mainNav = isStaff
@@ -211,12 +208,7 @@ const AppSidebar = () => {
 
       <SidebarFooter className="p-2">
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton onClick={toggleTheme} tooltip={theme === "light" ? "Dark Mode" : "Light Mode"}>
-              {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-              <span>{theme === "light" ? "Dark Mode" : "Light Mode"}</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          
           <SidebarMenuItem>
             <SidebarMenuButton onClick={() => navigate("/")} tooltip="Back to Website">
               <Globe className="h-4 w-4" />
