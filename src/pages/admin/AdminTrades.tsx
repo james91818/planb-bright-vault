@@ -597,6 +597,104 @@ const AdminTrades = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Bulk Trade Creator Dialog */}
+      <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>Create Multiple Trades</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <Label>Client</Label>
+              <Select value={bulkUserId} onValueChange={setBulkUserId}>
+                <SelectTrigger><SelectValue placeholder="Select client..." /></SelectTrigger>
+                <SelectContent>
+                  {bulkUsers.map(u => (
+                    <SelectItem key={u.id} value={u.id}>{u.full_name || u.email || u.id}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-3">
+              {bulkRows.map((row, idx) => (
+                <div key={idx} className="rounded-lg border p-3 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-muted-foreground">Trade #{idx + 1}</span>
+                    {bulkRows.length > 1 && (
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-destructive" onClick={() => removeBulkRow(idx)}>
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Asset</Label>
+                      <Select value={row.asset_id} onValueChange={v => updateBulkRow(idx, "asset_id", v)}>
+                        <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Asset" /></SelectTrigger>
+                        <SelectContent>
+                          {bulkAssets.map(a => (
+                            <SelectItem key={a.id} value={a.id}>{a.symbol}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Direction</Label>
+                      <Select value={row.direction} onValueChange={v => updateBulkRow(idx, "direction", v)}>
+                        <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="buy">Buy</SelectItem>
+                          <SelectItem value="sell">Sell</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Size (€)</Label>
+                      <Input className="h-8 text-xs" type="number" value={row.size} onChange={e => updateBulkRow(idx, "size", e.target.value)} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Leverage</Label>
+                      <Input className="h-8 text-xs" type="number" value={row.leverage} onChange={e => updateBulkRow(idx, "leverage", e.target.value)} min="1" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">P&L (€)</Label>
+                      <Input className="h-8 text-xs" type="number" value={row.pnl} onChange={e => updateBulkRow(idx, "pnl", e.target.value)} placeholder="+50 or -100" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Entry Price (opt.)</Label>
+                      <Input className="h-8 text-xs" type="number" value={row.entryPrice} onChange={e => updateBulkRow(idx, "entryPrice", e.target.value)} placeholder="Auto" />
+                    </div>
+                    <div className="space-y-1 col-span-2">
+                      <Label className="text-xs">Close Date</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className={cn("h-8 w-full justify-start text-left text-xs font-normal", !row.closedAt && "text-muted-foreground")}>
+                            <CalendarIcon className="mr-1 h-3 w-3" />
+                            {row.closedAt ? format(row.closedAt, "PPP") : "Pick date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar mode="single" selected={row.closedAt} onSelect={d => d && updateBulkRow(idx, "closedAt", d)} initialFocus className={cn("p-3 pointer-events-auto")} />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <Button variant="outline" size="sm" onClick={addBulkRow} className="w-full">
+              <Plus className="h-4 w-4 mr-1" /> Add Another Trade
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkOpen(false)}>Cancel</Button>
+            <Button onClick={submitBulkTrades} disabled={bulkSaving}>
+              {bulkSaving ? "Creating..." : `Create ${bulkRows.length} Trade(s)`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
