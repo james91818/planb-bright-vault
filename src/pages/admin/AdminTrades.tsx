@@ -434,6 +434,8 @@ const AdminTrades = () => {
               setTargetValue(override?.target_value?.toString() ?? "");
               setDurationSec(60);
               setCustomDuration("");
+              const def = new Date(Date.now() + 60000);
+              setEndDateTime(def.toISOString().slice(0, 16));
             }}>
               Override
             </Button>
