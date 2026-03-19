@@ -54,7 +54,18 @@ const AdminTrades = () => {
 
   useEffect(() => { fetchTrades(); }, []);
 
-  // Fetch live prices for P&L
+  // Realtime subscription for trade changes
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-trades')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'trades' }, () => {
+        fetchTrades();
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
+  // Fetch live prices for P&L every 2 seconds
   const refreshPrices = useCallback(async () => {
     const symbols = [...new Set(trades.map((t: any) => t.assets?.symbol).filter(Boolean))] as string[];
     if (symbols.length) {
@@ -66,7 +77,7 @@ const AdminTrades = () => {
   useEffect(() => { refreshPrices(); }, [refreshPrices]);
   useEffect(() => {
     if (!trades.length) return;
-    const interval = setInterval(refreshPrices, 30000);
+    const interval = setInterval(refreshPrices, 2000);
     return () => clearInterval(interval);
   }, [trades, refreshPrices]);
 
