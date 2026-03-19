@@ -270,6 +270,90 @@ const AdminTrades = () => {
   const [editPnlOpen, setEditPnlOpen] = useState<any>(null);
   const [editPnlValue, setEditPnlValue] = useState("");
 
+  // Bulk trade creator
+  type BulkTradeRow = { asset_id: string; direction: string; size: string; leverage: string; pnl: string; closedAt: Date; entryPrice: string };
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkUserId, setBulkUserId] = useState("");
+  const [bulkUsers, setBulkUsers] = useState<any[]>([]);
+  const [bulkAssets, setBulkAssets] = useState<any[]>([]);
+  const [bulkRows, setBulkRows] = useState<BulkTradeRow[]>([
+    { asset_id: "", direction: "buy", size: "1000", leverage: "1", pnl: "50", closedAt: new Date(), entryPrice: "" },
+  ]);
+  const [bulkSaving, setBulkSaving] = useState(false);
+
+  const openBulkDialog = async () => {
+    const [{ data: users }, { data: assets }] = await Promise.all([
+      supabase.from("profiles").select("id, full_name, email").order("full_name"),
+      supabase.from("assets").select("id, symbol, name").eq("enabled", true).order("symbol"),
+    ]);
+    setBulkUsers(users ?? []);
+    setBulkAssets(assets ?? []);
+    setBulkUserId("");
+    setBulkRows([{ asset_id: "", direction: "buy", size: "1000", leverage: "1", pnl: "50", closedAt: new Date(), entryPrice: "" }]);
+    setBulkOpen(true);
+  };
+
+  const addBulkRow = () => {
+    setBulkRows(prev => [...prev, { asset_id: "", direction: "buy", size: "1000", leverage: "1", pnl: "50", closedAt: new Date(), entryPrice: "" }]);
+  };
+
+  const updateBulkRow = (idx: number, field: keyof BulkTradeRow, value: any) => {
+    setBulkRows(prev => prev.map((r, i) => i === idx ? { ...r, [field]: value } : r));
+  };
+
+  const removeBulkRow = (idx: number) => {
+    setBulkRows(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  const submitBulkTrades = async () => {
+    if (!bulkUserId) { toast.error("Select a client"); return; }
+    const validRows = bulkRows.filter(r => r.asset_id && r.size && r.pnl);
+    if (!validRows.length) { toast.error("Add at least one valid trade"); return; }
+
+    setBulkSaving(true);
+    let totalPnlDelta = 0;
+
+    for (const row of validRows) {
+      const entryPrice = row.entryPrice ? Number(row.entryPrice) : (livePrices[bulkAssets.find(a => a.id === row.asset_id)?.symbol] || 0);
+      const size = Number(row.size);
+      const pnl = Number(row.pnl);
+      const leverage = Number(row.leverage) || 1;
+
+      const { error } = await supabase.from("trades").insert({
+        user_id: bulkUserId,
+        asset_id: row.asset_id,
+        direction: row.direction,
+        size,
+        leverage,
+        entry_price: entryPrice,
+        current_price: entryPrice,
+        pnl,
+        status: "closed",
+        opened_at: row.closedAt.toISOString(),
+        closed_at: row.closedAt.toISOString(),
+      });
+
+      if (error) {
+        toast.error(`Failed to create trade: ${error.message}`);
+        setBulkSaving(false);
+        return;
+      }
+
+      totalPnlDelta += size + pnl;
+    }
+
+    // Credit wallet with total size + pnl
+    const { data: wallet } = await supabase.from("wallets").select("id, balance").eq("user_id", bulkUserId).eq("currency", "EUR").maybeSingle();
+    if (wallet) {
+      await supabase.from("wallets").update({ balance: Number(wallet.balance) + totalPnlDelta }).eq("id", wallet.id);
+    }
+
+    toast.success(`${validRows.length} trade(s) created`);
+    setBulkSaving(false);
+    setBulkOpen(false);
+    fetchTrades();
+  };
+
   const renderTradeRow = (t: any, isClosed: boolean) => {
     const override = t.trade_overrides?.[0];
     const symbol = t.assets?.symbol;
