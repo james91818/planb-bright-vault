@@ -659,70 +659,104 @@ const AdminTrades = () => {
 
           {/* STEP 2: Add Trade */}
           {bulkStep === "trade" && (
-            <div className="space-y-4">
+            <div className="space-y-5">
               {bulkRows.length > 0 && (
-                <div className="rounded-md bg-muted/50 p-2">
-                  <p className="text-xs text-muted-foreground font-medium mb-1">{bulkRows.length} trade(s) added:</p>
+                <div className="rounded-xl bg-success/5 border border-success/20 p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CheckCircle2 className="h-4 w-4 text-success" />
+                    <p className="text-sm font-semibold text-success">{bulkRows.length} trade(s) ready</p>
+                  </div>
                   {bulkRows.map((r, i) => (
-                    <div key={i} className="flex items-center justify-between text-xs py-0.5">
-                      <span>{bulkAssets.find(a => a.id === r.asset_id)?.symbol} · {r.direction.toUpperCase()} · €{r.size} · P&L €{r.pnl}</span>
-                      <Button variant="ghost" size="sm" className="h-5 w-5 p-0 text-destructive" onClick={() => setBulkRows(prev => prev.filter((_, j) => j !== i))}>
-                        <Trash2 className="h-3 w-3" />
+                    <div key={i} className="flex items-center justify-between text-sm py-1">
+                      <span className="text-muted-foreground">{bulkAssets.find(a => a.id === r.asset_id)?.symbol} · {r.direction.toUpperCase()} · €{r.size} · P&L €{r.pnl}</span>
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10" onClick={() => setBulkRows(prev => prev.filter((_, j) => j !== i))}>
+                        <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>
                   ))}
                 </div>
               )}
 
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs font-medium">Asset</Label>
+              <div className="space-y-4">
+                {/* Asset & Direction — big and obvious */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold flex items-center gap-1.5">
+                      <Tag className="h-4 w-4 text-primary" /> Asset
+                    </Label>
                     <Select value={bulkCurrentRow.asset_id} onValueChange={v => setBulkCurrentRow(r => ({ ...r, asset_id: v }))}>
-                      <SelectTrigger className="h-9"><SelectValue placeholder="Select..." /></SelectTrigger>
+                      <SelectTrigger className="h-12 text-base"><SelectValue placeholder="Pick asset..." /></SelectTrigger>
                       <SelectContent>
                         {bulkAssets.map(a => (
-                          <SelectItem key={a.id} value={a.id}>{a.symbol}</SelectItem>
+                          <SelectItem key={a.id} value={a.id}>{a.symbol} — {a.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs font-medium">Direction</Label>
-                    <Select value={bulkCurrentRow.direction} onValueChange={v => setBulkCurrentRow(r => ({ ...r, direction: v }))}>
-                      <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="buy">Buy</SelectItem>
-                        <SelectItem value="sell">Sell</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold flex items-center gap-1.5">
+                      <TrendingUp className="h-4 w-4 text-primary" /> Direction
+                    </Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        type="button"
+                        variant={bulkCurrentRow.direction === "buy" ? "default" : "outline"}
+                        className={cn("h-12 text-base font-semibold", bulkCurrentRow.direction === "buy" && "bg-success hover:bg-success/90 text-success-foreground")}
+                        onClick={() => setBulkCurrentRow(r => ({ ...r, direction: "buy" }))}
+                      >
+                        <TrendingUp className="h-5 w-5 mr-2" /> BUY
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={bulkCurrentRow.direction === "sell" ? "default" : "outline"}
+                        className={cn("h-12 text-base font-semibold", bulkCurrentRow.direction === "sell" && "bg-destructive hover:bg-destructive/90 text-destructive-foreground")}
+                        onClick={() => setBulkCurrentRow(r => ({ ...r, direction: "sell" }))}
+                      >
+                        <TrendingDown className="h-5 w-5 mr-2" /> SELL
+                      </Button>
+                    </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs font-medium">Size (€)</Label>
-                    <Input className="h-9" type="number" value={bulkCurrentRow.size} onChange={e => setBulkCurrentRow(r => ({ ...r, size: e.target.value }))} />
+
+                {/* Size, Leverage, P&L — clear labels with icons */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold flex items-center gap-1.5">
+                      <DollarSign className="h-4 w-4 text-primary" /> Size (€)
+                    </Label>
+                    <Input className="h-12 text-base font-medium" type="number" value={bulkCurrentRow.size} onChange={e => setBulkCurrentRow(r => ({ ...r, size: e.target.value }))} placeholder="1000" />
                   </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs font-medium">Leverage</Label>
-                    <Input className="h-9" type="number" value={bulkCurrentRow.leverage} onChange={e => setBulkCurrentRow(r => ({ ...r, leverage: e.target.value }))} min="1" />
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold flex items-center gap-1.5">
+                      <Layers className="h-4 w-4 text-primary" /> Leverage
+                    </Label>
+                    <Input className="h-12 text-base font-medium" type="number" value={bulkCurrentRow.leverage} onChange={e => setBulkCurrentRow(r => ({ ...r, leverage: e.target.value }))} min="1" placeholder="1" />
                   </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs font-medium">P&L (€)</Label>
-                    <Input className="h-9" type="number" value={bulkCurrentRow.pnl} onChange={e => setBulkCurrentRow(r => ({ ...r, pnl: e.target.value }))} placeholder="+50" />
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold flex items-center gap-1.5">
+                      <Target className="h-4 w-4 text-primary" /> P&L (€)
+                    </Label>
+                    <Input className="h-12 text-base font-medium" type="number" value={bulkCurrentRow.pnl} onChange={e => setBulkCurrentRow(r => ({ ...r, pnl: e.target.value }))} placeholder="+50 or -100" />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs font-medium">Entry Price <span className="text-muted-foreground">(optional)</span></Label>
-                    <Input className="h-9" type="number" value={bulkCurrentRow.entryPrice} onChange={e => setBulkCurrentRow(r => ({ ...r, entryPrice: e.target.value }))} placeholder="Auto from market" />
+
+                {/* Entry Price & Close Date */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold flex items-center gap-1.5">
+                      <DollarSign className="h-4 w-4 text-muted-foreground" /> Entry Price
+                      <span className="text-xs font-normal text-muted-foreground ml-1">(optional)</span>
+                    </Label>
+                    <Input className="h-12 text-base" type="number" value={bulkCurrentRow.entryPrice} onChange={e => setBulkCurrentRow(r => ({ ...r, entryPrice: e.target.value }))} placeholder="Auto from market" />
                   </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs font-medium">Close Date</Label>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold flex items-center gap-1.5">
+                      <CalendarIcon className="h-4 w-4 text-primary" /> Close Date
+                    </Label>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button variant="outline" className={cn("h-9 w-full justify-start text-left text-sm font-normal", !bulkCurrentRow.closedAt && "text-muted-foreground")}>
-                          <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
+                        <Button variant="outline" className={cn("h-12 w-full justify-start text-left text-base font-normal", !bulkCurrentRow.closedAt && "text-muted-foreground")}>
+                          <CalendarIcon className="mr-2 h-4 w-4" />
                           {bulkCurrentRow.closedAt ? format(bulkCurrentRow.closedAt, "PPP") : "Pick date"}
                         </Button>
                       </PopoverTrigger>
@@ -734,16 +768,19 @@ const AdminTrades = () => {
                 </div>
               </div>
 
-              <DialogFooter className="flex gap-2 sm:gap-2">
-                <Button variant="outline" onClick={() => setBulkStep("client")} size="sm">← Back</Button>
+              {/* Action buttons — big and clear */}
+              <div className="flex items-center gap-3 pt-2">
+                <Button variant="outline" onClick={() => setBulkStep("client")} className="h-11">
+                  ← Back
+                </Button>
                 <div className="flex-1" />
-                <Button variant="secondary" onClick={addCurrentTradeAndContinue} size="sm">
-                  <Plus className="h-3.5 w-3.5 mr-1" /> Add & Next Trade
+                <Button variant="secondary" onClick={addCurrentTradeAndContinue} className="h-11 text-sm font-semibold">
+                  <Plus className="h-4 w-4 mr-1.5" /> Add & Next Trade
                 </Button>
-                <Button onClick={finishAndReview} size="sm">
-                  Done → Review
+                <Button onClick={finishAndReview} className="h-11 text-sm font-semibold">
+                  Done <ArrowRight className="h-4 w-4 ml-1.5" />
                 </Button>
-              </DialogFooter>
+              </div>
             </div>
           )}
 
