@@ -1060,9 +1060,10 @@ const Trading = () => {
                   <tbody>
                     {openTrades.map(t => {
                       const symbol = t.assets?.symbol;
-                      // Use admin-set current_price if available (manipulation), otherwise live market price
+                      // If admin has locked P&L (current_price set + pnl non-zero), use stored values
+                      const adminLocked = t.current_price != null && t.pnl != null && Number(t.pnl) !== 0;
                       const priceForPnl = t.current_price ? Number(t.current_price) : (livePrices[symbol ?? ""] || undefined);
-                      const pnl = computeLivePnl(t, priceForPnl);
+                      const pnl = adminLocked ? Number(t.pnl) : computeLivePnl(t, priceForPnl);
                       const displayPrice = t.current_price ? Number(t.current_price) : (livePrices[symbol ?? ""] || Number(t.entry_price));
                       const tradeIcon = t.assets ? getAssetIcon(t.assets.symbol, null) : null;
                       return (
