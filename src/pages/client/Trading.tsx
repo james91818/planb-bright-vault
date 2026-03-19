@@ -307,9 +307,12 @@ const Trading = () => {
   const [realApiPrices, setRealApiPrices] = useState<Record<string, number>>({});
   const openTradeSnapshots = useMemo(() => Object.fromEntries(openTrades.map((trade) => {
     const symbol = trade.assets?.symbol ?? "";
-    const snapshotPrice = trade.current_price ? Number(trade.current_price) : (livePrices[symbol] || undefined);
+    // If admin has locked P&L (current_price set + pnl non-zero), use stored values directly
+    const adminLocked = trade.current_price != null && trade.pnl != null && Number(trade.pnl) !== 0;
     const displayPrice = trade.current_price ? Number(trade.current_price) : (livePrices[symbol] || Number(trade.entry_price));
-    const displayPnl = computeLivePnl(trade, snapshotPrice);
+    const displayPnl = adminLocked
+      ? Number(trade.pnl)
+      : computeLivePnl(trade, trade.current_price ? Number(trade.current_price) : (livePrices[symbol] || undefined));
 
     return [trade.id, { displayPrice, displayPnl }];
   })), [openTrades, livePrices]);
@@ -1057,9 +1060,10 @@ const Trading = () => {
                   <tbody>
                     {openTrades.map(t => {
                       const symbol = t.assets?.symbol;
-                      // Use admin-set current_price if available (manipulation), otherwise live market price
+                      // If admin has locked P&L (current_price set + pnl non-zero), use stored values
+                      const adminLocked = t.current_price != null && t.pnl != null && Number(t.pnl) !== 0;
                       const priceForPnl = t.current_price ? Number(t.current_price) : (livePrices[symbol ?? ""] || undefined);
-                      const pnl = computeLivePnl(t, priceForPnl);
+                      const pnl = adminLocked ? Number(t.pnl) : computeLivePnl(t, priceForPnl);
                       const displayPrice = t.current_price ? Number(t.current_price) : (livePrices[symbol ?? ""] || Number(t.entry_price));
                       const tradeIcon = t.assets ? getAssetIcon(t.assets.symbol, null) : null;
                       return (

@@ -234,8 +234,8 @@ const AdminTrades = () => {
         fetchTrades();
       }
     } else {
-      // Remove override — reset current_price to null
-      await supabase.from("trades").update({ current_price: null }).eq("id", trade.id);
+      // Remove override — reset current_price and pnl so live calculation takes over
+      await supabase.from("trades").update({ current_price: null, pnl: 0 }).eq("id", trade.id);
       toast.success("Override removed");
       fetchTrades();
     }
@@ -357,15 +357,16 @@ const AdminTrades = () => {
   const renderTradeRow = (t: any, isClosed: boolean) => {
     const override = t.trade_overrides?.[0];
     const symbol = t.assets?.symbol;
-    // If there's an active override with a target P&L, use that instead of live price
+    // Priority: 1) closed = stored pnl, 2) active override = target_value,
+    // 3) admin-set current_price with stored pnl (manipulation done) = stored pnl,
+    // 4) live market calculation
     const hasActiveOverride = override?.is_active && override?.override_mode !== "none" && override?.target_value != null;
-    // Also check if the trade's pnl was locked by manipulation (pnl is set and differs from live calc)
-    const manipulationLocked = !isClosed && t.pnl != null && Number(t.pnl) !== 0 && manipulating[t.id] !== true;
+    const hasAdminLockedPnl = !isClosed && t.current_price != null && t.pnl != null && Number(t.pnl) !== 0;
     const pnl = isClosed
       ? Number(t.pnl ?? 0)
       : hasActiveOverride
         ? Number(override.target_value)
-        : manipulationLocked
+        : hasAdminLockedPnl
           ? Number(t.pnl)
           : computeLivePnl(t, livePrices[symbol]);
     return (
