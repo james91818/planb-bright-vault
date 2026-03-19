@@ -214,6 +214,20 @@ const Settings = () => {
           </Card>
 
           <Card>
+            <CardHeader>
+              <CardTitle className="text-base font-display flex items-center gap-2">
+                {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />} Appearance
+              </CardTitle>
+              <CardDescription>Toggle between light and dark mode</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <Label>Dark Mode</Label>
+                <Switch checked={theme === "dark"} onCheckedChange={toggleTheme} />
+              </div>
+            </CardContent>
+          </Card>
+
             <CardContent className="p-4">
               <Button variant="destructive" onClick={handleSignOut}>
                 <LogOut className="h-4 w-4 mr-2" /> Sign Out
