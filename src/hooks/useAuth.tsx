@@ -1,41 +1,48 @@
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 
-export function useAuth() {
+type AuthContextValue = {
+  user: User | null;
+  session: Session | null;
+  loading: boolean;
+  signOut: () => Promise<void>;
+};
+
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // If session-only flag is set, clear session on page load if browser was closed
     const sessionOnly = localStorage.getItem("planb-session-only");
     const tabActive = sessionStorage.getItem("planb-tab-active");
 
     if (sessionOnly === "true" && !tabActive) {
-      // Browser was closed and reopened — sign out
       supabase.auth.signOut().then(() => {
         localStorage.removeItem("planb-session-only");
+        setSession(null);
+        setUser(null);
         setLoading(false);
       });
-    } else if (sessionOnly === "true") {
-      // Tab is still active, keep session
+      return;
     }
 
-    // Mark tab as active
     sessionStorage.setItem("planb-tab-active", "true");
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    );
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession);
+      setUser(nextSession?.user ?? null);
+      setLoading(false);
+    });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    supabase.auth.getSession().then(({ data: { session: nextSession } }) => {
+      setSession(nextSession);
+      setUser(nextSession?.user ?? null);
       setLoading(false);
     });
 
@@ -44,7 +51,24 @@ export function useAuth() {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    setSession(null);
+    setUser(null);
   };
 
-  return { user, session, loading, signOut };
+  const value = useMemo(
+    () => ({ user, session, loading, signOut }),
+    [user, session, loading],
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+
+  return context;
 }
