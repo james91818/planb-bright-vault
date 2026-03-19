@@ -254,11 +254,11 @@ curl -X POST "${baseUrl}" \\
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => {
                               const docs = getDocsContent(a);
-                              const blob = new Blob([docs], { type: "text/markdown" });
+                              const blob = new Blob([docs], { type: "text/plain" });
                               const url = URL.createObjectURL(blob);
                               const link = document.createElement("a");
                               link.href = url;
-                              link.download = `affiliate-api-docs-${a.name.toLowerCase().replace(/\s+/g, "-")}.md`;
+                              link.download = `affiliate-api-docs-${a.name.toLowerCase().replace(/\s+/g, "-")}.txt`;
                               link.click();
                               URL.revokeObjectURL(url);
                             }}>
