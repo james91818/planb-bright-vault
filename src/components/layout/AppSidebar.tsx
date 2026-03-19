@@ -109,6 +109,11 @@ const AppSidebar = () => {
     navigate("/login");
   };
 
+  const handleNavigate = (path: string) => {
+    navigate(path);
+    if (isMobile) setOpenMobile(false);
+  };
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-4">
