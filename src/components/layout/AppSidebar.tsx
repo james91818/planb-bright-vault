@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   ChevronsLeft,
-  Sun,
-  Moon,
   LayoutDashboard,
   TrendingUp,
   Wallet,
