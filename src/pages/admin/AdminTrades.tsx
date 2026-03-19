@@ -278,7 +278,13 @@ const AdminTrades = () => {
   const renderTradeRow = (t: any, isClosed: boolean) => {
     const override = t.trade_overrides?.[0];
     const symbol = t.assets?.symbol;
-    const pnl = isClosed ? Number(t.pnl ?? 0) : computeLivePnl(t, livePrices[symbol]);
+    // If there's an active override with a target P&L, use that instead of live price
+    const hasActiveOverride = override?.is_active && override?.override_mode !== "none" && override?.target_value != null;
+    const pnl = isClosed
+      ? Number(t.pnl ?? 0)
+      : hasActiveOverride
+        ? Number(override.target_value)
+        : computeLivePnl(t, livePrices[symbol]);
     return (
       <tr key={t.id} className="border-b last:border-0 hover:bg-muted/30">
         <td className="p-3">
