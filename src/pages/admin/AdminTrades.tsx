@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { CalendarIcon, Plus, Trash2 } from "lucide-react";
+import { CalendarIcon, Plus, Trash2, TrendingUp, TrendingDown, DollarSign, Layers, Target, Tag, ArrowRight, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const AdminTrades = () => {
