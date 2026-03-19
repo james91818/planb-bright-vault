@@ -436,9 +436,14 @@ const AdminTrades = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-display font-bold">Trades</h1>
-        <p className="text-muted-foreground text-sm">View and manage all client trades</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-display font-bold">Trades</h1>
+          <p className="text-muted-foreground text-sm">View and manage all client trades</p>
+        </div>
+        <Button onClick={openBulkDialog} size="sm">
+          <Plus className="h-4 w-4 mr-1" /> Create Trades
+        </Button>
       </div>
 
       {/* Open Trades */}
