@@ -629,7 +629,7 @@ const AdminTrades = () => {
 
       {/* Bulk Trade Creator — Step Wizard */}
       <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
-        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {bulkStep === "client" ? "Step 1: Select Client" : bulkStep === "trade" ? `Step 2: Add Trade #${bulkRows.length + 1}` : "Step 3: Review & Create"}
