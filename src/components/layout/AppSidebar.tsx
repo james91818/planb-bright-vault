@@ -120,7 +120,7 @@ const AppSidebar = () => {
         <div className="flex items-center justify-between">
           <div
             className="flex items-center gap-3 cursor-pointer"
-            onClick={() => navigate("/dashboard")}
+            onClick={() => handleNavigate("/dashboard")}
           >
             <div className="h-9 w-9 rounded-lg bg-sidebar-primary flex items-center justify-center">
               {isStaff ? (
