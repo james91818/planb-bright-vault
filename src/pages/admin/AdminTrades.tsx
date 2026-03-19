@@ -632,13 +632,19 @@ const AdminTrades = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Bulk Trade Creator Dialog */}
+      {/* Bulk Trade Creator — Step Wizard */}
       <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Create Multiple Trades</DialogTitle></DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-1">
-              <Label>Client</Label>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {bulkStep === "client" ? "Step 1: Select Client" : bulkStep === "trade" ? `Step 2: Add Trade #${bulkRows.length + 1}` : "Step 3: Review & Create"}
+            </DialogTitle>
+          </DialogHeader>
+
+          {/* STEP 1: Select Client */}
+          {bulkStep === "client" && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">Choose which client these trades belong to.</p>
               <Select value={bulkUserId} onValueChange={setBulkUserId}>
                 <SelectTrigger><SelectValue placeholder="Select client..." /></SelectTrigger>
                 <SelectContent>
@@ -647,86 +653,154 @@ const AdminTrades = () => {
                   ))}
                 </SelectContent>
               </Select>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setBulkOpen(false)}>Cancel</Button>
+                <Button onClick={() => { if (!bulkUserId) { toast.error("Select a client"); return; } setBulkStep("trade"); }} disabled={!bulkUserId}>
+                  Next →
+                </Button>
+              </DialogFooter>
             </div>
+          )}
 
-            <div className="space-y-3">
-              {bulkRows.map((row, idx) => (
-                <div key={idx} className="rounded-lg border p-3 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-muted-foreground">Trade #{idx + 1}</span>
-                    {bulkRows.length > 1 && (
-                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-destructive" onClick={() => removeBulkRow(idx)}>
+          {/* STEP 2: Add Trade */}
+          {bulkStep === "trade" && (
+            <div className="space-y-4">
+              {bulkRows.length > 0 && (
+                <div className="rounded-md bg-muted/50 p-2">
+                  <p className="text-xs text-muted-foreground font-medium mb-1">{bulkRows.length} trade(s) added:</p>
+                  {bulkRows.map((r, i) => (
+                    <div key={i} className="flex items-center justify-between text-xs py-0.5">
+                      <span>{bulkAssets.find(a => a.id === r.asset_id)?.symbol} · {r.direction.toUpperCase()} · €{r.size} · P&L €{r.pnl}</span>
+                      <Button variant="ghost" size="sm" className="h-5 w-5 p-0 text-destructive" onClick={() => setBulkRows(prev => prev.filter((_, j) => j !== i))}>
                         <Trash2 className="h-3 w-3" />
                       </Button>
-                    )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs font-medium">Asset</Label>
+                    <Select value={bulkCurrentRow.asset_id} onValueChange={v => setBulkCurrentRow(r => ({ ...r, asset_id: v }))}>
+                      <SelectTrigger className="h-9"><SelectValue placeholder="Select..." /></SelectTrigger>
+                      <SelectContent>
+                        {bulkAssets.map(a => (
+                          <SelectItem key={a.id} value={a.id}>{a.symbol}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    <div className="space-y-1">
-                      <Label className="text-xs">Asset</Label>
-                      <Select value={row.asset_id} onValueChange={v => updateBulkRow(idx, "asset_id", v)}>
-                        <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Asset" /></SelectTrigger>
-                        <SelectContent>
-                          {bulkAssets.map(a => (
-                            <SelectItem key={a.id} value={a.id}>{a.symbol}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Direction</Label>
-                      <Select value={row.direction} onValueChange={v => updateBulkRow(idx, "direction", v)}>
-                        <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="buy">Buy</SelectItem>
-                          <SelectItem value="sell">Sell</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Size (€)</Label>
-                      <Input className="h-8 text-xs" type="number" value={row.size} onChange={e => updateBulkRow(idx, "size", e.target.value)} />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Leverage</Label>
-                      <Input className="h-8 text-xs" type="number" value={row.leverage} onChange={e => updateBulkRow(idx, "leverage", e.target.value)} min="1" />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">P&L (€)</Label>
-                      <Input className="h-8 text-xs" type="number" value={row.pnl} onChange={e => updateBulkRow(idx, "pnl", e.target.value)} placeholder="+50 or -100" />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Entry Price (opt.)</Label>
-                      <Input className="h-8 text-xs" type="number" value={row.entryPrice} onChange={e => updateBulkRow(idx, "entryPrice", e.target.value)} placeholder="Auto" />
-                    </div>
-                    <div className="space-y-1 col-span-2">
-                      <Label className="text-xs">Close Date</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="outline" className={cn("h-8 w-full justify-start text-left text-xs font-normal", !row.closedAt && "text-muted-foreground")}>
-                            <CalendarIcon className="mr-1 h-3 w-3" />
-                            {row.closedAt ? format(row.closedAt, "PPP") : "Pick date"}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar mode="single" selected={row.closedAt} onSelect={d => d && updateBulkRow(idx, "closedAt", d)} initialFocus className={cn("p-3 pointer-events-auto")} />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs font-medium">Direction</Label>
+                    <Select value={bulkCurrentRow.direction} onValueChange={v => setBulkCurrentRow(r => ({ ...r, direction: v }))}>
+                      <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="buy">Buy</SelectItem>
+                        <SelectItem value="sell">Sell</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
-              ))}
-            </div>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs font-medium">Size (€)</Label>
+                    <Input className="h-9" type="number" value={bulkCurrentRow.size} onChange={e => setBulkCurrentRow(r => ({ ...r, size: e.target.value }))} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs font-medium">Leverage</Label>
+                    <Input className="h-9" type="number" value={bulkCurrentRow.leverage} onChange={e => setBulkCurrentRow(r => ({ ...r, leverage: e.target.value }))} min="1" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs font-medium">P&L (€)</Label>
+                    <Input className="h-9" type="number" value={bulkCurrentRow.pnl} onChange={e => setBulkCurrentRow(r => ({ ...r, pnl: e.target.value }))} placeholder="+50" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs font-medium">Entry Price <span className="text-muted-foreground">(optional)</span></Label>
+                    <Input className="h-9" type="number" value={bulkCurrentRow.entryPrice} onChange={e => setBulkCurrentRow(r => ({ ...r, entryPrice: e.target.value }))} placeholder="Auto from market" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs font-medium">Close Date</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className={cn("h-9 w-full justify-start text-left text-sm font-normal", !bulkCurrentRow.closedAt && "text-muted-foreground")}>
+                          <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
+                          {bulkCurrentRow.closedAt ? format(bulkCurrentRow.closedAt, "PPP") : "Pick date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar mode="single" selected={bulkCurrentRow.closedAt} onSelect={d => d && setBulkCurrentRow(r => ({ ...r, closedAt: d }))} initialFocus className={cn("p-3 pointer-events-auto")} />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+              </div>
 
-            <Button variant="outline" size="sm" onClick={addBulkRow} className="w-full">
-              <Plus className="h-4 w-4 mr-1" /> Add Another Trade
-            </Button>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setBulkOpen(false)}>Cancel</Button>
-            <Button onClick={submitBulkTrades} disabled={bulkSaving}>
-              {bulkSaving ? "Creating..." : `Create ${bulkRows.length} Trade(s)`}
-            </Button>
-          </DialogFooter>
+              <DialogFooter className="flex gap-2 sm:gap-2">
+                <Button variant="outline" onClick={() => setBulkStep("client")} size="sm">← Back</Button>
+                <div className="flex-1" />
+                <Button variant="secondary" onClick={addCurrentTradeAndContinue} size="sm">
+                  <Plus className="h-3.5 w-3.5 mr-1" /> Add & Next Trade
+                </Button>
+                <Button onClick={finishAndReview} size="sm">
+                  Done → Review
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+
+          {/* STEP 3: Review */}
+          {bulkStep === "review" && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Creating <span className="font-semibold text-foreground">{bulkRows.length}</span> trade(s) for <span className="font-semibold text-foreground">{bulkUsers.find(u => u.id === bulkUserId)?.full_name || "Client"}</span>
+              </p>
+              <div className="rounded-lg border divide-y">
+                {bulkRows.map((r, i) => {
+                  const assetSymbol = bulkAssets.find(a => a.id === r.asset_id)?.symbol ?? "—";
+                  const pnlNum = Number(r.pnl);
+                  return (
+                    <div key={i} className="flex items-center justify-between p-2.5 text-sm">
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-muted-foreground w-4">#{i + 1}</span>
+                        <span className="font-medium">{assetSymbol}</span>
+                        <Badge variant={r.direction === "buy" ? "default" : "destructive"} className="text-xs capitalize">{r.direction}</Badge>
+                        <span className="text-muted-foreground">€{r.size} · {r.leverage}×</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`font-semibold ${pnlNum >= 0 ? "text-success" : "text-destructive"}`}>
+                          {pnlNum >= 0 ? "+" : ""}€{r.pnl}
+                        </span>
+                        <Button variant="ghost" size="sm" className="h-5 w-5 p-0 text-destructive" onClick={() => {
+                          setBulkRows(prev => prev.filter((_, j) => j !== i));
+                          if (bulkRows.length <= 1) setBulkStep("trade");
+                        }}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="rounded-md bg-muted/50 p-2 text-sm">
+                <span className="text-muted-foreground">Total wallet impact: </span>
+                <span className="font-semibold">
+                  €{bulkRows.reduce((s, r) => s + Number(r.size) + Number(r.pnl), 0).toLocaleString()}
+                </span>
+              </div>
+              <DialogFooter className="flex gap-2 sm:gap-2">
+                <Button variant="outline" onClick={() => setBulkStep("trade")} size="sm">← Add More</Button>
+                <div className="flex-1" />
+                <Button variant="outline" onClick={() => setBulkOpen(false)} size="sm">Cancel</Button>
+                <Button onClick={submitBulkTrades} disabled={bulkSaving || bulkRows.length === 0} size="sm">
+                  {bulkSaving ? "Creating..." : `Create ${bulkRows.length} Trade(s)`}
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
