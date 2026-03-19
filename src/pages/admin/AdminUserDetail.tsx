@@ -884,24 +884,63 @@ const AdminUserDetail = () => {
 
         {/* Wallets Tab */}
         <TabsContent value="wallets">
-          <Card>
-            <CardContent className="p-0">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b bg-muted/50">
-                    <th className="text-left p-3 font-medium text-muted-foreground">Currency</th>
-                    <th className="text-left p-3 font-medium text-muted-foreground">Balance</th>
-                    <th className="text-right p-3 font-medium text-muted-foreground">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {wallets.map(w => (
-                    <WalletRow key={w.id} wallet={w} onUpdate={updateWalletBalance} cryptoPricesEur={cryptoPricesEur} />
-                  ))}
-                </tbody>
-              </table>
-            </CardContent>
-          </Card>
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* Fiat Wallets */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Wallet className="h-4 w-4" /> Fiat Currencies
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b bg-muted/50">
+                      <th className="text-left p-3 font-medium text-muted-foreground">Currency</th>
+                      <th className="text-left p-3 font-medium text-muted-foreground">Balance</th>
+                      <th className="text-right p-3 font-medium text-muted-foreground">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {wallets.filter(w => FIAT_LIST.includes(w.currency)).map(w => (
+                      <WalletRow key={w.id} wallet={w} onUpdate={updateWalletBalance} cryptoPricesEur={cryptoPricesEur} />
+                    ))}
+                  </tbody>
+                </table>
+                {wallets.filter(w => FIAT_LIST.includes(w.currency)).length === 0 && (
+                  <p className="p-4 text-center text-sm text-muted-foreground">No fiat wallets</p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Crypto Wallets */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" /> Crypto Assets
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b bg-muted/50">
+                      <th className="text-left p-3 font-medium text-muted-foreground">Asset</th>
+                      <th className="text-left p-3 font-medium text-muted-foreground">Balance</th>
+                      <th className="text-right p-3 font-medium text-muted-foreground">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {wallets.filter(w => !FIAT_LIST.includes(w.currency)).map(w => (
+                      <WalletRow key={w.id} wallet={w} onUpdate={updateWalletBalance} cryptoPricesEur={cryptoPricesEur} />
+                    ))}
+                  </tbody>
+                </table>
+                {wallets.filter(w => !FIAT_LIST.includes(w.currency)).length === 0 && (
+                  <p className="p-4 text-center text-sm text-muted-foreground">No crypto assets</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         {/* Deposits Tab */}
