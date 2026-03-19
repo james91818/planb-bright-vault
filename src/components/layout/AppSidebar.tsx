@@ -42,7 +42,6 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { useRole } from "@/hooks/useRole";
-import { useTheme } from "@/hooks/useTheme";
 import { supabase } from "@/integrations/supabase/client";
 
 const clientNav = [
