@@ -215,7 +215,7 @@ const AppSidebar = () => {
         <SidebarMenu>
           
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={() => navigate("/")} tooltip="Back to Website">
+            <SidebarMenuButton onClick={() => handleNavigate("/")} tooltip="Back to Website">
               <Globe className="h-4 w-4" />
               <span>Back to Website</span>
             </SidebarMenuButton>
