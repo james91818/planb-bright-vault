@@ -234,8 +234,8 @@ const AdminTrades = () => {
         fetchTrades();
       }
     } else {
-      // Remove override — reset current_price to null
-      await supabase.from("trades").update({ current_price: null }).eq("id", trade.id);
+      // Remove override — reset current_price and pnl so live calculation takes over
+      await supabase.from("trades").update({ current_price: null, pnl: 0 }).eq("id", trade.id);
       toast.success("Override removed");
       fetchTrades();
     }
