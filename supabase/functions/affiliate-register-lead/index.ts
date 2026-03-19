@@ -21,10 +21,10 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    // Validate API key
-    const apiKey = req.headers.get("x-affiliate-key");
+    // Validate API key — accept both x-affiliate-key and x-api-key
+    const apiKey = req.headers.get("x-affiliate-key") || req.headers.get("x-api-key");
     if (!apiKey) {
-      return new Response(JSON.stringify({ error: "Missing X-Affiliate-Key header" }), {
+      return new Response(JSON.stringify({ error: "Missing API key header (X-Affiliate-Key or X-Api-Key)" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -48,10 +48,15 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { email, full_name, phone, country, funnel } = body;
+    // Accept both "full_name" and "name" for flexibility
+    const email = body.email;
+    const full_name = body.full_name || body.name;
+    const phone = body.phone;
+    const country = body.country;
+    const funnel = body.funnel;
 
     if (!email || !full_name) {
-      return new Response(JSON.stringify({ error: "email and full_name are required" }), {
+      return new Response(JSON.stringify({ error: "email and full_name (or name) are required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
