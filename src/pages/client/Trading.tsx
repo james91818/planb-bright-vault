@@ -380,11 +380,28 @@ const Trading = () => {
           const updated = payload.new as any;
           if (updated.status === 'open') {
             // Update the specific trade in-place for instant P&L refresh
-            setOpenTrades(prev => prev.map(t => 
-              t.id === updated.id 
-                ? { ...t, ...updated, assets: t.assets } 
-                : t
-            ));
+            setOpenTrades(prev => {
+              const newTrades = prev.map(t => 
+                t.id === updated.id 
+                  ? { ...t, ...updated, assets: t.assets } 
+                  : t
+              );
+              return newTrades;
+            });
+            // If admin is manipulating current_price, reflect it on the chart & price display
+            if (updated.current_price != null) {
+              const matchedTrade = openTrades.find(t => t.id === updated.id);
+              const sym = matchedTrade?.assets?.symbol;
+              if (sym) {
+                const manipPrice = Number(updated.current_price);
+                setLivePrices(lp => ({ ...lp, [sym]: manipPrice }));
+                setLivePrice(prev => {
+                  // Only update if this trade's asset is the currently viewed asset
+                  if (selectedAsset?.symbol === sym) return manipPrice;
+                  return prev;
+                });
+              }
+            }
           } else if (updated.status === 'closed') {
             // Trade was closed (possibly by admin manipulation finishing)
             // Move from open to closed
