@@ -12,6 +12,11 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { CalendarIcon, Plus, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const AdminTrades = () => {
   const { user } = useAuth();
