@@ -83,7 +83,7 @@ const AppSidebar = () => {
   const { isStaff, roleName } = useRole();
   const { toggleSidebar, state } = useSidebar();
   const collapsed = state === "collapsed";
-  const { theme, toggleTheme } = useTheme();
+  
   const [balance, setBalance] = useState<number | null>(null);
 
   const mainNav = isStaff
