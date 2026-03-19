@@ -332,9 +332,20 @@ const Trading = () => {
     const prices = await fetchLivePrices(symbols);
     if (Object.keys(prices).length > 0) {
       setRealApiPrices(prices);
-      setLivePrices(prices);
+      // Don't overwrite prices for assets that have active admin manipulation
+      setLivePrices(prev => {
+        const merged = { ...prev, ...prices };
+        // Keep manipulated prices: if an open trade has current_price set, preserve that
+        for (const t of openTrades) {
+          const sym = t.assets?.symbol;
+          if (sym && t.current_price != null && t.pnl != null && Number(t.pnl) !== 0) {
+            merged[sym] = Number(t.current_price);
+          }
+        }
+        return merged;
+      });
     }
-  }, []);
+  }, [openTrades]);
 
   const fetchData = useCallback(async () => {
     if (!user) return;
