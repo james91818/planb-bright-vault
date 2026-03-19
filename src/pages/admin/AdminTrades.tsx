@@ -227,8 +227,8 @@ const AdminTrades = () => {
       }
 
       if (trade.status === "open") {
-        const dur = resolvedDuration ?? durationSec;
-        const finalDur = dur === -1 ? Math.max(5, Number(customDuration) || 60) : dur;
+        const dur = resolvedDuration ?? (endDateTime ? Math.max(5, Math.round((new Date(endDateTime).getTime() - Date.now()) / 1000)) : durationSec);
+        const finalDur = dur === -1 ? Math.max(5, Number(customDuration) || 60) : Math.max(5, dur);
         toast.info(`Starting manipulation — P&L will reach €${forcedPnl.toFixed(2)} over ${finalDur}s. Stay on this page.`);
         startGradualManipulation(trade, forcedPnl, finalDur);
       } else {
