@@ -126,9 +126,13 @@ const AdminAffiliates = () => {
 POST ${baseUrl}
 
 ### Authentication
-Include your API key in the request header:
+Include your API key in one of these request headers:
 \`\`\`
 X-Affiliate-Key: ${a.api_key}
+\`\`\`
+or
+\`\`\`
+X-Api-Key: ${a.api_key}
 \`\`\`
 
 ### Request Body (JSON)
