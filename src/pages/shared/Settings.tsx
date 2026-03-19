@@ -28,6 +28,7 @@ const Settings = () => {
   const { isStaff, roleName } = useRole();
   const isAdmin = roleName === "Admin";
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ full_name: "", phone: "", country: "" });
