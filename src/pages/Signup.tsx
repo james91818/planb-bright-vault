@@ -89,7 +89,7 @@ const Signup = () => {
             Start your<br />trading journey.
           </h1>
           <p className="text-sidebar-foreground text-lg max-w-md">
-            Join thousands of traders accessing crypto, forex, and stocks with powerful tools and real-time insights.
+            Join thousands of traders accessing crypto, stocks, and commodities with powerful tools and real-time insights.
           </p>
         </div>
         <p className="text-sidebar-foreground/50 text-sm">

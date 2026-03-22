@@ -14,9 +14,9 @@ const investmentCategories = [
   },
   {
     icon: DollarSign,
-    title: "Forex",
-    description: "Access the world's largest financial market with 60+ currency pairs. Trade major, minor, and exotic pairs with tight spreads starting from 0.2 pips.",
-    assets: ["EUR/USD", "GBP/USD", "USD/JPY", "AUD/USD", "USD/CHF", "NZD/USD"],
+    title: "Indices",
+    description: "Track and trade the world's leading market indices including S&P 500, NASDAQ, DAX, and more. Gain broad market exposure with a single position.",
+    assets: ["NAS100", "US30", "GER40", "UK100", "JPN225", "AUS200"],
     color: "from-emerald-500/20 to-teal-500/20",
     iconColor: "text-emerald-500",
   },
@@ -80,8 +80,8 @@ const Investments = () => {
             Our Investment Products
           </h1>
           <p className="text-hero-muted text-lg md:text-xl leading-relaxed">
-            Access a diverse range of global markets — from cryptocurrencies and forex
-            to stocks, indices, and commodities — all from a single powerful platform.
+            Access a diverse range of global markets — from cryptocurrencies and indices
+            to stocks and commodities — all from a single powerful platform.
           </p>
         </div>
       </section>

@@ -26,9 +26,9 @@ const faqCategories = [
   {
     title: "Trading",
     items: [
-      { q: "What assets can I trade?", a: "We offer trading in cryptocurrencies (BTC, ETH, SOL, etc.), forex pairs, stocks, and commodities. Visit the Instruments page for a full list." },
+      { q: "What assets can I trade?", a: "We offer trading in cryptocurrencies (BTC, ETH, SOL, etc.), stocks, indices, and commodities. Visit the Instruments page for a full list." },
       { q: "What is leverage and how does it work?", a: "Leverage allows you to open larger positions with less capital. For example, 1:100 leverage means €100 controls a €10,000 position. Note that leverage amplifies both gains and losses." },
-      { q: "What are market hours?", a: "Crypto markets operate 24/7. Forex and stock markets follow standard exchange hours. Check the Trading Hours page for specific schedules." },
+      { q: "What are market hours?", a: "Crypto markets operate 24/7. Stock and index markets follow standard exchange hours. Check the Trading Hours page for specific schedules." },
       { q: "How is P&L calculated?", a: "Profit and Loss is calculated based on the difference between your entry price and current/exit price, multiplied by your position size and leverage." },
     ],
   },

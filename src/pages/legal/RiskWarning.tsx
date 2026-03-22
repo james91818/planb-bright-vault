@@ -15,7 +15,7 @@ const RiskWarning = () => (
       <Card className="border-destructive/30 bg-destructive/5 mb-8">
         <CardContent className="pt-6 flex gap-4">
           <AlertTriangle className="h-6 w-6 text-destructive shrink-0 mt-0.5" />
-          <p className="text-sm font-medium">Trading CFDs, forex, cryptocurrencies, and other financial instruments carries a high level of risk and may not be suitable for all investors. You should carefully consider your investment objectives, level of experience, and risk appetite before trading.</p>
+          <p className="text-sm font-medium"><p className="text-sm font-medium">Trading CFDs, cryptocurrencies, and other financial instruments carries a high level of risk and may not be suitable for all investors. You should carefully consider your investment objectives, level of experience, and risk appetite before trading.</p> carries a high level of risk and may not be suitable for all investors. You should carefully consider your investment objectives, level of experience, and risk appetite before trading.</p>
         </CardContent>
       </Card>
 
