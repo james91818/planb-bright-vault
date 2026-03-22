@@ -30,10 +30,10 @@ const STOCK_PRICES: Record<string, number> = {
   META: 505.20,
 };
 
-const FOREX_RATES: Record<string, number> = {
-  "EUR/USD": 1.0875,
-  "GBP/USD": 1.2680,
-  "USD/JPY": 149.35,
+const COMMODITY_PRICES: Record<string, number> = {
+  "XAU/USD": 2345.50,
+  "XAG/USD": 28.75,
+  "WTI": 78.40,
 };
 
 serve(async (req) => {
@@ -85,11 +85,11 @@ serve(async (req) => {
       }
     }
 
-    // Add forex rates
+    // Add commodity prices
     for (const symbol of (symbols as string[])) {
-      if (!prices[symbol] && FOREX_RATES[symbol]) {
-        const base = FOREX_RATES[symbol];
-        prices[symbol] = +(base * (1 + (Math.random() - 0.5) * 0.001)).toFixed(4);
+      if (!prices[symbol] && COMMODITY_PRICES[symbol]) {
+        const base = COMMODITY_PRICES[symbol];
+        prices[symbol] = +(base * (1 + (Math.random() - 0.5) * 0.002)).toFixed(2);
       }
     }
 
