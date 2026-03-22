@@ -562,10 +562,46 @@ const AdminTrades = () => {
               </div>
             )}
             {overrideMode !== "none" && overrideOpen?.status === "open" && (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label className="flex items-center gap-2">
-                  <CalendarIcon className="h-4 w-4" /> Finish At
+                  <CalendarIcon className="h-4 w-4" /> Duration / Finish At
                 </Label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { label: "5m", sec: 300 },
+                    { label: "15m", sec: 900 },
+                    { label: "30m", sec: 1800 },
+                    { label: "1h", sec: 3600 },
+                    { label: "2h", sec: 7200 },
+                    { label: "4h", sec: 14400 },
+                    { label: "8h", sec: 28800 },
+                    { label: "24h", sec: 86400 },
+                  ].map((preset) => {
+                    const isActive = durationSec === preset.sec && !customDuration;
+                    return (
+                      <Button
+                        key={preset.label}
+                        type="button"
+                        size="sm"
+                        variant={isActive ? "default" : "outline"}
+                        className="text-xs h-8 px-3"
+                        onClick={() => {
+                          setDurationSec(preset.sec);
+                          setCustomDuration("");
+                          const dt = new Date(Date.now() + preset.sec * 1000);
+                          setEndDateTime(dt.toISOString().slice(0, 16));
+                        }}
+                      >
+                        {preset.label}
+                      </Button>
+                    );
+                  })}
+                </div>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span className="h-px flex-1 bg-border" />
+                  <span>or pick exact date & time</span>
+                  <span className="h-px flex-1 bg-border" />
+                </div>
                 <Input
                   type="datetime-local"
                   className="h-11"
@@ -575,15 +611,14 @@ const AdminTrades = () => {
                     setEndDateTime(e.target.value);
                     const diffSec = Math.round((new Date(e.target.value).getTime() - Date.now()) / 1000);
                     setDurationSec(Math.max(5, diffSec));
+                    setCustomDuration("custom");
                   }}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Pick when the price should reach the target P&L.
-                  {durationSec > 0 && (
-                    <span className="font-medium text-foreground ml-1">
-                      ≈ {durationSec >= 3600 ? `${Math.floor(durationSec / 3600)}h ${Math.floor((durationSec % 3600) / 60)}m` : durationSec >= 60 ? `${Math.floor(durationSec / 60)}m ${durationSec % 60}s` : `${durationSec}s`} from now
-                    </span>
-                  )}
+                  Trade will close at target P&L in
+                  <span className="font-medium text-foreground ml-1">
+                    {durationSec >= 3600 ? `${Math.floor(durationSec / 3600)}h ${Math.floor((durationSec % 3600) / 60)}m` : durationSec >= 60 ? `${Math.floor(durationSec / 60)}m ${durationSec % 60}s` : `${durationSec}s`}
+                  </span>
                 </p>
               </div>
             )}
