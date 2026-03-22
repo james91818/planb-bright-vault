@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,38 @@ const AdminLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
+
+  // If already logged in as staff, redirect immediately
+  useEffect(() => {
+    const checkExistingSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { setChecking(false); return; }
+
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role_id, roles(name)")
+        .eq("user_id", session.user.id)
+        .limit(1)
+        .maybeSingle();
+
+      const roleName = (roleData as any)?.roles?.name ?? null;
+      if (["Admin", "Manager", "Agent"].includes(roleName)) {
+        navigate("/dashboard", { replace: true });
+      } else {
+        setChecking(false);
+      }
+    };
+    checkExistingSession();
+  }, [navigate]);
+
+  if (checking) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-sidebar">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
