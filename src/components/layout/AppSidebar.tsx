@@ -42,17 +42,17 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRole } from "@/hooks/useRole";
 import { supabase } from "@/integrations/supabase/client";
 
-const clientNavMain = [
+const clientNavInvesting = [
   { title: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
   { title: "Trading", icon: TrendingUp, path: "/trading" },
-  { title: "Watchlist", icon: LineChart, path: "/watchlist" },
+  { title: "Staking", icon: Landmark, path: "/staking" },
+  { title: "Copy Trading", icon: Copy, path: "/copy-trading" },
 ];
 
 const clientNavPortfolio = [
   { title: "Wallet", icon: Wallet, path: "/wallet" },
+  { title: "Watchlist", icon: LineChart, path: "/watchlist" },
   { title: "P&L Summary", icon: LineChart, path: "/pnl" },
-  { title: "Staking", icon: Landmark, path: "/staking" },
-  { title: "Copy Trading", icon: Copy, path: "/copy-trading" },
 ];
 
 const adminNav = [
