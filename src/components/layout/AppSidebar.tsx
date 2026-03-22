@@ -91,7 +91,7 @@ const AppSidebar = () => {
 
   const mainNav = isStaff
     ? adminNav.filter(item => !(item as any).adminOnly || roleName === "Admin")
-    : clientNavMain;
+    : clientNavInvesting;
 
   // Fetch EUR balance for clients
   useEffect(() => {
