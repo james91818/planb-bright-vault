@@ -737,7 +737,7 @@ const Trading = () => {
                           <Input placeholder="Search assets..." value={search} onChange={e => setSearch(e.target.value)} className="pl-8 h-10" />
                         </div>
                         <div className="flex gap-1.5 flex-wrap">
-                          {["all", "crypto", "stock", "forex"].map(t => (
+                          {["all", "crypto", "stock", "commodity"].map(t => (
                             <button key={t} onClick={() => setTypeFilter(t)}
                               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${typeFilter === t ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"}`}
                             >{t === "all" ? "All" : t.charAt(0).toUpperCase() + t.slice(1)}</button>

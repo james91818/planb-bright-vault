@@ -30,7 +30,7 @@ const AboutUs = () => (
         <div className="space-y-4">
           <h2 className="text-2xl font-display font-bold">Our Mission</h2>
           <p className="text-muted-foreground leading-relaxed">PlanB Trading was founded with a clear mission: to provide retail and professional traders with institutional-grade trading infrastructure. We believe every investor deserves access to fast execution, transparent pricing, and world-class support.</p>
-          <p className="text-muted-foreground leading-relaxed">Our platform supports trading in cryptocurrencies, forex, stocks, and commodities — all from a single, intuitive interface.</p>
+          <p className="text-muted-foreground leading-relaxed"><p className="text-muted-foreground leading-relaxed">Our platform supports trading in cryptocurrencies, stocks, indices, and commodities — all from a single, intuitive interface.</p></p>
         </div>
         <div className="space-y-4">
           <h2 className="text-2xl font-display font-bold">Our Vision</h2>

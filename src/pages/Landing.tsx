@@ -222,7 +222,7 @@ const Landing = () => {
               transition={{ duration: 0.7, delay: 0.4 }}
               className="text-muted-foreground text-lg"
             >
-              Trade on global markets with PlanB Trading — your trusted partner for crypto, stocks, and forex investments.
+              Trade on global markets with PlanB Trading — your trusted partner for crypto, stocks, and commodities investments.
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -270,7 +270,7 @@ const Landing = () => {
                       {[
                         { Icon: TrendingUp, label: "Stocks" },
                         { Icon: BarChart3, label: "Indices" },
-                        { Icon: Landmark, label: "Forex" },
+                        { Icon: Landmark, label: "Commodities" },
                         { Icon: Zap, label: "Crypto" },
                         { Icon: LineChart, label: "Futures" },
                         { Icon: Shield, label: "Bonds" },
@@ -281,7 +281,7 @@ const Landing = () => {
                       ))}
                     </div>
                     <p className="text-hero-foreground font-display font-semibold text-sm mt-4">500+ Assets Available</p>
-                    <p className="text-hero-muted text-xs">Crypto · Stocks · Forex · Indices</p>
+                    <p className="text-hero-muted text-xs">Crypto · Stocks · Commodities · Indices</p>
                   </div>
                   {/* Floating badges */}
                   <div className="absolute top-2 right-2 bg-success text-success-foreground text-xs font-bold px-3 py-1 rounded-full shadow">7%</div>

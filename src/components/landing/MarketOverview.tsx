@@ -7,7 +7,7 @@ interface MarketAsset {
   price: number;
   change24h: number;
   icon: string;
-  type: "crypto" | "stock" | "forex";
+  type: "crypto" | "stock" | "commodity";
 }
 
 const ASSETS: MarketAsset[] = [
