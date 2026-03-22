@@ -42,14 +42,17 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRole } from "@/hooks/useRole";
 import { supabase } from "@/integrations/supabase/client";
 
-const clientNav = [
+const clientNavMain = [
   { title: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
   { title: "Trading", icon: TrendingUp, path: "/trading" },
+  { title: "Watchlist", icon: LineChart, path: "/watchlist" },
+];
+
+const clientNavPortfolio = [
   { title: "Wallet", icon: Wallet, path: "/wallet" },
   { title: "P&L Summary", icon: LineChart, path: "/pnl" },
   { title: "Staking", icon: Landmark, path: "/staking" },
   { title: "Copy Trading", icon: Copy, path: "/copy-trading" },
-  { title: "Watchlist", icon: LineChart, path: "/watchlist" },
 ];
 
 const adminNav = [
@@ -88,7 +91,7 @@ const AppSidebar = () => {
 
   const mainNav = isStaff
     ? adminNav.filter(item => !(item as any).adminOnly || roleName === "Admin")
-    : clientNav;
+    : clientNavMain;
 
   // Fetch EUR balance for clients
   useEffect(() => {
@@ -170,7 +173,7 @@ const AppSidebar = () => {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>{isStaff ? "Administration" : "Menu"}</SidebarGroupLabel>
+          <SidebarGroupLabel>{isStaff ? "Administration" : "Trading"}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {mainNav.map((item) => (
@@ -188,6 +191,31 @@ const AppSidebar = () => {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {!isStaff && (
+          <>
+            <SidebarSeparator />
+            <SidebarGroup>
+              <SidebarGroupLabel>Portfolio</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {clientNavPortfolio.map((item) => (
+                    <SidebarMenuItem key={item.path}>
+                      <SidebarMenuButton
+                        isActive={location.pathname === item.path}
+                        onClick={() => handleNavigate(item.path)}
+                        tooltip={item.title}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </>
+        )}
 
         <SidebarSeparator />
 
