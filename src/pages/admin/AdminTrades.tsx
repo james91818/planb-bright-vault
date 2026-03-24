@@ -653,7 +653,7 @@ const AdminTrades = () => {
                   type="datetime-local"
                   className="h-11"
                   value={endDateTime}
-                  min={new Date().toISOString().slice(0, 16)}
+                  min={toLocalDateTimeInputValue(new Date())}
                   onChange={(e) => {
                     setEndDateTime(e.target.value);
                     const diffSec = Math.round((new Date(e.target.value).getTime() - Date.now()) / 1000);
