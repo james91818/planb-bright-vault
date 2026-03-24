@@ -435,6 +435,9 @@ const AdminTrades = () => {
         <td className="p-3">
           <p className="font-medium text-xs">{t.profiles?.full_name || "—"}</p>
         </td>
+        <td className="p-3">
+          <span className="font-mono text-xs text-muted-foreground">{t.profiles?.display_id ?? "—"}</span>
+        </td>
         <td className="p-3 font-medium">{symbol ?? "—"}</td>
         <td className="p-3">
           <Badge variant={t.direction === "buy" ? "default" : "destructive"} className="text-xs capitalize">
@@ -496,7 +499,7 @@ const AdminTrades = () => {
 
   const tableHeaders = (
     <tr className="border-b bg-muted/50">
-      {["Client", "Asset", "Direction", "Size", "Qty", "Entry", "Close Price", "Leverage", "P&L", "Override", ""].map(h => (
+      {["Client", "Trade ID", "Asset", "Direction", "Size", "Qty", "Entry", "Close Price", "Leverage", "P&L", "Override", ""].map(h => (
         <th key={h} className={`p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider ${h === "" ? "text-right" : "text-left"}`}>{h || "Actions"}</th>
       ))}
     </tr>
