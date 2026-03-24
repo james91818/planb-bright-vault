@@ -143,7 +143,7 @@ const Staking = () => {
                   <th className="text-left p-3 font-medium text-muted-foreground">Rewards</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Unlocks</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Status</th>
-                </tr>
+                  <th className="text-right p-3 font-medium text-muted-foreground">Action</th>
               </thead>
               <tbody>
                 {stakes.map((s) => {
