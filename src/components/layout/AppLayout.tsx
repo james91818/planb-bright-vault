@@ -13,6 +13,7 @@ const AppLayout = () => {
   const navigate = useNavigate();
   const [showThemePicker, setShowThemePicker] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const prevUnreadRef = React.useRef<number | null>(null);
 
   useEffect(() => {
     if (user && !localStorage.getItem("planb-theme-chosen")) {
@@ -22,13 +23,21 @@ const AppLayout = () => {
 
   useEffect(() => {
     if (!user) return;
+    const notifSound = new Audio("https://cdn.pixabay.com/audio/2022/12/12/audio_e8e16fbe70.mp3");
+    notifSound.volume = 0.5;
+
     const fetchUnread = async () => {
       const { count } = await supabase
         .from("notifications")
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id)
         .eq("read", false);
-      setUnreadCount(count ?? 0);
+      const newCount = count ?? 0;
+      if (prevUnreadRef.current !== null && newCount > prevUnreadRef.current) {
+        notifSound.play().catch(() => {});
+      }
+      prevUnreadRef.current = newCount;
+      setUnreadCount(newCount);
     };
     fetchUnread();
     const interval = setInterval(fetchUnread, 15000);
