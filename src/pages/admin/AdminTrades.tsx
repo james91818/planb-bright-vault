@@ -67,6 +67,14 @@ const AdminTrades = () => {
 
   useEffect(() => { fetchTrades(); }, []);
 
+  // Countdown tick for manipulation timers
+  useEffect(() => {
+    const hasActive = Object.values(manipulating).some(Boolean);
+    if (!hasActive) return;
+    const iv = setInterval(() => setCountdownTick(c => c + 1), 1000);
+    return () => clearInterval(iv);
+  }, [manipulating]);
+
   // Realtime subscription for trade changes
   useEffect(() => {
     const channel = supabase
