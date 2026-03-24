@@ -124,15 +124,13 @@ const AdminAffiliates = () => {
     setDocsDialogOpen(true);
   };
 
-  const baseUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/affiliate-register-lead`;
+  const registerUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/affiliate-register-lead`;
+  const leadsUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/affiliate-leads`;
 
   const getDocsContent = (a: Affiliate) => `# Affiliate API Documentation
 ## Partner: ${a.name}
 
-### Endpoint
-POST ${baseUrl}
-
-### Authentication
+### Authentication (all endpoints)
 Include your API key in one of these request headers:
 \`\`\`
 X-Affiliate-Key: ${a.api_key}
@@ -141,6 +139,11 @@ or
 \`\`\`
 X-Api-Key: ${a.api_key}
 \`\`\`
+
+---
+
+## 1. Register a Lead
+POST ${registerUrl}
 
 ### Request Body (JSON)
 \`\`\`json
@@ -168,7 +171,7 @@ X-Api-Key: ${a.api_key}
 
 ### Example (cURL)
 \`\`\`bash
-curl -X POST "${baseUrl}" \\
+curl -X POST "${registerUrl}" \\
   -H "Content-Type: application/json" \\
   -H "X-Affiliate-Key: ${a.api_key}" \\
   -d '{
@@ -179,6 +182,54 @@ curl -X POST "${baseUrl}" \\
     "funnel": "landing-page-crypto"
   }'
 \`\`\`
+
+---
+
+## 2. List Your Leads
+POST ${leadsUrl}
+
+### Request Body (JSON)
+\`\`\`json
+{
+  "from": "2026-01-01",     // Optional - filter start date
+  "to": "2026-12-31",       // Optional - filter end date
+  "limit": 100,             // Optional - max 1000, default 100
+  "page": 1                 // Optional - default 1
+}
+\`\`\`
+
+### Success Response (200)
+\`\`\`json
+{
+  "success": true,
+  "affiliate": "${a.name}",
+  "total": 42,
+  "page": 1,
+  "limit": 100,
+  "leads": [
+    {
+      "id": "uuid",
+      "name": "John Doe",
+      "email": "lead@example.com",
+      "phone": "+49123456789",
+      "country": "Germany",
+      "funnel": "landing-page-crypto",
+      "status": "New Registration",
+      "registered_at": "2026-03-20T14:30:00Z"
+    }
+  ]
+}
+\`\`\`
+
+### Example (cURL)
+\`\`\`bash
+curl -X POST "${leadsUrl}" \\
+  -H "Content-Type: application/json" \\
+  -H "X-Affiliate-Key: ${a.api_key}" \\
+  -d '{ "from": "2026-03-01", "to": "2026-03-31", "limit": 1000, "page": 1 }'
+\`\`\`
+
+---
 
 ### Notes
 - Leads are automatically created with "New Registration" status
@@ -334,14 +385,28 @@ curl -X POST "${baseUrl}" \\
             <DialogTitle>API Documentation — {selectedAffiliate?.name}</DialogTitle>
           </DialogHeader>
           {selectedAffiliate && (
-            <div className="space-y-4">
+            <div className="space-y-6">
+              {/* Register Lead Endpoint */}
               <div className="space-y-2">
-                <h3 className="font-semibold text-sm">Endpoint</h3>
+                <h3 className="font-semibold text-sm">1. Register a Lead</h3>
                 <div className="flex items-center gap-2">
                   <code className="text-xs bg-muted px-3 py-2 rounded font-mono flex-1 break-all">
-                    POST {baseUrl}
+                    POST {registerUrl}
                   </code>
-                  <Button variant="outline" size="sm" onClick={() => copyToClipboard(baseUrl)}>
+                  <Button variant="outline" size="sm" onClick={() => copyToClipboard(registerUrl)}>
+                    <Copy className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* List Leads Endpoint */}
+              <div className="space-y-2">
+                <h3 className="font-semibold text-sm">2. List Your Leads</h3>
+                <div className="flex items-center gap-2">
+                  <code className="text-xs bg-muted px-3 py-2 rounded font-mono flex-1 break-all">
+                    POST {leadsUrl}
+                  </code>
+                  <Button variant="outline" size="sm" onClick={() => copyToClipboard(leadsUrl)}>
                     <Copy className="h-3.5 w-3.5" />
                   </Button>
                 </div>
@@ -355,7 +420,7 @@ curl -X POST "${baseUrl}" \\
               </div>
 
               <div className="space-y-2">
-                <h3 className="font-semibold text-sm">Request Body (JSON)</h3>
+                <h3 className="font-semibold text-sm">Register — Request Body (JSON)</h3>
                 <pre className="text-xs bg-muted px-3 py-2 rounded font-mono overflow-x-auto">{`{
   "email": "lead@example.com",        // Required
   "full_name": "John Doe",            // Required
@@ -366,25 +431,19 @@ curl -X POST "${baseUrl}" \\
               </div>
 
               <div className="space-y-2">
-                <h3 className="font-semibold text-sm">Success Response (201)</h3>
-                <pre className="text-xs bg-muted px-3 py-2 rounded font-mono">{`{
-  "success": true,
-  "lead_id": "uuid-of-created-lead"
+                <h3 className="font-semibold text-sm">List Leads — Request Body (JSON)</h3>
+                <pre className="text-xs bg-muted px-3 py-2 rounded font-mono overflow-x-auto">{`{
+  "from": "2026-01-01",     // Optional - filter start date
+  "to": "2026-12-31",       // Optional - filter end date
+  "limit": 100,             // Optional - max 1000
+  "page": 1                 // Optional - default 1
 }`}</pre>
               </div>
 
               <div className="space-y-2">
-                <h3 className="font-semibold text-sm">Error Codes</h3>
-                <ul className="text-sm space-y-1 text-muted-foreground">
-                  <li><strong>400</strong> — Missing required fields or duplicate email</li>
-                  <li><strong>401</strong> — Invalid or missing API key</li>
-                  <li><strong>403</strong> — Affiliate account suspended</li>
-                </ul>
-              </div>
-
-              <div className="space-y-2">
-                <h3 className="font-semibold text-sm">cURL Example</h3>
-                <pre className="text-xs bg-muted px-3 py-2 rounded font-mono overflow-x-auto whitespace-pre-wrap">{`curl -X POST "${baseUrl}" \\
+                <h3 className="font-semibold text-sm">cURL Examples</h3>
+                <pre className="text-xs bg-muted px-3 py-2 rounded font-mono overflow-x-auto whitespace-pre-wrap">{`# Register a lead
+curl -X POST "${registerUrl}" \\
   -H "Content-Type: application/json" \\
   -H "X-Affiliate-Key: ${selectedAffiliate.api_key}" \\
   -d '{
@@ -392,11 +451,18 @@ curl -X POST "${baseUrl}" \\
     "full_name": "John Doe",
     "phone": "+49123456789",
     "country": "Germany"
-  }'`}</pre>
-                <Button variant="outline" size="sm" onClick={() => copyToClipboard(getDocsContent(selectedAffiliate))}>
-                  <Copy className="h-3.5 w-3.5 mr-2" /> Copy All Docs
-                </Button>
+  }'
+
+# List your leads
+curl -X POST "${leadsUrl}" \\
+  -H "Content-Type: application/json" \\
+  -H "X-Affiliate-Key: ${selectedAffiliate.api_key}" \\
+  -d '{ "from": "2026-03-01", "to": "2026-03-31", "limit": 1000, "page": 1 }'`}</pre>
               </div>
+
+              <Button variant="outline" size="sm" onClick={() => copyToClipboard(getDocsContent(selectedAffiliate))}>
+                <Copy className="h-3.5 w-3.5 mr-2" /> Copy All Docs
+              </Button>
             </div>
           )}
         </DialogContent>
