@@ -13,7 +13,7 @@ const AppLayout = () => {
   const navigate = useNavigate();
   const [showThemePicker, setShowThemePicker] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const prevUnreadRef = React.useRef<number | null>(null);
+  const prevUnreadRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (user && !localStorage.getItem("planb-theme-chosen")) {
