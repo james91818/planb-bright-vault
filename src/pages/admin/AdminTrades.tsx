@@ -165,6 +165,7 @@ const AdminTrades = () => {
     let step = 0;
 
     setManipulating(prev => ({ ...prev, [trade.id]: true }));
+    setManipEndTime(prev => ({ ...prev, [trade.id]: Date.now() + totalDurationSec * 1000 }));
 
     // Set override to lock price display
     await supabase.from("trade_overrides").upsert({
@@ -480,11 +481,16 @@ const AdminTrades = () => {
           )}
         </td>
         <td className="p-3 text-right space-x-1">
-          {manipulating[t.id] ? (
-            <Badge className="text-xs bg-primary/10 text-primary border-primary/30 animate-pulse">
-              Manipulating...
-            </Badge>
-          ) : (
+          {manipulating[t.id] ? (() => {
+            const secsLeft = Math.max(0, Math.round(((manipEndTime[t.id] ?? 0) - Date.now()) / 1000));
+            const mm = String(Math.floor(secsLeft / 60)).padStart(2, '0');
+            const ss = String(secsLeft % 60).padStart(2, '0');
+            return (
+              <Badge className="text-xs bg-primary/10 text-primary border-primary/30 animate-pulse font-mono">
+                Manipulating… {mm}:{ss}
+              </Badge>
+            );
+          })() : (
             <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => {
               setOverrideOpen(t);
               setOverrideMode(override?.override_mode ?? "none");
