@@ -124,15 +124,13 @@ const AdminAffiliates = () => {
     setDocsDialogOpen(true);
   };
 
-  const baseUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/affiliate-register-lead`;
+  const registerUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/affiliate-register-lead`;
+  const leadsUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/affiliate-leads`;
 
   const getDocsContent = (a: Affiliate) => `# Affiliate API Documentation
 ## Partner: ${a.name}
 
-### Endpoint
-POST ${baseUrl}
-
-### Authentication
+### Authentication (all endpoints)
 Include your API key in one of these request headers:
 \`\`\`
 X-Affiliate-Key: ${a.api_key}
@@ -141,6 +139,11 @@ or
 \`\`\`
 X-Api-Key: ${a.api_key}
 \`\`\`
+
+---
+
+## 1. Register a Lead
+POST ${registerUrl}
 
 ### Request Body (JSON)
 \`\`\`json
@@ -168,7 +171,7 @@ X-Api-Key: ${a.api_key}
 
 ### Example (cURL)
 \`\`\`bash
-curl -X POST "${baseUrl}" \\
+curl -X POST "${registerUrl}" \\
   -H "Content-Type: application/json" \\
   -H "X-Affiliate-Key: ${a.api_key}" \\
   -d '{
@@ -179,6 +182,54 @@ curl -X POST "${baseUrl}" \\
     "funnel": "landing-page-crypto"
   }'
 \`\`\`
+
+---
+
+## 2. List Your Leads
+POST ${leadsUrl}
+
+### Request Body (JSON)
+\`\`\`json
+{
+  "from": "2026-01-01",     // Optional - filter start date
+  "to": "2026-12-31",       // Optional - filter end date
+  "limit": 100,             // Optional - max 1000, default 100
+  "page": 1                 // Optional - default 1
+}
+\`\`\`
+
+### Success Response (200)
+\`\`\`json
+{
+  "success": true,
+  "affiliate": "${a.name}",
+  "total": 42,
+  "page": 1,
+  "limit": 100,
+  "leads": [
+    {
+      "id": "uuid",
+      "name": "John Doe",
+      "email": "lead@example.com",
+      "phone": "+49123456789",
+      "country": "Germany",
+      "funnel": "landing-page-crypto",
+      "status": "New Registration",
+      "registered_at": "2026-03-20T14:30:00Z"
+    }
+  ]
+}
+\`\`\`
+
+### Example (cURL)
+\`\`\`bash
+curl -X POST "${leadsUrl}" \\
+  -H "Content-Type: application/json" \\
+  -H "X-Affiliate-Key: ${a.api_key}" \\
+  -d '{ "from": "2026-03-01", "to": "2026-03-31", "limit": 1000, "page": 1 }'
+\`\`\`
+
+---
 
 ### Notes
 - Leads are automatically created with "New Registration" status
