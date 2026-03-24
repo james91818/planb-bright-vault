@@ -686,6 +686,7 @@ export type Database = {
           avatar_url: string | null
           country: string | null
           created_at: string
+          display_id: number
           email: string | null
           email_notifications: boolean | null
           first_deposit_at: string | null
@@ -705,6 +706,7 @@ export type Database = {
           avatar_url?: string | null
           country?: string | null
           created_at?: string
+          display_id?: number
           email?: string | null
           email_notifications?: boolean | null
           first_deposit_at?: string | null
@@ -724,6 +726,7 @@ export type Database = {
           avatar_url?: string | null
           country?: string | null
           created_at?: string
+          display_id?: number
           email?: string | null
           email_notifications?: boolean | null
           first_deposit_at?: string | null

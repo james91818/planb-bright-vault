@@ -12,6 +12,7 @@ import {
 import { ReactNode } from "react";
 
 const DEFAULT_COLUMNS: ColumnDef[] = [
+  { key: "display_id", label: "ID" },
   { key: "name", label: "Name" },
   { key: "phone", label: "Phone" },
   { key: "email", label: "Email" },
@@ -50,6 +51,7 @@ const LeadsTable = ({
 
   const renderCell = (key: string, u: any, note: any): ReactNode => {
     switch (key) {
+      case "display_id": return <span className="font-mono text-xs text-muted-foreground">{u.display_id ?? "—"}</span>;
       case "name": return <p className="font-medium whitespace-nowrap">{u.full_name || "—"}</p>;
       case "phone": return (
         <div className="flex items-center gap-1.5">
