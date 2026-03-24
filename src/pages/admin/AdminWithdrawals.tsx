@@ -23,6 +23,7 @@ const AdminWithdrawals = () => {
   const [loading, setLoading] = useState(true);
   const [reviewItem, setReviewItem] = useState<any>(null);
   const [adminNotes, setAdminNotes] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const fetchData = async () => {
     const { data } = await supabase
@@ -36,28 +37,33 @@ const AdminWithdrawals = () => {
   useEffect(() => { fetchData(); }, []);
 
   const updateWithdrawal = async (id: string, status: string) => {
-    if (status === "approved" && reviewItem) {
-      // Debit wallet
-      const { data: wallet } = await supabase
-        .from("wallets")
-        .select("id, balance")
-        .eq("user_id", reviewItem.user_id)
-        .eq("currency", reviewItem.currency)
-        .maybeSingle();
-      if (wallet) {
-        const newBalance = Number(wallet.balance) - Number(reviewItem.amount);
-        if (newBalance < 0) {
-          toast.error("Insufficient balance");
-          return;
+    if (saving) return;
+    setSaving(true);
+    try {
+      if (status === "approved" && reviewItem) {
+        const { data: wallet } = await supabase
+          .from("wallets")
+          .select("id, balance")
+          .eq("user_id", reviewItem.user_id)
+          .eq("currency", reviewItem.currency)
+          .maybeSingle();
+        if (wallet) {
+          const newBalance = Number(wallet.balance) - Number(reviewItem.amount);
+          if (newBalance < 0) {
+            toast.error("Insufficient balance");
+            return;
+          }
+          await supabase.from("wallets").update({ balance: newBalance }).eq("id", wallet.id);
         }
-        await supabase.from("wallets").update({ balance: newBalance }).eq("id", wallet.id);
       }
+      await supabase.from("withdrawals").update({ status, admin_notes: adminNotes, processed_by: user?.id }).eq("id", id);
+      toast.success(`Withdrawal ${status}`);
+      setReviewItem(null);
+      setAdminNotes("");
+      fetchData();
+    } finally {
+      setSaving(false);
     }
-    await supabase.from("withdrawals").update({ status, admin_notes: adminNotes, processed_by: user?.id }).eq("id", id);
-    toast.success(`Withdrawal ${status}`);
-    setReviewItem(null);
-    setAdminNotes("");
-    fetchData();
   };
 
   return (
@@ -139,8 +145,8 @@ const AdminWithdrawals = () => {
             </div>
           )}
           <DialogFooter className="gap-2">
-            <Button variant="destructive" onClick={() => updateWithdrawal(reviewItem.id, "rejected")}>Reject</Button>
-            <Button onClick={() => updateWithdrawal(reviewItem.id, "approved")}>Approve & Debit</Button>
+            <Button variant="destructive" disabled={saving} onClick={() => updateWithdrawal(reviewItem.id, "rejected")}>{saving ? "Processing..." : "Reject"}</Button>
+            <Button disabled={saving} onClick={() => updateWithdrawal(reviewItem.id, "approved")}>{saving ? "Processing..." : "Approve & Debit"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
