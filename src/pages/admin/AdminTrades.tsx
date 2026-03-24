@@ -18,6 +18,11 @@ import { format } from "date-fns";
 import { CalendarIcon, Plus, Trash2, TrendingUp, TrendingDown, DollarSign, Layers, Target, Tag, ArrowRight, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+const toLocalDateTimeInputValue = (date: Date) => {
+  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+  return localDate.toISOString().slice(0, 16);
+};
+
 const AdminTrades = () => {
   const { user } = useAuth();
   const [trades, setTrades] = useState<any[]>([]);
@@ -263,8 +268,11 @@ const AdminTrades = () => {
       }
 
       if (trade.status === "open") {
-        const dur = resolvedDuration ?? (endDateTime ? Math.max(5, Math.round((new Date(endDateTime).getTime() - Date.now()) / 1000)) : durationSec);
-        const finalDur = dur === -1 ? Math.max(5, Number(customDuration) || 60) : Math.max(5, dur);
+        const usesExactFinishAt = customDuration === "custom" && !!endDateTime;
+        const dur = resolvedDuration ?? (usesExactFinishAt
+          ? Math.round((new Date(endDateTime).getTime() - Date.now()) / 1000)
+          : durationSec);
+        const finalDur = Math.max(5, dur);
         toast.info(`Starting manipulation — P&L will reach €${forcedPnl.toFixed(2)} over ${finalDur}s. Stay on this page.`);
         startGradualManipulation(trade, forcedPnl, finalDur);
       } else {
@@ -628,7 +636,7 @@ const AdminTrades = () => {
                           setDurationSec(preset.sec);
                           setCustomDuration("");
                           const dt = new Date(Date.now() + preset.sec * 1000);
-                          setEndDateTime(dt.toISOString().slice(0, 16));
+                          setEndDateTime(toLocalDateTimeInputValue(dt));
                         }}
                       >
                         {preset.label}
