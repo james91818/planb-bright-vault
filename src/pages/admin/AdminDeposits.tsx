@@ -218,8 +218,8 @@ const AdminDeposits = () => {
             </div>
           )}
           <DialogFooter className="gap-2">
-            <Button variant="destructive" onClick={() => updateDeposit(reviewDeposit.id, "rejected")}>Reject</Button>
-            <Button onClick={() => updateDeposit(reviewDeposit.id, "approved")}>Approve & Credit</Button>
+            <Button variant="destructive" disabled={saving} onClick={() => updateDeposit(reviewDeposit.id, "rejected")}>{saving ? "Processing..." : "Reject"}</Button>
+            <Button disabled={saving} onClick={() => updateDeposit(reviewDeposit.id, "approved")}>{saving ? "Processing..." : "Approve & Credit"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -277,7 +277,7 @@ const AdminDeposits = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setManualOpen(false)}>Cancel</Button>
-            <Button onClick={submitManualDeposit}>Create & Credit</Button>
+            <Button onClick={submitManualDeposit} disabled={saving}>{saving ? "Creating..." : "Create & Credit"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
