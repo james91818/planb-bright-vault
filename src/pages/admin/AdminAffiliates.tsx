@@ -471,8 +471,8 @@ curl -X POST "${leadsUrl}" \\
   );
 };
 
-export default AdminAffiliates;
-                <div className="flex items-center gap-2">
+
+
                   <code className="text-xs bg-muted px-3 py-2 rounded font-mono flex-1 break-all">
                     POST {baseUrl}
                   </code>
