@@ -43,7 +43,7 @@ const AdminTrades = () => {
       const userIds = [...new Set(tradesData.map((t) => t.user_id))];
       const { data: profiles } = await supabase
         .from("profiles")
-        .select("id, full_name, email")
+        .select("id, full_name, email, display_id")
         .in("id", userIds);
 
       const profileMap = Object.fromEntries((profiles ?? []).map((p) => [p.id, p]));
