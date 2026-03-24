@@ -35,6 +35,8 @@ const AdminTrades = () => {
   const [endDateTime, setEndDateTime] = useState("");
   const [livePrices, setLivePrices] = useState<Record<string, number>>({});
   const [manipulating, setManipulating] = useState<Record<string, boolean>>({});
+  const [manipEndTime, setManipEndTime] = useState<Record<string, number>>({});
+  const [countdownTick, setCountdownTick] = useState(0);
 
   const fetchTrades = async () => {
     const { data: tradesData } = await supabase
