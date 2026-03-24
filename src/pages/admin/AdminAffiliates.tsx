@@ -36,6 +36,7 @@ const AdminAffiliates = () => {
   const [editing, setEditing] = useState<Affiliate | null>(null);
   const [form, setForm] = useState({ name: "", email: "", company: "", notes: "" });
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
+  const [saving, setSaving] = useState(false);
 
   const fetchAffiliates = async () => {
     const { data } = await supabase
@@ -62,19 +63,25 @@ const AdminAffiliates = () => {
 
   const handleSave = async () => {
     if (!form.name.trim()) { toast.error("Name is required"); return; }
-    if (editing) {
-      await supabase.from("affiliates").update({
-        name: form.name, email: form.email || null, company: form.company || null, notes: form.notes || null,
-      }).eq("id", editing.id);
-      toast.success("Affiliate updated");
-    } else {
-      await supabase.from("affiliates").insert({
-        name: form.name, email: form.email || null, company: form.company || null, notes: form.notes || null,
-      });
-      toast.success("Affiliate created");
+    if (saving) return;
+    setSaving(true);
+    try {
+      if (editing) {
+        await supabase.from("affiliates").update({
+          name: form.name, email: form.email || null, company: form.company || null, notes: form.notes || null,
+        }).eq("id", editing.id);
+        toast.success("Affiliate updated");
+      } else {
+        await supabase.from("affiliates").insert({
+          name: form.name, email: form.email || null, company: form.company || null, notes: form.notes || null,
+        });
+        toast.success("Affiliate created");
+      }
+      setDialogOpen(false);
+      fetchAffiliates();
+    } finally {
+      setSaving(false);
     }
-    setDialogOpen(false);
-    fetchAffiliates();
   };
 
   const handleDelete = async (id: string) => {
