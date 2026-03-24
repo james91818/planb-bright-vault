@@ -19,6 +19,7 @@ const Staking = () => {
   const [loading, setLoading] = useState(true);
   const [stakeOpen, setStakeOpen] = useState<any>(null);
   const [amount, setAmount] = useState("");
+  const [claiming, setClaiming] = useState<string | null>(null);
 
   const fetchData = async () => {
     if (!user) return;
@@ -40,7 +41,6 @@ const Staking = () => {
       toast.error(`Minimum amount is €${stakeOpen.min_amount}`);
       return;
     }
-    // Debit wallet
     const { data: wallet } = await supabase.from("wallets").select("id, balance").eq("user_id", user.id).eq("currency", "EUR").maybeSingle();
     if (!wallet || Number(wallet.balance) < amtNum) {
       toast.error("Insufficient balance");
@@ -62,6 +62,37 @@ const Staking = () => {
     setStakeOpen(null);
     setAmount("");
     fetchData();
+  };
+
+  const claimStake = async (stakeId: string) => {
+    if (!user || claiming) return;
+    setClaiming(stakeId);
+    try {
+      const stakeItem = stakes.find(s => s.id === stakeId);
+      if (!stakeItem) return;
+
+      const unlocked = new Date(stakeItem.unlocks_at) <= new Date();
+      if (!unlocked) { toast.error("This stake is still locked"); return; }
+      if (stakeItem.claimed) { toast.error("Already claimed"); return; }
+
+      const principal = Number(stakeItem.amount);
+      const rewards = Number(stakeItem.rewards_earned ?? 0);
+      const total = principal + rewards;
+
+      // Credit wallet with principal + rewards
+      const { data: wallet } = await supabase.from("wallets").select("id, balance").eq("user_id", user.id).eq("currency", "EUR").maybeSingle();
+      if (wallet) {
+        await supabase.from("wallets").update({ balance: Number(wallet.balance) + total }).eq("id", wallet.id);
+      }
+
+      // Mark as claimed
+      await supabase.from("user_stakes").update({ claimed: true }).eq("id", stakeId);
+
+      toast.success(`Claimed €${total.toFixed(2)} (€${principal.toFixed(2)} principal + €${rewards.toFixed(2)} rewards)`);
+      fetchData();
+    } finally {
+      setClaiming(null);
+    }
   };
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
@@ -112,6 +143,7 @@ const Staking = () => {
                   <th className="text-left p-3 font-medium text-muted-foreground">Rewards</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Unlocks</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Status</th>
+                  <th className="text-right p-3 font-medium text-muted-foreground">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -134,6 +166,17 @@ const Staking = () => {
                           <Badge className="bg-success/10 text-success border-success/30">Ready to claim</Badge>
                         ) : (
                           <Badge variant="outline" className="gap-1"><Clock className="h-3 w-3" /> Locked</Badge>
+                        )}
+                      </td>
+                      <td className="p-3 text-right">
+                        {!s.claimed && unlocked && (
+                          <Button
+                            size="sm"
+                            onClick={() => claimStake(s.id)}
+                            disabled={claiming === s.id}
+                          >
+                            {claiming === s.id ? "Claiming..." : `Claim €${(Number(s.amount) + reward).toFixed(2)}`}
+                          </Button>
                         )}
                       </td>
                     </tr>
