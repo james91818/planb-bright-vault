@@ -385,9 +385,93 @@ curl -X POST "${leadsUrl}" \\
             <DialogTitle>API Documentation — {selectedAffiliate?.name}</DialogTitle>
           </DialogHeader>
           {selectedAffiliate && (
-            <div className="space-y-4">
+            <div className="space-y-6">
+              {/* Register Lead Endpoint */}
               <div className="space-y-2">
-                <h3 className="font-semibold text-sm">Endpoint</h3>
+                <h3 className="font-semibold text-sm">1. Register a Lead</h3>
+                <div className="flex items-center gap-2">
+                  <code className="text-xs bg-muted px-3 py-2 rounded font-mono flex-1 break-all">
+                    POST {registerUrl}
+                  </code>
+                  <Button variant="outline" size="sm" onClick={() => copyToClipboard(registerUrl)}>
+                    <Copy className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* List Leads Endpoint */}
+              <div className="space-y-2">
+                <h3 className="font-semibold text-sm">2. List Your Leads</h3>
+                <div className="flex items-center gap-2">
+                  <code className="text-xs bg-muted px-3 py-2 rounded font-mono flex-1 break-all">
+                    POST {leadsUrl}
+                  </code>
+                  <Button variant="outline" size="sm" onClick={() => copyToClipboard(leadsUrl)}>
+                    <Copy className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="font-semibold text-sm">Authentication Header</h3>
+                <code className="text-xs bg-muted px-3 py-2 rounded font-mono block">
+                  X-Affiliate-Key: {selectedAffiliate.api_key}
+                </code>
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="font-semibold text-sm">Register — Request Body (JSON)</h3>
+                <pre className="text-xs bg-muted px-3 py-2 rounded font-mono overflow-x-auto">{`{
+  "email": "lead@example.com",        // Required
+  "full_name": "John Doe",            // Required
+  "phone": "+49123456789",            // Optional
+  "country": "Germany",               // Optional
+  "funnel": "landing-page-crypto"     // Optional
+}`}</pre>
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="font-semibold text-sm">List Leads — Request Body (JSON)</h3>
+                <pre className="text-xs bg-muted px-3 py-2 rounded font-mono overflow-x-auto">{`{
+  "from": "2026-01-01",     // Optional - filter start date
+  "to": "2026-12-31",       // Optional - filter end date
+  "limit": 100,             // Optional - max 1000
+  "page": 1                 // Optional - default 1
+}`}</pre>
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="font-semibold text-sm">cURL Examples</h3>
+                <pre className="text-xs bg-muted px-3 py-2 rounded font-mono overflow-x-auto whitespace-pre-wrap">{`# Register a lead
+curl -X POST "${registerUrl}" \\
+  -H "Content-Type: application/json" \\
+  -H "X-Affiliate-Key: ${selectedAffiliate.api_key}" \\
+  -d '{
+    "email": "lead@example.com",
+    "full_name": "John Doe",
+    "phone": "+49123456789",
+    "country": "Germany"
+  }'
+
+# List your leads
+curl -X POST "${leadsUrl}" \\
+  -H "Content-Type: application/json" \\
+  -H "X-Affiliate-Key: ${selectedAffiliate.api_key}" \\
+  -d '{ "from": "2026-03-01", "to": "2026-03-31", "limit": 1000, "page": 1 }'`}</pre>
+              </div>
+
+              <Button variant="outline" size="sm" onClick={() => copyToClipboard(getDocsContent(selectedAffiliate))}>
+                <Copy className="h-3.5 w-3.5 mr-2" /> Copy All Docs
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default AdminAffiliates;
                 <div className="flex items-center gap-2">
                   <code className="text-xs bg-muted px-3 py-2 rounded font-mono flex-1 break-all">
                     POST {baseUrl}
