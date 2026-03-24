@@ -144,6 +144,7 @@ const Staking = () => {
                   <th className="text-left p-3 font-medium text-muted-foreground">Unlocks</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Status</th>
                   <th className="text-right p-3 font-medium text-muted-foreground">Action</th>
+                </tr>
               </thead>
               <tbody>
                 {stakes.map((s) => {
@@ -165,6 +166,17 @@ const Staking = () => {
                           <Badge className="bg-success/10 text-success border-success/30">Ready to claim</Badge>
                         ) : (
                           <Badge variant="outline" className="gap-1"><Clock className="h-3 w-3" /> Locked</Badge>
+                        )}
+                      </td>
+                      <td className="p-3 text-right">
+                        {!s.claimed && unlocked && (
+                          <Button
+                            size="sm"
+                            onClick={() => claimStake(s.id)}
+                            disabled={claiming === s.id}
+                          >
+                            {claiming === s.id ? "Claiming..." : `Claim €${(Number(s.amount) + reward).toFixed(2)}`}
+                          </Button>
                         )}
                       </td>
                     </tr>
