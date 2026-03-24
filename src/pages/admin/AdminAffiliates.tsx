@@ -322,7 +322,7 @@ curl -X POST "${baseUrl}" \\
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSave}>{editing ? "Save" : "Create"}</Button>
+            <Button onClick={handleSave} disabled={saving}>{saving ? "Saving..." : editing ? "Save" : "Create"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

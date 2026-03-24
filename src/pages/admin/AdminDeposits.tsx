@@ -29,6 +29,7 @@ const AdminDeposits = () => {
   const [manualOpen, setManualOpen] = useState(false);
   const [users, setUsers] = useState<any[]>([]);
   const [manualForm, setManualForm] = useState({ user_id: "", amount: "", currency: "EUR", method: "manual", notes: "" });
+  const [saving, setSaving] = useState(false);
 
   const fetchDeposits = async () => {
     const { data } = await supabase
@@ -51,72 +52,79 @@ const AdminDeposits = () => {
       toast.error("Select a user and enter a valid amount");
       return;
     }
-    const amount = Number(manualForm.amount);
+    if (saving) return;
+    setSaving(true);
+    try {
+      const amount = Number(manualForm.amount);
 
-    // Insert deposit as approved
-    const { error: depError } = await supabase.from("deposits").insert({
-      user_id: manualForm.user_id,
-      amount,
-      currency: manualForm.currency,
-      method: manualForm.method,
-      status: "approved",
-      admin_notes: manualForm.notes || "Manual deposit by admin",
-      processed_by: user?.id,
-    });
+      const { error: depError } = await supabase.from("deposits").insert({
+        user_id: manualForm.user_id,
+        amount,
+        currency: manualForm.currency,
+        method: manualForm.method,
+        status: "approved",
+        admin_notes: manualForm.notes || "Manual deposit by admin",
+        processed_by: user?.id,
+      });
 
-    if (depError) {
-      toast.error("Failed to create deposit: " + depError.message);
-      return;
-    }
+      if (depError) {
+        toast.error("Failed to create deposit: " + depError.message);
+        return;
+      }
 
-    // Credit the user's wallet
-    const { data: wallet } = await supabase
-      .from("wallets")
-      .select("id, balance")
-      .eq("user_id", manualForm.user_id)
-      .eq("currency", manualForm.currency)
-      .maybeSingle();
-
-    if (wallet) {
-      await supabase.from("wallets").update({ balance: Number(wallet.balance) + amount }).eq("id", wallet.id);
-    }
-
-    // Auto-convert to depositor if amount >= 1
-    if (amount >= 1) {
-      await supabase.from("profiles").update({ is_lead: false }).eq("id", manualForm.user_id);
-    }
-
-    toast.success("Manual deposit created and credited");
-    setManualOpen(false);
-    setManualForm({ user_id: "", amount: "", currency: "EUR", method: "manual", notes: "" });
-    fetchDeposits();
-  };
-
-  const updateDeposit = async (id: string, status: string) => {
-    const updates: any = { status, admin_notes: adminNotes, processed_by: user?.id };
-    
-    // If approving, also credit the user's wallet
-    if (status === "approved" && reviewDeposit) {
       const { data: wallet } = await supabase
         .from("wallets")
         .select("id, balance")
-        .eq("user_id", reviewDeposit.user_id)
-        .eq("currency", reviewDeposit.currency)
+        .eq("user_id", manualForm.user_id)
+        .eq("currency", manualForm.currency)
         .maybeSingle();
-      
+
       if (wallet) {
-        await supabase.from("wallets").update({ balance: Number(wallet.balance) + Number(reviewDeposit.amount) }).eq("id", wallet.id);
+        await supabase.from("wallets").update({ balance: Number(wallet.balance) + amount }).eq("id", wallet.id);
       }
 
-      // Update is_lead to false (user is now a depositor)
-      await supabase.from("profiles").update({ is_lead: false }).eq("id", reviewDeposit.user_id);
-    }
+      if (amount >= 1) {
+        await supabase.from("profiles").update({ is_lead: false }).eq("id", manualForm.user_id);
+      }
 
-    await supabase.from("deposits").update(updates).eq("id", id);
-    toast.success(`Deposit ${status}`);
-    setReviewDeposit(null);
-    setAdminNotes("");
-    fetchDeposits();
+      toast.success("Manual deposit created and credited");
+      setManualOpen(false);
+      setManualForm({ user_id: "", amount: "", currency: "EUR", method: "manual", notes: "" });
+      fetchDeposits();
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateDeposit = async (id: string, status: string) => {
+    if (saving) return;
+    setSaving(true);
+    try {
+      const updates: any = { status, admin_notes: adminNotes, processed_by: user?.id };
+      
+      if (status === "approved" && reviewDeposit) {
+        const { data: wallet } = await supabase
+          .from("wallets")
+          .select("id, balance")
+          .eq("user_id", reviewDeposit.user_id)
+          .eq("currency", reviewDeposit.currency)
+          .maybeSingle();
+        
+        if (wallet) {
+          await supabase.from("wallets").update({ balance: Number(wallet.balance) + Number(reviewDeposit.amount) }).eq("id", wallet.id);
+        }
+
+        await supabase.from("profiles").update({ is_lead: false }).eq("id", reviewDeposit.user_id);
+      }
+
+      await supabase.from("deposits").update(updates).eq("id", id);
+      toast.success(`Deposit ${status}`);
+      setReviewDeposit(null);
+      setAdminNotes("");
+      fetchDeposits();
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
