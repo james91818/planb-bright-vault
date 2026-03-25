@@ -443,6 +443,30 @@ curl -X POST "${leadsUrl}" \\
               </div>
 
               <div className="space-y-2">
+                <h3 className="font-semibold text-sm">List Leads — Response Example</h3>
+                <pre className="text-xs bg-muted px-3 py-2 rounded font-mono overflow-x-auto">{`{
+  "success": true,
+  "affiliate": "${selectedAffiliate?.name}",
+  "total": 42,
+  "page": 1,
+  "limit": 100,
+  "leads": [
+    {
+      "id": "uuid",
+      "name": "John Doe",
+      "email": "lead@example.com",
+      "phone": "+49123456789",
+      "country": "Germany",
+      "funnel": "landing-page-crypto",
+      "status": "New Registration",
+      "registered_at": "2026-03-20T14:30:00Z",
+      "first_deposit_at": "2026-03-21T10:00:00Z"  // null if no deposit yet
+    }
+  ]
+}`}</pre>
+              </div>
+
+              <div className="space-y-2">
                 <h3 className="font-semibold text-sm">cURL Examples</h3>
                 <pre className="text-xs bg-muted px-3 py-2 rounded font-mono overflow-x-auto whitespace-pre-wrap">{`# Register a lead
 curl -X POST "${registerUrl}" \\
