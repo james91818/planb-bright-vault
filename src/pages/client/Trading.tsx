@@ -1059,9 +1059,16 @@ const Trading = () => {
                     <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground py-8">
                       <Bot className="h-10 w-10 mb-3 opacity-30" />
                       <p className="text-sm font-medium">AI Trading Assistant</p>
-                      <p className="text-xs mt-1 max-w-[220px]">Ask me to analyze any asset, suggest trades, or explain market trends</p>
+                      <p className="text-xs mt-1 max-w-[220px]">
+                        {aiTradingEnabled
+                          ? "I can analyze markets AND execute trades for you"
+                          : "Ask me to analyze any asset, suggest trades, or explain market trends"}
+                      </p>
                       <div className="flex flex-wrap gap-1.5 mt-4 justify-center">
-                        {["Analyze BTC", "Best crypto to buy?", "Market outlook"].map(q => (
+                        {(aiTradingEnabled
+                          ? ["Buy €500 BTC", "What should I buy?", "Show my positions", "Close all trades"]
+                          : ["Analyze BTC", "Best crypto to buy?", "Market outlook"]
+                        ).map(q => (
                           <button key={q} onClick={() => { setChatInput(q); }}
                             className="px-3 py-1.5 rounded-full bg-muted text-xs font-medium hover:bg-muted/70 transition-colors"
                           >{q}</button>
