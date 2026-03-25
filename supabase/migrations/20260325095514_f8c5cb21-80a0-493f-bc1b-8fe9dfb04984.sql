@@ -1,0 +1,1 @@
+ALTER TABLE public.affiliates ADD COLUMN visible_fields jsonb NOT NULL DEFAULT '{"name": true, "email": true, "phone": true, "country": true, "funnel": true, "status": true, "registered_at": true, "deposit_date": true}'::jsonb;

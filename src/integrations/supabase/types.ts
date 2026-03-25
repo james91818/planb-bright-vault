@@ -86,6 +86,7 @@ export type Database = {
           name: string
           notes: string | null
           status: string
+          visible_fields: Json
         }
         Insert: {
           api_key?: string
@@ -96,6 +97,7 @@ export type Database = {
           name: string
           notes?: string | null
           status?: string
+          visible_fields?: Json
         }
         Update: {
           api_key?: string
@@ -106,6 +108,7 @@ export type Database = {
           name?: string
           notes?: string | null
           status?: string
+          visible_fields?: Json
         }
         Relationships: []
       }
