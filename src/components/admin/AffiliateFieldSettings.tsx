@@ -16,7 +16,7 @@ const FIELD_OPTIONS = [
   { key: "funnel", label: "Funnel", description: "Source funnel / campaign" },
   { key: "status", label: "Status", description: "Current lead status" },
   { key: "registered_at", label: "Registration Date", description: "When the lead registered" },
-  { key: "deposit_date", label: "Deposit Date (FTD)", description: "First deposit date (deposit_date, ftd_date, first_deposit_at)" },
+  { key: "deposit_date", label: "First Deposit Date", description: "first_deposit_at — when the lead made their first deposit" },
 ];
 
 interface Props {
