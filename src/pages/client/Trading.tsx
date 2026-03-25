@@ -348,8 +348,7 @@ const Trading = () => {
   const [chatMessages, setChatMessages] = useState<ChatMsg[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
-
-  // Fetch live prices periodically
+  const [aiTradingEnabled, setAiTradingEnabled] = useState(false);
   const refreshPrices = useCallback(async (assetList: Asset[]) => {
     if (!assetList.length) return;
     const symbols = assetList.map(a => a.symbol);
