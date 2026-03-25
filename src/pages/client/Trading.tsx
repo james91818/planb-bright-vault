@@ -11,12 +11,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
   TrendingUp, TrendingDown, Search, CandlestickChart, LineChart as LineChartIcon,
-  ArrowUpRight, ArrowDownRight, Clock, X, ChevronDown, Bot, Send, Loader2, AlertTriangle,
+  ArrowUpRight, ArrowDownRight, Clock, X, ChevronDown, Bot, Send, Loader2, AlertTriangle, ShieldCheck,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 
 // ─── Local crypto icon map ───
 import btcIcon from "@/assets/crypto/btc.png";
@@ -204,7 +205,7 @@ function PriceChart({ candles, chartType }: { candles: ReturnType<typeof generat
   );
 }
 
-// ─── AI Chat stream helper ───
+// ─── AI Chat helpers ───
 const AI_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-trading`;
 
 async function streamAI(
@@ -251,6 +252,29 @@ async function streamAI(
     }
   }
   onDone();
+}
+
+async function callAIWithTools(
+  messages: ChatMsg[],
+  userId: string,
+  tradingEnabled: boolean,
+): Promise<{ content: string; toolExecuted: boolean }> {
+  const resp = await fetch(AI_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+    },
+    body: JSON.stringify({ messages, trading_enabled: tradingEnabled, user_id: userId }),
+  });
+
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({ error: "AI service error" }));
+    throw new Error(err.error || "AI service error");
+  }
+
+  const data = await resp.json();
+  return { content: data.content || "Done.", toolExecuted: !!data.tool_executed };
 }
 
 // ─── Fetch real prices helper ───
@@ -324,8 +348,7 @@ const Trading = () => {
   const [chatMessages, setChatMessages] = useState<ChatMsg[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
-
-  // Fetch live prices periodically
+  const [aiTradingEnabled, setAiTradingEnabled] = useState(false);
   const refreshPrices = useCallback(async (assetList: Asset[]) => {
     if (!assetList.length) return;
     const symbols = assetList.map(a => a.symbol);
@@ -657,24 +680,35 @@ const Trading = () => {
     setChatInput("");
     setAiLoading(true);
 
-    let assistantContent = "";
-    const upsert = (chunk: string) => {
-      assistantContent += chunk;
-      setChatMessages(prev => {
-        const last = prev[prev.length - 1];
-        if (last?.role === "assistant") {
-          return prev.map((m, i) => i === prev.length - 1 ? { ...m, content: assistantContent } : m);
-        }
-        return [...prev, { role: "assistant", content: assistantContent }];
-      });
-    };
-
     try {
-      await streamAI(updatedMessages, upsert, () => setAiLoading(false));
+      if (aiTradingEnabled && user) {
+        // Non-streaming mode with tool calling
+        const result = await callAIWithTools(updatedMessages, user.id, true);
+        setChatMessages(prev => [...prev, { role: "assistant", content: result.content }]);
+        if (result.toolExecuted) {
+          // Refresh trades & balance
+          fetchData();
+          toast.success("AI executed a trade action");
+        }
+      } else {
+        // Streaming mode (analysis only)
+        let assistantContent = "";
+        const upsert = (chunk: string) => {
+          assistantContent += chunk;
+          setChatMessages(prev => {
+            const last = prev[prev.length - 1];
+            if (last?.role === "assistant") {
+              return prev.map((m, i) => i === prev.length - 1 ? { ...m, content: assistantContent } : m);
+            }
+            return [...prev, { role: "assistant", content: assistantContent }];
+          });
+        };
+        await streamAI(updatedMessages, upsert, () => {});
+      }
     } catch (e: any) {
       toast.error(e.message || "AI error");
-      setAiLoading(false);
     }
+    setAiLoading(false);
   };
 
   const filteredAssets = assets.filter(a => {
@@ -1010,6 +1044,13 @@ const Trading = () => {
                   <Bot className="h-5 w-5 text-primary" /> PlanB AI Assistant
                 </CardTitle>
                 <p className="text-xs text-muted-foreground">Ask for trade signals, analysis, or market insights</p>
+                <div className="flex items-center justify-between mt-2 p-2 rounded-lg bg-muted/50 border border-border">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className={`h-4 w-4 ${aiTradingEnabled ? "text-success" : "text-muted-foreground"}`} />
+                    <span className="text-xs font-medium">Allow AI to trade</span>
+                  </div>
+                  <Switch checked={aiTradingEnabled} onCheckedChange={setAiTradingEnabled} />
+                </div>
               </CardHeader>
               <CardContent className="flex-1 flex flex-col p-3 pt-0 min-h-0">
                 {/* Messages */}
@@ -1018,9 +1059,16 @@ const Trading = () => {
                     <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground py-8">
                       <Bot className="h-10 w-10 mb-3 opacity-30" />
                       <p className="text-sm font-medium">AI Trading Assistant</p>
-                      <p className="text-xs mt-1 max-w-[220px]">Ask me to analyze any asset, suggest trades, or explain market trends</p>
+                      <p className="text-xs mt-1 max-w-[220px]">
+                        {aiTradingEnabled
+                          ? "I can analyze markets AND execute trades for you"
+                          : "Ask me to analyze any asset, suggest trades, or explain market trends"}
+                      </p>
                       <div className="flex flex-wrap gap-1.5 mt-4 justify-center">
-                        {["Analyze BTC", "Best crypto to buy?", "Market outlook"].map(q => (
+                        {(aiTradingEnabled
+                          ? ["Buy €500 BTC", "What should I buy?", "Show my positions", "Close all trades"]
+                          : ["Analyze BTC", "Best crypto to buy?", "Market outlook"]
+                        ).map(q => (
                           <button key={q} onClick={() => { setChatInput(q); }}
                             className="px-3 py-1.5 rounded-full bg-muted text-xs font-medium hover:bg-muted/70 transition-colors"
                           >{q}</button>
