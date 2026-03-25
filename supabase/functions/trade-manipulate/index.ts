@@ -76,6 +76,13 @@ Deno.serve(async (req) => {
     const priceStep = (realisticTargetPrice - currentPrice) / steps;
     const pnlStep = forced_pnl / steps;
 
+    // Random walk with mean reversion toward target — creates realistic ups AND downs
+    let walkPrice = currentPrice;
+    let walkPnl = 0;
+    const priceRange = Math.abs(realisticTargetPrice - currentPrice);
+    const volatility = priceRange * 0.4; // 40% of total move as volatility
+    const pnlVolatility = Math.abs(forced_pnl) * 0.35;
+
     for (let step = 1; step <= steps; step++) {
       await new Promise((r) => setTimeout(r, intervalMs));
 
@@ -90,13 +97,34 @@ Deno.serve(async (req) => {
       }
 
       const isLast = step >= steps;
-      const priceNoise = isLast ? 0 : (Math.random() - 0.5) * Math.abs(priceStep) * 0.3;
-      const pnlNoise = isLast ? 0 : (Math.random() - 0.5) * Math.abs(pnlStep) * 0.15;
+      const progress = step / steps; // 0→1
 
-      const newPrice = isLast
-        ? +realisticTargetPrice.toFixed(currentPrice < 1 ? 6 : 2)
-        : +(currentPrice + priceStep * step + priceNoise).toFixed(currentPrice < 1 ? 6 : 2);
-      const newPnl = isLast ? forced_pnl : +(pnlStep * step + pnlNoise).toFixed(2);
+      if (isLast) {
+        walkPrice = realisticTargetPrice;
+        walkPnl = forced_pnl;
+      } else {
+        // Expected position at this progress point (linear interpolation)
+        const expectedPrice = currentPrice + (realisticTargetPrice - currentPrice) * progress;
+        const expectedPnl = forced_pnl * progress;
+
+        // Mean-reversion pull: stronger as we approach the end
+        const pullStrength = 0.3 + 0.5 * progress; // 0.3 early → 0.8 late
+
+        // Random shock — can be negative (pullback) or positive (surge)
+        const priceShock = (Math.random() - 0.5) * 2 * volatility * (1 - progress * 0.7);
+        const pnlShock = (Math.random() - 0.5) * 2 * pnlVolatility * (1 - progress * 0.7);
+
+        // Walk = previous + shock, then pull toward expected
+        walkPrice = walkPrice + priceShock;
+        walkPrice = walkPrice + (expectedPrice - walkPrice) * pullStrength;
+
+        walkPnl = walkPnl + pnlShock;
+        walkPnl = walkPnl + (expectedPnl - walkPnl) * pullStrength;
+      }
+
+      const decimals = currentPrice < 1 ? 6 : 2;
+      const newPrice = +walkPrice.toFixed(decimals);
+      const newPnl = +walkPnl.toFixed(2);
 
       await supabase.from("trades").update({
         current_price: newPrice,
