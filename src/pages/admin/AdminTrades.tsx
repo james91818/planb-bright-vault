@@ -196,7 +196,7 @@ const AdminTrades = () => {
           ? Math.round((new Date(endDateTime).getTime() - Date.now()) / 1000)
           : durationSec);
         const finalDur = Math.max(5, dur);
-        toast.info(`Starting manipulation — P&L will reach €${forcedPnl.toFixed(2)} over ${finalDur}s. Stay on this page.`);
+        toast.info(`Starting manipulation — P&L will reach €${forcedPnl.toFixed(2)} over ${finalDur}s. Runs on server, you can navigate away.`);
         startGradualManipulation(trade, forcedPnl, finalDur);
       } else {
         // Already closed — update P&L directly
