@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
   TrendingUp, TrendingDown, Search, CandlestickChart, LineChart as LineChartIcon,
-  ArrowUpRight, ArrowDownRight, Clock, X, ChevronDown, Bot, Send, Loader2, AlertTriangle,
+  ArrowUpRight, ArrowDownRight, Clock, X, ChevronDown, Bot, Send, Loader2, AlertTriangle, ShieldCheck,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import {
