@@ -1044,6 +1044,13 @@ const Trading = () => {
                   <Bot className="h-5 w-5 text-primary" /> PlanB AI Assistant
                 </CardTitle>
                 <p className="text-xs text-muted-foreground">Ask for trade signals, analysis, or market insights</p>
+                <div className="flex items-center justify-between mt-2 p-2 rounded-lg bg-muted/50 border border-border">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className={`h-4 w-4 ${aiTradingEnabled ? "text-success" : "text-muted-foreground"}`} />
+                    <span className="text-xs font-medium">Allow AI to trade</span>
+                  </div>
+                  <Switch checked={aiTradingEnabled} onCheckedChange={setAiTradingEnabled} />
+                </div>
               </CardHeader>
               <CardContent className="flex-1 flex flex-col p-3 pt-0 min-h-0">
                 {/* Messages */}
