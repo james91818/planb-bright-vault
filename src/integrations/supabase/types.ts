@@ -1092,6 +1092,7 @@ export type Database = {
           closed_at: string | null
           current_price: number | null
           direction: string
+          display_id: number
           entry_price: number
           id: string
           leverage: number
@@ -1109,6 +1110,7 @@ export type Database = {
           closed_at?: string | null
           current_price?: number | null
           direction?: string
+          display_id?: number
           entry_price: number
           id?: string
           leverage?: number
@@ -1126,6 +1128,7 @@ export type Database = {
           closed_at?: string | null
           current_price?: number | null
           direction?: string
+          display_id?: number
           entry_price?: number
           id?: string
           leverage?: number
