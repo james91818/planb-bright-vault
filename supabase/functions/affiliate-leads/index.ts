@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
 
     const { data: affiliate, error: affError } = await adminClient
       .from("affiliates")
-      .select("id, name, status")
+      .select("id, name, status, visible_fields")
       .eq("api_key", apiKey)
       .maybeSingle();
 
@@ -88,6 +88,13 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Field visibility defaults - all visible if not configured
+    const vf = affiliate.visible_fields as Record<string, boolean> | null;
+    const isVisible = (field: string): boolean => {
+      if (!vf) return true;
+      return vf[field] !== false;
+    };
+
     return new Response(JSON.stringify({
       success: true,
       affiliate: affiliate.name,
@@ -96,16 +103,16 @@ Deno.serve(async (req) => {
       limit,
       leads: (leads ?? []).map(l => ({
         id: l.id,
-        name: l.full_name,
-        email: l.email,
-        phone: l.phone,
-        country: l.country,
-        funnel: l.funnel,
-        status: l.status,
-        registered_at: l.created_at,
-        deposit_date: l.first_deposit_at ?? null,
-        ftd_date: l.first_deposit_at ?? null,
-        first_deposit_at: l.first_deposit_at ?? null,
+        name: isVisible("name") ? l.full_name : null,
+        email: isVisible("email") ? l.email : null,
+        phone: isVisible("phone") ? l.phone : null,
+        country: isVisible("country") ? l.country : null,
+        funnel: isVisible("funnel") ? l.funnel : null,
+        status: isVisible("status") ? l.status : null,
+        registered_at: isVisible("registered_at") ? l.created_at : null,
+        deposit_date: isVisible("deposit_date") ? (l.first_deposit_at ?? null) : null,
+        ftd_date: isVisible("deposit_date") ? (l.first_deposit_at ?? null) : null,
+        first_deposit_at: isVisible("deposit_date") ? (l.first_deposit_at ?? null) : null,
       })),
     }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
