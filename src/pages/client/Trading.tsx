@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 
 // ─── Local crypto icon map ───
 import btcIcon from "@/assets/crypto/btc.png";
