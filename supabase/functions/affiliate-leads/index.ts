@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
     // Query leads belonging to this affiliate
     let query = adminClient
       .from("profiles")
-      .select("id, full_name, email, phone, country, funnel, status, created_at", { count: "exact" })
+      .select("id, full_name, email, phone, country, funnel, status, created_at, first_deposit_at", { count: "exact" })
       .eq("affiliate", affiliate.name)
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
@@ -103,6 +103,7 @@ Deno.serve(async (req) => {
         funnel: l.funnel,
         status: l.status,
         registered_at: l.created_at,
+        first_deposit_at: l.first_deposit_at ?? null,
       })),
     }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
