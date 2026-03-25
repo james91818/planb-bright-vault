@@ -680,24 +680,35 @@ const Trading = () => {
     setChatInput("");
     setAiLoading(true);
 
-    let assistantContent = "";
-    const upsert = (chunk: string) => {
-      assistantContent += chunk;
-      setChatMessages(prev => {
-        const last = prev[prev.length - 1];
-        if (last?.role === "assistant") {
-          return prev.map((m, i) => i === prev.length - 1 ? { ...m, content: assistantContent } : m);
-        }
-        return [...prev, { role: "assistant", content: assistantContent }];
-      });
-    };
-
     try {
-      await streamAI(updatedMessages, upsert, () => setAiLoading(false));
+      if (aiTradingEnabled && user) {
+        // Non-streaming mode with tool calling
+        const result = await callAIWithTools(updatedMessages, user.id, true);
+        setChatMessages(prev => [...prev, { role: "assistant", content: result.content }]);
+        if (result.toolExecuted) {
+          // Refresh trades & balance
+          fetchData();
+          toast.success("AI executed a trade action");
+        }
+      } else {
+        // Streaming mode (analysis only)
+        let assistantContent = "";
+        const upsert = (chunk: string) => {
+          assistantContent += chunk;
+          setChatMessages(prev => {
+            const last = prev[prev.length - 1];
+            if (last?.role === "assistant") {
+              return prev.map((m, i) => i === prev.length - 1 ? { ...m, content: assistantContent } : m);
+            }
+            return [...prev, { role: "assistant", content: assistantContent }];
+          });
+        };
+        await streamAI(updatedMessages, upsert, () => {});
+      }
     } catch (e: any) {
       toast.error(e.message || "AI error");
-      setAiLoading(false);
     }
+    setAiLoading(false);
   };
 
   const filteredAssets = assets.filter(a => {
