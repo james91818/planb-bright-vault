@@ -110,8 +110,6 @@ Deno.serve(async (req) => {
         funnel: isVisible("funnel") ? l.funnel : null,
         status: isVisible("status") ? l.status : null,
         registered_at: isVisible("registered_at") ? l.created_at : null,
-        deposit_date: isVisible("deposit_date") ? (l.first_deposit_at ?? null) : null,
-        ftd_date: isVisible("deposit_date") ? (l.first_deposit_at ?? null) : null,
         first_deposit_at: isVisible("deposit_date") ? (l.first_deposit_at ?? null) : null,
       })),
     }), {
