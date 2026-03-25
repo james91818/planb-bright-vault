@@ -367,7 +367,7 @@ const AdminTrades = () => {
           <p className="font-medium text-xs">{t.profiles?.full_name || "—"}</p>
         </td>
         <td className="p-3">
-          <span className="font-mono text-xs text-muted-foreground">{t.profiles?.display_id ?? "—"}</span>
+          <span className="font-mono text-xs text-muted-foreground">{t.display_id ?? "—"}</span>
         </td>
         <td className="p-3 font-medium">{symbol ?? "—"}</td>
         <td className="p-3">
