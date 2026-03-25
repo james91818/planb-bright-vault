@@ -103,6 +103,8 @@ Deno.serve(async (req) => {
         funnel: l.funnel,
         status: l.status,
         registered_at: l.created_at,
+        deposit_date: l.first_deposit_at ?? null,
+        ftd_date: l.first_deposit_at ?? null,
         first_deposit_at: l.first_deposit_at ?? null,
       })),
     }), {
