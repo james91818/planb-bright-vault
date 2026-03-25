@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Plus, Copy, Trash2, Pencil, Eye, EyeOff, FileText, Globe } from "lucide-react";
+import { Plus, Copy, Trash2, Pencil, Eye, EyeOff, FileText, Globe, Settings } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
@@ -15,6 +15,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
+import AffiliateFieldSettings from "@/components/admin/AffiliateFieldSettings";
 
 interface Affiliate {
   id: string;
@@ -25,6 +26,7 @@ interface Affiliate {
   status: string;
   created_at: string;
   notes: string | null;
+  visible_fields?: Record<string, boolean>;
 }
 
 const AdminAffiliates = () => {
@@ -37,6 +39,8 @@ const AdminAffiliates = () => {
   const [form, setForm] = useState({ name: "", email: "", company: "", notes: "" });
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
+  const [settingsAffiliate, setSettingsAffiliate] = useState<Affiliate | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const fetchAffiliates = async () => {
     const { data } = await supabase
@@ -316,6 +320,9 @@ curl -X POST "${leadsUrl}" \\
                             <DropdownMenuItem onClick={() => openEdit(a)}>
                               <Pencil className="h-4 w-4 mr-2" /> Edit
                             </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => { setSettingsAffiliate(a); setSettingsOpen(true); }}>
+                              <Settings className="h-4 w-4 mr-2" /> Field Settings
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => openDocs(a)}>
                               <FileText className="h-4 w-4 mr-2" /> API Docs
                             </DropdownMenuItem>
@@ -498,6 +505,14 @@ curl -X POST "${leadsUrl}" \\
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Field Settings Dialog */}
+      <AffiliateFieldSettings
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        affiliate={settingsAffiliate}
+        onSaved={fetchAffiliates}
+      />
     </div>
   );
 };
