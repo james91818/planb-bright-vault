@@ -205,7 +205,7 @@ function PriceChart({ candles, chartType }: { candles: ReturnType<typeof generat
   );
 }
 
-// ─── AI Chat stream helper ───
+// ─── AI Chat helpers ───
 const AI_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-trading`;
 
 async function streamAI(
@@ -252,6 +252,29 @@ async function streamAI(
     }
   }
   onDone();
+}
+
+async function callAIWithTools(
+  messages: ChatMsg[],
+  userId: string,
+  tradingEnabled: boolean,
+): Promise<{ content: string; toolExecuted: boolean }> {
+  const resp = await fetch(AI_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+    },
+    body: JSON.stringify({ messages, trading_enabled: tradingEnabled, user_id: userId }),
+  });
+
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({ error: "AI service error" }));
+    throw new Error(err.error || "AI service error");
+  }
+
+  const data = await resp.json();
+  return { content: data.content || "Done.", toolExecuted: !!data.tool_executed };
 }
 
 // ─── Fetch real prices helper ───
