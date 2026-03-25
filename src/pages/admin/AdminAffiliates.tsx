@@ -215,7 +215,8 @@ POST ${leadsUrl}
       "country": "Germany",
       "funnel": "landing-page-crypto",
       "status": "New Registration",
-      "registered_at": "2026-03-20T14:30:00Z"
+      "registered_at": "2026-03-20T14:30:00Z",
+      "first_deposit_at": "2026-03-21T10:00:00Z"
     }
   ]
 }
@@ -235,6 +236,7 @@ curl -X POST "${leadsUrl}" \\
 - Leads are automatically created with "New Registration" status
 - The affiliate name is tracked on each lead for attribution
 - Duplicate emails will return an error
+- \`first_deposit_at\` is \`null\` until the client makes their first approved deposit
 `;
 
   return (
